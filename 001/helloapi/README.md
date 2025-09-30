@@ -19,7 +19,6 @@
 
 go build -o myapp
 
-
 ### Запуск приложения (будет слушать порт 8080 по умолчанию):
 
 ./myapp
@@ -27,7 +26,6 @@ go build -o myapp
 ### Если нужно задать порт, например 8081:
 
 $env:APP_PORT="8081"
-
 
 ### Примеры запросов:
 
@@ -40,7 +38,6 @@ curl http://localhost:8080/hello
 
 curl http://localhost:8080/user
 
-
 Ответ:
 
 {
@@ -51,7 +48,6 @@ curl http://localhost:8080/user
 #### Проверка состояния сервиса:
 
 curl http://localhost:8080/health
-
 
 Ответ:
 
