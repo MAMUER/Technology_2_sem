@@ -50,29 +50,29 @@ Hello, Go project structure!
 ```
 C:.
 └───myapp
-    │   go.mod
-    │   README.md
+    ├───go.mod
+    ├───README.md
     │
     ├───bin
-    │       myapp.exe
+    │   └───myapp.exe
     │
     ├───cmd
     │   └───myapp
-    │           main.go
+    │       └───main.go
     │
     ├───internal
     │   └───app
-    │       │   app.go
+    │       │───app.go
     │       │
     │       ├───handlers
-    │       │       ping.go
+    │       │   └───ping.go
     │       │
     │       └───server
     ├───PR2
     │
     └───utils
-            httpjson.go
-            logger.go
+        ├───httpjson.go
+        └───logger.go
 ```
 
 ## Примечания по конфигурации
@@ -87,36 +87,45 @@ C:.
 
 Проверка наличия ПО
 
-![фото1](./PR1/Screenshot_1.png)
+![фото1](./PR2/Screenshot_3.png)
 
-Переход в рабочую папку, инициализация модуля, подтягивание пакета для генерации UUID и запуск сервиса
+Инициализация проекта
 
-![фото2](./PR1/Screenshot_2.png)
+![фото2](./PR2/Screenshot_5.png)
+
+Проверка работы ручек в браузере (вывод текста и /ping)
+
+![фото2](./PR2/Screenshot_1.png)
+![фото3](./PR2/Screenshot_2.png)
+
+Логи запросов в терминале 
+
+![фото4](./PR2/Screenshot_5.png)
 
 Проверка эндпоинта "Hello, World!"
 
-![фото3](./PR1/Screenshot_3.png)
+![фото3](./PR2/Screenshot_3.png)
 
 Проверка эндпоинта "Пользователь"
 
-![фото4](./PR1/Screenshot_4.png)
+![фото4](./PR2/Screenshot_4.png)
 
 Проверки форматирования кода и базовая проверка
 
-![фото5](./PR1/Screenshot_5.png)
+![фото5](./PR2/Screenshot_5.png)
 
 Изменение порта и запуск сервера на новом порте
 
-![фото6](./PR1/Screenshot_6.png)
+![фото6](./PR2/Screenshot_6.png)
 
 Проверка эндпоинта "Hello, World!" на новом порте
 
-![фото7](./PR1/Screenshot_7.png)
+![фото7](./PR2/Screenshot_7.png)
 
 Проверка эндпоинта "Состояние сервера" на новом порте
 
-![фото8](./PR1/Screenshot_8.png)
+![фото8](./PR2/Screenshot_8.png)
 
 Структура проекта
 
-![фото9](./PR1/Screenshot_9.png)
+![фото9](./PR2/Screenshot_9.png)
