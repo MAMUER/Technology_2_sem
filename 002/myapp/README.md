@@ -104,15 +104,15 @@ C:.
 
 Проверка через curl
 
-![фото4](./PR2/Screenshot_7.png)
+![фото4](./PR2/Screenshot_8.png)
 
 Проверка через curl (/ping)
 
-![фото3](./PR2/Screenshot_8.png)
+![фото3](./PR2/Screenshot_7.png)
 
 Проверка через curl (/fail)
 
-![фото4](./PR2/Screenshot_9.png)
+![фото4](./PR2/Screenshot_12.png)
 
 Сборка бинарника и его запуск
 
@@ -120,6 +120,7 @@ C:.
 
 Проверка через curl (Запросы через GitBush)
 
+![фото8](./PR2/Screenshot_9.png)
 ![фото8](./PR2/Screenshot_10.png)
 
 Структура проекта
