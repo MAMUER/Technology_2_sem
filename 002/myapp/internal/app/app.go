@@ -54,6 +54,11 @@ func Run() {
 		utils.LogError("server error: " + err.Error())
 	}*/
 
+	mux.HandleFunc("/fail", func(w http.ResponseWriter, r *http.Request) {
+		utils.LogRequest(r)
+		utils.WriteErr(w, http.StatusBadRequest, "bad_request_example")
+	})
+
 	utils.LogInfo("Server is starting on :8080")
 	if err := http.ListenAndServe(":8080", handler); err != nil {
 		utils.LogError("server error: " + err.Error())
