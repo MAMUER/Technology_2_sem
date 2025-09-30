@@ -61,10 +61,10 @@ curl http://localhost:8080/health
 ```
  C:.
  └───helloapi
-    │   go.mod
-    │   go.sum
-    │   helloapi.exe
-    │   README.md
+    ├───go.mod
+    ├───go.sum
+    ├───helloapi.exe
+    ├───README.md
     │
     ├───cmd
     │   └───server
