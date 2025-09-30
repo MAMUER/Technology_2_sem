@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/MAMUER/myapp/internal/app/handlers"
 	"github.com/MAMUER/myapp/utils"
 )
 
@@ -14,8 +15,21 @@ type pingResp struct {
 	Time   string `json:"time"`
 }
 
+func withRequestID(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Header.Get("X-Request-Id")
+		if id == "" {
+			id = utils.NewID16()
+		}
+		w.Header().Set("X-Request-Id", id)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func Run() {
 	mux := http.NewServeMux()
+
+	mux.HandleFunc("/ping", handlers.Ping)
 
 	// Корневой маршрут
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -33,34 +47,10 @@ func Run() {
 			Time:   time.Now().UTC().Format(time.RFC3339),
 		})
 	})
+	handler := withRequestID(mux)
 
 	utils.LogInfo("Server is starting on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", handler); err != nil {
 		utils.LogError("server error: " + err.Error())
 	}
-}
-utils/logger.go
-package utils
-
-import (
-	"fmt"
-	"net/http"
-	"time"
-)
-
-func LogRequest(r *http.Request) {
-	fmt.Printf("[%s] %s %s %s\n",
-		time.Now().Format(time.RFC3339),
-		r.RemoteAddr,
-		r.Method,
-		r.URL.Path,
-	)
-}
-
-func LogInfo(msg string) {
-	fmt.Printf("[INFO] %s %s\n", time.Now().Format(time.RFC3339), msg)
-}
-
-func LogError(msg string) {
-	fmt.Printf("[ERROR] %s %s\n", time.Now().Format(time.RFC3339), msg)
 }

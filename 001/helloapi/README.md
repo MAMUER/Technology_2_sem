@@ -62,13 +62,20 @@ curl http://localhost:8080/health
 
 
 ## Структура проекта
-
-/project-root
-├── main.go # Главный файл с HTTP сервером
-├── go.mod # Модульные зависимости
-├── README.md # Документация проекта
-└── PR1 # Папка со скриншотами
-
+```
+ C:.
+ └───helloapi
+    │   go.mod
+    │   go.sum
+    │   helloapi.exe
+    │   README.md
+    │
+    ├───cmd
+    │   └───server
+    │           main.go
+    │
+    └───PR1
+```
 ## Примечания по конфигурации
 
 - Переменная окружения `APP_PORT` задаёт порт для запуска HTTP сервера.
