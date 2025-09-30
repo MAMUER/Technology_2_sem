@@ -107,7 +107,7 @@ C:.
 
 ![фото4](./PR2/Screenshot_1.png)
 ![фото5](./PR2/Screenshot_2.png)
-![фото5](./PR2/Screenshot_5.png)
+![фото5](./PR2/Screenshot_14.png)
 
 Проверка через curl (/)
 
