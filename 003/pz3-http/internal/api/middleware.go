@@ -1,23 +1,26 @@
-package handlers
+package api
 
 import (
-	"encoding/json"
+	"log"
 	"net/http"
 	"time"
-
-	"github.com/MAMUER/myapp/utils"
 )
 
-type pingResp struct {
-	Status string `json:"status"`
-	Time   string `json:"time"`
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
 }
 
-func Ping(w http.ResponseWriter, r *http.Request) {
-	utils.LogRequest(r)
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	_ = json.NewEncoder(w).Encode(pingResp{
-		Status: "ok",
-		Time:   time.Now().UTC().Format(time.RFC3339),
+func (sr *statusRecorder) WriteHeader(code int) {
+	sr.status = code
+	sr.ResponseWriter.WriteHeader(code)
+}
+
+func Logging(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		rec := &statusRecorder{ResponseWriter: w, status: 200}
+		next.ServeHTTP(rec, r)
+		log.Printf("%s %s %d %v", r.Method, r.URL.Path, rec.status, time.Since(start))
 	})
 }

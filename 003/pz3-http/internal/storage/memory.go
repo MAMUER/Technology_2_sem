@@ -1,66 +1,53 @@
-package app
+package storage
 
 import (
-	/*"encoding/json"
-	"time"*/
-	"fmt"
-	"net/http"
-
-	"github.com/MAMUER/myapp/internal/app/handlers"
-	"github.com/MAMUER/myapp/utils"
+	"errors"
+	"sync"
 )
 
-/*type pingResp struct {
-	Status string `json:"status"`
-	Time   string `json:"time"`
-}*/
-
-func withRequestID(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Header.Get("X-Request-Id")
-		if id == "" {
-			id = utils.NewID16()
-		}
-		w.Header().Set("X-Request-Id", id)
-		next.ServeHTTP(w, r)
-	})
+type Task struct {
+	ID    int64  `json:"id"`
+	Title string `json:"title"`
+	Done  bool   `json:"done"`
 }
 
-func Run() {
-	mux := http.NewServeMux()
+type MemoryStore struct {
+	mu    sync.RWMutex
+	auto  int64
+	tasks map[int64]*Task
+}
 
-	mux.HandleFunc("/ping", handlers.Ping)
-
-	mux.HandleFunc("/fail", func(w http.ResponseWriter, r *http.Request) {
-		utils.LogRequest(r)
-		utils.WriteErr(w, http.StatusBadRequest, "bad_request_example")
-	})
-
-	// Корневой маршрут
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		utils.LogRequest(r)
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		fmt.Fprintln(w, "Hello, Go project structure!")
-	})
-
-	// Пример JSON-ручки: /ping
-	/*mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		utils.LogRequest(r)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		_ = json.NewEncoder(w).Encode(pingResp{
-			Status: "ok",
-			Time:   time.Now().UTC().Format(time.RFC3339),
-		})
-	})*/
-	handler := withRequestID(mux)
-
-	/*utils.LogInfo("Server is starting on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
-		utils.LogError("server error: " + err.Error())
-	}*/
-
-	utils.LogInfo("Server is starting on :8080")
-	if err := http.ListenAndServe(":8080", handler); err != nil {
-		utils.LogError("server error: " + err.Error())
+func NewMemoryStore() *MemoryStore {
+	return &MemoryStore{
+		tasks: make(map[int64]*Task),
 	}
+}
+
+func (s *MemoryStore) Create(title string) *Task {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.auto++
+	t := &Task{ID: s.auto, Title: title, Done: false}
+	s.tasks[t.ID] = t
+	return t
+}
+
+func (s *MemoryStore) Get(id int64) (*Task, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	t, ok := s.tasks[id]
+	if !ok {
+		return nil, errors.New("not found")
+	}
+	return t, nil
+}
+
+func (s *MemoryStore) List() []*Task {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]*Task, 0, len(s.tasks))
+	for _, t := range s.tasks {
+		out = append(out, t)
+	}
+	return out
 }

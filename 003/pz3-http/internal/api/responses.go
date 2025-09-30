@@ -1,23 +1,28 @@
-package handlers
+package api
 
 import (
 	"encoding/json"
 	"net/http"
-	"time"
-
-	"github.com/MAMUER/myapp/utils"
 )
 
-type pingResp struct {
-	Status string `json:"status"`
-	Time   string `json:"time"`
+type ErrorResponse struct {
+	Error string `json:"error"`
 }
 
-func Ping(w http.ResponseWriter, r *http.Request) {
-	utils.LogRequest(r)
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	_ = json.NewEncoder(w).Encode(pingResp{
-		Status: "ok",
-		Time:   time.Now().UTC().Format(time.RFC3339),
-	})
+func JSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(v)
+}
+
+func BadRequest(w http.ResponseWriter, msg string) {
+	JSON(w, http.StatusBadRequest, ErrorResponse{Error: msg})
+}
+
+func NotFound(w http.ResponseWriter, msg string) {
+	JSON(w, http.StatusNotFound, ErrorResponse{Error: msg})
+}
+
+func Internal(w http.ResponseWriter, msg string) {
+	JSON(w, http.StatusInternalServerError, ErrorResponse{Error: msg})
 }
