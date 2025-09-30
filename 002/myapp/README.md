@@ -95,34 +95,34 @@ C:.
 
 Запуск сервера и логи во время работы
 
-![фото2](./PR2/Screenshot_5.png)
+![фото3](./PR2/Screenshot_5.png)
 
 Проверка работы ручек в браузере (вывод текста и /ping)
 
-![фото3](./PR2/Screenshot_1.png)
-![фото3](./PR2/Screenshot_2.png)
+![фото4](./PR2/Screenshot_1.png)
+![фото5](./PR2/Screenshot_2.png)
 
-Проверка через curl
+Проверка через curl (/)
 
-![фото4](./PR2/Screenshot_8.png)
+![фото6](./PR2/Screenshot_8.png)
 
 Проверка через curl (/ping)
 
-![фото3](./PR2/Screenshot_7.png)
+![фото7](./PR2/Screenshot_7.png)
 
 Проверка через curl (/fail)
 
-![фото4](./PR2/Screenshot_12.png)
+![фото8](./PR2/Screenshot_12.png)
 
 Сборка бинарника и его запуск
 
-![фото5](./PR2/Screenshot_6.png)
+![фото9](./PR2/Screenshot_6.png)
 
 Проверка через curl (Запросы через GitBush)
 
-![фото8](./PR2/Screenshot_9.png)
-![фото8](./PR2/Screenshot_10.png)
+![фото10](./PR2/Screenshot_9.png)
+![фото11](./PR2/Screenshot_10.png)
 
 Структура проекта
 
-![фото9](./PR2/Screenshot_11.png)
+![фото12](./PR2/Screenshot_11.png)
