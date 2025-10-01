@@ -109,44 +109,36 @@ C:.
 
 ## Скриншоты работы проекта
 
-Проверка наличия ПО
-
-![фото1](./PR3/Screenshot_4.png)
-
 Инициализация проекта
 
-![фото2](./PR3/Screenshot_4.png)
+![фото2](./PR3/Screenshot_7.png)
 
 Запуск сервера и логи во время работы
 
-![фото3](./PR3/Screenshot_13.png)
+![фото3](./PR3/Screenshot_6.png)
 
-Проверка работы ручек в браузере (вывод текста, /ping, /fail)
+Проверка через curl (/health)
 
-![фото4](./PR3/Screenshot_1.png)
-![фото5](./PR3/Screenshot_2.png)
-![фото5](./PR3/Screenshot_14.png)
+![фото6](./PR3/Screenshot_1.png)
 
-Проверка через curl (/)
+Создание задачи через curl (/tasks)
 
-![фото6](./PR3/Screenshot_8.png)
+![фото7](./PR3/Screenshot_3.png)
 
-Проверка через curl (/ping)
+Проверка через curl (/tasks)
 
-![фото7](./PR3/Screenshot_7.png)
+![фото8](./PR3/Screenshot_4.png)
 
-Проверка через curl (/fail)
+Проверка через curl (/tasks/{id})
 
-![фото8](./PR3/Screenshot_12.png)
-
-Сборка бинарника и его запуск
-
-![фото9](./PR3/Screenshot_6.png)
+![фото1](./PR3/Screenshot_8.png)
 
 Проверка через curl (Запросы через GitBush)
 
-![фото10](./PR3/Screenshot_9.png)
-![фото11](./PR3/Screenshot_10.png)
+![фото10](./PR3/Screenshot_2.png)
+![фото11](./PR3/Screenshot_5.png)
+![фото13](./PR3/Screenshot_9.png)
+![фото14](./PR3/Screenshot_10.png)
 
 Структура проекта
 
