@@ -49,6 +49,12 @@ func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req createTaskRequest
+
+	if len(req.Title) < 1 || len(req.Title) > 140 {
+		JSON(w, http.StatusUnprocessableEntity, ErrorResponse{Error: "title length must be between 1 and 140 characters"})
+		return
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		BadRequest(w, "invalid json: "+err.Error())
 		return
@@ -88,3 +94,47 @@ func (h *Handlers) GetTask(w http.ResponseWriter, r *http.Request) {
 	}
 	JSON(w, http.StatusOK, t)
 }
+
+// PATCH /tasks/{id}
+func (h *Handlers) PatchTask(w http.ResponseWriter, r *http.Request) {
+    parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+    if len(parts) != 2 {
+        NotFound(w, "invalid path")
+        return
+    }
+    id, err := strconv.ParseInt(parts[1], 10, 64)
+    if err != nil {
+        BadRequest(w, "invalid id")
+        return
+    }
+
+    t, err := h.Store.MarkDone(id)
+    if err != nil {
+        NotFound(w, "task not found")
+        return
+    }
+    JSON(w, http.StatusOK, t)
+}
+
+
+// DELETE /tasks/{id}
+func (h *Handlers) DeleteTask(w http.ResponseWriter, r *http.Request) {
+    parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+    if len(parts) != 2 {
+        NotFound(w, "invalid path")
+        return
+    }
+    id, err := strconv.ParseInt(parts[1], 10, 64)
+    if err != nil {
+        BadRequest(w, "invalid id")
+        return
+    }
+
+    err = h.Store.Delete(id)
+    if err != nil {
+        NotFound(w, "task not found")
+        return
+    }
+    w.WriteHeader(http.StatusNoContent)
+}
+
