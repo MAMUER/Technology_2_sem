@@ -5,131 +5,149 @@
 
 ### Требования
 
-Проект представляет собой HTTP-сервер на языке Go (необходима версия 1.21 и выше) с несколькими REST-эндпоинтами:
+Проект представляет собой простой HTTP-сервер на языке Go (необходима версия 1.21 и выше) с REST-API:
 
-- `/` – возвращает простой текстовый ответ.
-- `/ping` – возвращает JSON с информацией о состоянии сервера.
-- `/fail` – возвращает JSON с ошибкой и HTTP статусом 400 (Bad Request).
+Основные эндпоинты:
 
-## Команды запуска/сборки
+- `GET /health` – проверка состояния сервера.
+- `GET /tasks` – получение списка всех задач.
+- `POST /tasks` – создание новой задачи.
+- `GET /tasks/{id}` – получение конкретной задачи по ID.
+
+## Команды запуска и сборки
 
 ### Сборка приложения:
 
-go build -o bin\myapp.exe ./cmd/myapp
+go build -o bin\server.exe ./cmd/server
 
 ### Запуск приложения:
 
-.\bin\myapp.exe
+.\bin\server.exe
 
 ### Примеры запросов:
 
 #### Проверка состояния сервера:
 
-curl http://localhost:8080/ping
+curl http://localhost:8080/health
 
 Ответ:
 
 {
-"status": "ok",
-"time":"2025-09-30T16:55:17Z"
+  "status": "ok"
 }
 
-#### Вывод текста:
+#### Получение списка задач:
 
-curl http://localhost:8080/
+curl http://localhost:8080/tasks
 
 Ответ:
 
-Hello, Go project structure!
+[{
+  "id":1,"title":"TEXT","done":false},
+  {"id":2,"title":"TEXT","done":false},
+...}]
 
-#### Ошибка:
+#### Создание новой задачи:
 
-curl http://localhost:8080/fail
+curl -Method POST http://localhost:8080/tasks `
+  -Headers @{"Content-Type"="application/json"} `
+  -Body '{"title":"TEXT"}'
 
 Ответ:
 
 {
-  "error": "bad_request_example"
+  "id":1,"title":"TEXT","done":false
+}
+
+#### Получение задачи по ID:
+
+curl http://localhost:8080/tasks/1
+
+Ответ:
+
+{
+  "id":1,"title":"TEXT","done":false
 }
 
 ## Структура проекта
 ```
 C:.
-└───myapp
+└───pz3-http
     ├───go.mod
     ├───README.md
     │
     ├───bin
-    │   └───myapp.exe
+    │   ├───http.exe
+    │   └───server.exe
     │
     ├───cmd
-    │   └───myapp
+    │   └───server
     │       └───main.go
     │
     ├───internal
-    │   └───app
-    │       │───app.go
-    │       │
-    │       ├───handlers
-    │       │   └───ping.go
-    │       │
-    │       └───server
-    ├───PR2
+    │   ├───api
+    │   │   ├───handlers.go
+    │   │   ├───middleware.go
+    │   │   └───responses.go
+    │   │
+    │   └───storage
+    │       └───memory.go
     │
-    └───utils
-        ├───httpjson.go
-        └───logger.go
+    └───PR3
 ```
 
 ## Примечания по конфигурации
 
+- Сервер использует память для хранения данных (in-memory storage) и логирует все входящие запросы.
+
 - По умолчанию сервер слушает порт 8080.
 
-- Порт можно изменить в параметре http.ListenAndServe(":8080", handler) в файле запуска.
+- Порт можно изменить в параметре http.ListenAndServe(":8080", handler) в main.go.
 
-- В проекте используется заголовок HTTP X-Request-Id для передачи уникального ID запроса. Если заголовок не указан, он создается автоматически.
+- Используется middleware для логирования запросов
+
 
 ## Скриншоты работы проекта
 
 Проверка наличия ПО
 
-![фото1](./PR2/Screenshot_3.png)
+![фото1](./PR3/Screenshot_4.png)
 
 Инициализация проекта
 
-![фото2](./PR2/Screenshot_4.png)
+![фото2](./PR3/Screenshot_4.png)
 
 Запуск сервера и логи во время работы
 
-![фото3](./PR2/Screenshot_13.png)
+![фото3](./PR3/Screenshot_13.png)
 
 Проверка работы ручек в браузере (вывод текста, /ping, /fail)
 
-![фото4](./PR2/Screenshot_1.png)
-![фото5](./PR2/Screenshot_2.png)
-![фото5](./PR2/Screenshot_14.png)
+![фото4](./PR3/Screenshot_1.png)
+![фото5](./PR3/Screenshot_2.png)
+![фото5](./PR3/Screenshot_14.png)
 
 Проверка через curl (/)
 
-![фото6](./PR2/Screenshot_8.png)
+![фото6](./PR3/Screenshot_8.png)
 
 Проверка через curl (/ping)
 
-![фото7](./PR2/Screenshot_7.png)
+![фото7](./PR3/Screenshot_7.png)
 
 Проверка через curl (/fail)
 
-![фото8](./PR2/Screenshot_12.png)
+![фото8](./PR3/Screenshot_12.png)
 
 Сборка бинарника и его запуск
 
-![фото9](./PR2/Screenshot_6.png)
+![фото9](./PR3/Screenshot_6.png)
 
 Проверка через curl (Запросы через GitBush)
 
-![фото10](./PR2/Screenshot_9.png)
-![фото11](./PR2/Screenshot_10.png)
+![фото10](./PR3/Screenshot_9.png)
+![фото11](./PR3/Screenshot_10.png)
 
 Структура проекта
 
-![фото12](./PR2/Screenshot_11.png)
+![фото12](./PR3/Screenshot_11.png)
