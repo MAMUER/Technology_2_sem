@@ -136,6 +136,7 @@ C:.
 Проверка через curl (Запросы через GitBush)
 
 ![фото10](./PR3/Screenshot_2.png)
+
 ![фото11](./PR3/Screenshot_5.png)
 ![фото13](./PR3/Screenshot_9.png)
 ![фото14](./PR3/Screenshot_10.png)
