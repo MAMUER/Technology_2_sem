@@ -142,13 +142,16 @@ C:.
 
 ## Скриншоты работы проекта
 
-Проверка наличия ПО (установка доп. ПО)
+Проверка наличия ПО (+ установка доп. ПО)
 
 ![фото1](./PR3/Screenshot_7.png)
+![фото25](./PR3/Screenshot_17.png)
+![фото26](./PR3/Screenshot_19.png)
 
-Инициализация проекта (плюс сборка и проверка)
+Инициализация проекта (+ сборка и проверка)
 
 ![фото2](./PR3/Screenshot_7.png)
+![фото27](./PR3/Screenshot_18.png)
 
 Запуск сервера и логи во время работы
 
@@ -164,7 +167,7 @@ C:.
 
 Проверка через curl (/tasks)
 
-![фото6](./PR3/Screenshot_4.png)
+![фото6](./PR3/Screenshot_20.png)
 
 Проверка через curl (/tasks/{id})
 
@@ -172,35 +175,35 @@ C:.
 
 Проверка через curl (/tasks?q=TEXT)
 
-![фото8](./PR3/Screenshot_8.png)
+![фото8](./PR3/Screenshot_21.png)
 
 Проверка через curl (/tasks/{id} -DELETE)
 
-![фото9](./PR3/Screenshot_8.png)
+![фото9](./PR3/Screenshot_22.png)
 
 Проверка через curl (/tasks/{id} -PATCH)
 
-![фото10](./PR3/Screenshot_8.png)
+![фото10](./PR3/Screenshot_23.png)
 
 Проверка через Invoke-RestMethod
 
-![фото11](./PR3/Screenshot_8.png)
-![фото12](./PR3/Screenshot_8.png)
-![фото13](./PR3/Screenshot_8.png)
-![фото14](./PR3/Screenshot_8.png)
-![фото15](./PR3/Screenshot_8.png)
-![фото16](./PR3/Screenshot_8.png)
-![фото17](./PR3/Screenshot_8.png)
+![фото11](./PR3/Screenshot_12.png)
+![фото12](./PR3/Screenshot_13.png)
+![фото13](./PR3/Screenshot_14.png)
+![фото14](./PR3/Screenshot_15.png)
 
 Проверка через curl (Запросы через GitBush)
 
-![фото18](./PR3/Screenshot_5.png)
-![фото19](./PR3/Screenshot_9.png)
-![фото20](./PR3/Screenshot_10.png)
-![фото21](./PR3/Screenshot_2.png)
-![фото22](./PR3/Screenshot_2.png)
-![фото23](./PR3/Screenshot_2.png)
-![фото24](./PR3/Screenshot_2.png)
+![фото15](./PR3/Screenshot_9.png)
+![фото16](./PR3/Screenshot_5.png)
+![фото17](./PR3/Screenshot_10.png)
+![фото18](./PR3/Screenshot_11.png)
+![фото19](./PR3/Screenshot_0.png)
+![фото20](./PR3/Screenshot_00.png)
+![фото21](./PR3/Screenshot_0.png)
+![фото22](./PR3/Screenshot_0.png)
+![фото23](./PR3/Screenshot_0.png)
+![фото24](./PR3/Screenshot_0.png)
 
 Структура проекта
 
