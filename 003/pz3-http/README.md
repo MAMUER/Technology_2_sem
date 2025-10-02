@@ -105,7 +105,7 @@ C:.
     ├───go.mod
     ├───README.md
     ├───requests.md
-    ├───Makefile.txt
+    ├───Makefile
     │
     ├───bin
     │   └───server.exe
@@ -135,8 +135,6 @@ C:.
 - По умолчанию сервер слушает порт 8080.
 
 - Переменная окружения `PORT` задаёт порт для запуска HTTP сервера.
-
-- Порт можно изменить в параметре http.ListenAndServe(":8080", handler) в main.go.
 
 - Используется middleware для логирования запросов
 
@@ -198,13 +196,8 @@ C:.
 ![фото16](./PR3/Screenshot_5.png)
 ![фото17](./PR3/Screenshot_10.png)
 ![фото18](./PR3/Screenshot_11.png)
-![фото19](./PR3/Screenshot_0.png)
-![фото20](./PR3/Screenshot_00.png)
-![фото21](./PR3/Screenshot_0.png)
-![фото22](./PR3/Screenshot_0.png)
-![фото23](./PR3/Screenshot_0.png)
-![фото24](./PR3/Screenshot_0.png)
+![фото19](./PR3/Screenshot_16.png)
 
 Структура проекта
 
-![фото25](./PR3/Screenshot_11.png)
+![фото20](./PR3/Screenshot_24.png)
