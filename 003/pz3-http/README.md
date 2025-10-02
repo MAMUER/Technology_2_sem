@@ -142,7 +142,11 @@ C:.
 
 ## Скриншоты работы проекта
 
-Инициализация проекта
+Проверка наличия ПО (установка доп. ПО)
+
+![фото1](./PR3/Screenshot_7.png)
+
+Инициализация проекта (плюс сборка и проверка)
 
 ![фото2](./PR3/Screenshot_7.png)
 
@@ -152,28 +156,52 @@ C:.
 
 Проверка через curl (/health)
 
-![фото6](./PR3/Screenshot_1.png)
+![фото4](./PR3/Screenshot_1.png)
 
-Создание задачи через curl (/tasks)
+Создание задачи через curl (/tasks -POST)
 
-![фото7](./PR3/Screenshot_3.png)
+![фото5](./PR3/Screenshot_3.png)
 
 Проверка через curl (/tasks)
 
-![фото8](./PR3/Screenshot_4.png)
+![фото6](./PR3/Screenshot_4.png)
 
 Проверка через curl (/tasks/{id})
 
-![фото1](./PR3/Screenshot_8.png)
+![фото7](./PR3/Screenshot_8.png)
+
+Проверка через curl (/tasks?q=TEXT)
+
+![фото8](./PR3/Screenshot_8.png)
+
+Проверка через curl (/tasks/{id} -DELETE)
+
+![фото9](./PR3/Screenshot_8.png)
+
+Проверка через curl (/tasks/{id} -PATCH)
+
+![фото10](./PR3/Screenshot_8.png)
+
+Проверка через Invoke-RestMethod
+
+![фото11](./PR3/Screenshot_8.png)
+![фото12](./PR3/Screenshot_8.png)
+![фото13](./PR3/Screenshot_8.png)
+![фото14](./PR3/Screenshot_8.png)
+![фото15](./PR3/Screenshot_8.png)
+![фото16](./PR3/Screenshot_8.png)
+![фото17](./PR3/Screenshot_8.png)
 
 Проверка через curl (Запросы через GitBush)
 
-![фото10](./PR3/Screenshot_2.png)
-
-![фото11](./PR3/Screenshot_5.png)
-![фото13](./PR3/Screenshot_9.png)
-![фото14](./PR3/Screenshot_10.png)
+![фото18](./PR3/Screenshot_5.png)
+![фото19](./PR3/Screenshot_9.png)
+![фото20](./PR3/Screenshot_10.png)
+![фото21](./PR3/Screenshot_2.png)
+![фото22](./PR3/Screenshot_2.png)
+![фото23](./PR3/Screenshot_2.png)
+![фото24](./PR3/Screenshot_2.png)
 
 Структура проекта
 
-![фото12](./PR3/Screenshot_11.png)
+![фото25](./PR3/Screenshot_11.png)
