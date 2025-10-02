@@ -143,12 +143,15 @@ C:.
 Проверка наличия ПО (+ установка доп. ПО)
 
 ![фото1](./PR3/Screenshot_7.png)
+
 ![фото25](./PR3/Screenshot_17.png)
+
 ![фото26](./PR3/Screenshot_19.png)
 
 Инициализация проекта (+ сборка и проверка)
 
 ![фото2](./PR3/Screenshot_7.png)
+
 ![фото27](./PR3/Screenshot_18.png)
 
 Запуск сервера и логи во время работы
@@ -186,16 +189,23 @@ C:.
 Проверка через Invoke-RestMethod
 
 ![фото11](./PR3/Screenshot_12.png)
+
 ![фото12](./PR3/Screenshot_13.png)
+
 ![фото13](./PR3/Screenshot_14.png)
+
 ![фото14](./PR3/Screenshot_15.png)
 
 Проверка через curl (Запросы через GitBush)
 
 ![фото15](./PR3/Screenshot_9.png)
+
 ![фото16](./PR3/Screenshot_5.png)
+
 ![фото17](./PR3/Screenshot_10.png)
+
 ![фото18](./PR3/Screenshot_11.png)
+
 ![фото19](./PR3/Screenshot_16.png)
 
 Структура проекта

@@ -106,7 +106,9 @@ C:.
 Проверка работы ручек в браузере (вывод текста, /ping, /fail)
 
 ![фото4](./PR2/Screenshot_1.png)
+
 ![фото5](./PR2/Screenshot_2.png)
+
 ![фото5](./PR2/Screenshot_14.png)
 
 Проверка через curl (/)
@@ -128,6 +130,7 @@ C:.
 Проверка через curl (Запросы через GitBush)
 
 ![фото10](./PR2/Screenshot_9.png)
+
 ![фото11](./PR2/Screenshot_10.png)
 
 Структура проекта
