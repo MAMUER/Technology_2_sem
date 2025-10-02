@@ -50,20 +50,19 @@ func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	var req createTaskRequest
 
-	if len(req.Title) < 1 || len(req.Title) > 140 {
-		JSON(w, http.StatusUnprocessableEntity, ErrorResponse{Error: "title length must be between 1 and 140 characters"})
-		return
-	}
-
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		BadRequest(w, "invalid json: "+err.Error())
 		return
 	}
 	req.Title = strings.TrimSpace(req.Title)
-	if req.Title == "" {
-		BadRequest(w, "title is required")
+	if len(req.Title) < 1 || len(req.Title) > 140 {
+		JSON(w, http.StatusUnprocessableEntity, ErrorResponse{Error: "title length must be between 3 and 140 characters"})
 		return
 	}
+	/*if req.Title == "" {
+		BadRequest(w, "title is required")
+		return
+	}*/
 
 	t := h.Store.Create(req.Title)
 	JSON(w, http.StatusCreated, t)

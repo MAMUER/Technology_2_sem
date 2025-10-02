@@ -5,6 +5,8 @@
 
 ### Требования
 
+Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
+
 Проект представляет собой простой HTTP-сервер на языке Go (необходима версия 1.21 и выше) с REST-API:
 
 Основные эндпоинты:
@@ -13,6 +15,9 @@
 - `GET /tasks` – получение списка всех задач.
 - `POST /tasks` – создание новой задачи.
 - `GET /tasks/{id}` – получение конкретной задачи по ID.
+- `PATCH /tasks/{id}` – отметить задачу выполненной.
+- `GET /tasks?q=TEXT` – поиск задач с фильтром.
+- `DELETE /tasks/{id}` – удалить задачу.
 
 ## Команды запуска и сборки
 
@@ -69,15 +74,40 @@ curl http://localhost:8080/tasks/1
   "id":1,"title":"TEXT","done":false
 }
 
+#### Отметить задачу выполненной:
+
+curl http://localhost:8080/tasks/1 -Method PATCH
+
+Ответ:
+
+{
+  "id":1,"title":"TEXT","done":true
+}
+
+#### Поиск задач с фильтром:
+
+curl http://localhost:8080/tasks/1
+
+Ответ:
+
+{
+  "id":1,"title":"TEXT","done":false
+}
+
+#### Удалить задачу:
+
+curl http://localhost:8080/tasks/1 -Method DELETE
+
 ## Структура проекта
 ```
 C:.
 └───pz3-http
     ├───go.mod
     ├───README.md
+    ├───requests.md
+    ├───Makefile.txt
     │
     ├───bin
-    │   ├───http.exe
     │   └───server.exe
     │
     ├───cmd
@@ -88,6 +118,8 @@ C:.
     │   ├───api
     │   │   ├───handlers.go
     │   │   ├───middleware.go
+    │   │   ├───add.go
+    │   │   ├───handlers_test.go
     │   │   └───responses.go
     │   │
     │   └───storage
@@ -102,10 +134,11 @@ C:.
 
 - По умолчанию сервер слушает порт 8080.
 
+- Переменная окружения `PORT` задаёт порт для запуска HTTP сервера.
+
 - Порт можно изменить в параметре http.ListenAndServe(":8080", handler) в main.go.
 
 - Используется middleware для логирования запросов
-
 
 ## Скриншоты работы проекта
 
