@@ -27,10 +27,10 @@ func (h *Handler) Routes() chi.Router {
 }
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
-	// Парсим параметры
 	page := 1
 	limit := 10
 	var err error
+
 	if p := r.URL.Query().Get("page"); p != "" {
 		page, err = strconv.Atoi(p)
 		if err != nil || page < 1 {
@@ -47,27 +47,24 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	}
 	doneFilter := r.URL.Query().Get("done")
 
-	// Получаем все задачи
-	tasks := h.repo.List()
-
-	// Фильтр по done
-	filtered := make([]*Task, 0)
-	for _, t := range tasks {
-		if doneFilter == "" {
-			filtered = append(filtered, t)
-		} else {
-			doneVal, err := strconv.ParseBool(doneFilter)
-			if err != nil {
-				httpError(w, http.StatusBadRequest, "invalid done value")
-				return
-			}
-			if t.Done == doneVal {
-				filtered = append(filtered, t)
-			}
+	var doneVal bool
+	if doneFilter != "" {
+		doneVal, err = strconv.ParseBool(doneFilter)
+		if err != nil {
+			httpError(w, http.StatusBadRequest, "invalid done value")
+			return
 		}
 	}
 
-	// Пагинация
+	tasks := h.repo.List()
+
+	filtered := make([]*Task, 0)
+	for _, t := range tasks {
+		if doneFilter == "" || t.Done == doneVal {
+			filtered = append(filtered, t)
+		}
+	}
+
 	start := (page - 1) * limit
 	if start >= len(filtered) {
 		filtered = []*Task{}
@@ -100,7 +97,13 @@ type createReq struct {
 }
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close() // закрыть тело запроса после чтения
+
 	var req createReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Title == "" {
+		httpError(w, http.StatusBadRequest, "invalid json: require non-empty title")
+		return
+	}
 	if len(req.Title) < 3 || len(req.Title) > 100 {
 		httpError(w, http.StatusBadRequest, "title length must be between 3 and 100 characters")
 		return
@@ -115,33 +118,43 @@ type updateReq struct {
 }
 
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close() // закрываем тело запроса
+
 	id, bad := parseID(w, r)
 	if bad {
 		return
 	}
+
 	var req updateReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Title == "" {
+		httpError(w, http.StatusBadRequest, "invalid json: require non-empty title")
+		return
+	}
+
 	if len(req.Title) < 3 || len(req.Title) > 100 {
 		httpError(w, http.StatusBadRequest, "title length must be between 3 and 100 characters")
 		return
 	}
+
 	t, err := h.repo.Update(id, req.Title, req.Done)
 	if err != nil {
 		httpError(w, http.StatusNotFound, err.Error())
 		return
 	}
+
 	writeJSON(w, http.StatusOK, t)
 }
 
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
-	id, bad := parseID(w, r)
-	if bad {
-		return
-	}
-	if err := h.repo.Delete(id); err != nil {
-		httpError(w, http.StatusNotFound, err.Error())
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
+    id, bad := parseID(w, r)
+    if bad {
+        return
+    }
+    if err := h.repo.Delete(id); err != nil {
+        httpError(w, http.StatusNotFound, err.Error())
+        return
+    }
+    w.WriteHeader(http.StatusNoContent) // 204 No Content - успешное удаление, тело не нужно
 }
 
 // helpers

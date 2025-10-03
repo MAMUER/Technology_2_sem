@@ -172,32 +172,22 @@ C:.
 
 ![фото9](./PR4/Screenshot_7.png)
 
-Проверка через curl (/tasks/{id} -PATCH)
+Проверка через curl (/tasks?page=1&limit=10)
 
-![фото10](./PR4/Screenshot_0.png)
+![фото10](./PR4/Screenshot_13.png)
 
-Проверка через Invoke-RestMethod
+Проверка через curl (/tasks?done=true)
 
-![фото11](./PR4/Screenshot_12.png)
+![фото20](./PR4/Screenshot_14.png)
 
-![фото12](./PR4/Screenshot_13.png)
+Создание task (новый api/v1)
 
-![фото13](./PR4/Screenshot_14.png)
+![фото11](./PR4/Screenshot_11.png)
 
-![фото14](./PR4/Screenshot_15.png)
+Вывод всех tasks (новый api/v1)
 
-Проверка через curl (Запросы через GitBush)
-
-![фото15](./PR4/Screenshot_0.png)
-
-![фото16](./PR4/Screenshot_0.png)
-
-![фото17](./PR4/Screenshot_0.png)
-
-![фото18](./PR4/Screenshot_11.png)
-
-![фото19](./PR4/Screenshot_16.png)
+![фото12](./PR4/Screenshot_12.png)
 
 Структура проекта
 
-![фото4](./PR4/Screenshot_24.png)
+![фото4](./PR4/Screenshot_15.png)
