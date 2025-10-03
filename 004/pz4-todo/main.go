@@ -12,8 +12,8 @@ import (
 )
 
 func main() {
-	repo := task.NewRepo()
-	h := task.NewHandler(repo)
+	repo := task.NewRepo("tasks.json")
+    h := task.NewHandler(repo)
 
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
@@ -25,7 +25,7 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	r.Route("/api", func(api chi.Router) {
+	r.Route("/api/v1", func(api chi.Router) {
 		api.Mount("/tasks", h.Routes())
 	})
 
