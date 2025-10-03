@@ -1,5 +1,5 @@
 run:
-	.\bin\server.exe
+	.\bin\server
 
 build:
 	go build -o bin/server.exe ./
