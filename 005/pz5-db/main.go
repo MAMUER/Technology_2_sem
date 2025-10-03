@@ -56,4 +56,15 @@ func main() {
 		fmt.Printf("#%d | %-24s | done=%-5v | %s\n",
 			t.ID, t.Title, t.Done, t.CreatedAt.Format(time.RFC3339))
 	}
+
+	taskID := 1
+	task, err := repo.FindByID(ctx, taskID)
+	if err != nil {
+		log.Fatalf("FindByID error: %v", err)
+	}
+	if task != nil {
+		fmt.Printf("Task #%d: %s, done=%v, created at %s\n", task.ID, task.Title, task.Done, task.CreatedAt.Format(time.RFC3339))
+	} else {
+		fmt.Printf("Task with id=%d not found\n", taskID)
+	}
 }
