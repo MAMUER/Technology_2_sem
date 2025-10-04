@@ -58,7 +58,7 @@ C:.
 └───myapp
     ├───go.mod
     ├───Makefile
-    ├───README.md
+    ├───README.md           
     │
     ├───bin
     │   └───myapp.exe
@@ -71,10 +71,8 @@ C:.
     │   └───app
     │       │───app.go
     │       │
-    │       ├───handlers
-    │       │   └───ping.go
-    │       │
-    │       └───server
+    │       └───handlers
+    │           └───ping.go 
     ├───PR2
     │
     └───utils

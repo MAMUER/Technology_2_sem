@@ -96,44 +96,42 @@ func (h *Handlers) GetTask(w http.ResponseWriter, r *http.Request) {
 
 // PATCH /tasks/{id}
 func (h *Handlers) PatchTask(w http.ResponseWriter, r *http.Request) {
-    parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-    if len(parts) != 2 {
-        NotFound(w, "invalid path")
-        return
-    }
-    id, err := strconv.ParseInt(parts[1], 10, 64)
-    if err != nil {
-        BadRequest(w, "invalid id")
-        return
-    }
+	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	if len(parts) != 2 {
+		NotFound(w, "invalid path")
+		return
+	}
+	id, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		BadRequest(w, "invalid id")
+		return
+	}
 
-    t, err := h.Store.MarkDone(id)
-    if err != nil {
-        NotFound(w, "task not found")
-        return
-    }
-    JSON(w, http.StatusOK, t)
+	t, err := h.Store.MarkDone(id)
+	if err != nil {
+		NotFound(w, "task not found")
+		return
+	}
+	JSON(w, http.StatusOK, t)
 }
-
 
 // DELETE /tasks/{id}
 func (h *Handlers) DeleteTask(w http.ResponseWriter, r *http.Request) {
-    parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
-    if len(parts) != 2 {
-        NotFound(w, "invalid path")
-        return
-    }
-    id, err := strconv.ParseInt(parts[1], 10, 64)
-    if err != nil {
-        BadRequest(w, "invalid id")
-        return
-    }
+	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	if len(parts) != 2 {
+		NotFound(w, "invalid path")
+		return
+	}
+	id, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		BadRequest(w, "invalid id")
+		return
+	}
 
-    err = h.Store.Delete(id)
-    if err != nil {
-        NotFound(w, "task not found")
-        return
-    }
-    w.WriteHeader(http.StatusNoContent)
+	err = h.Store.Delete(id)
+	if err != nil {
+		NotFound(w, "task not found")
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
-

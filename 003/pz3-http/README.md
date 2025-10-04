@@ -103,7 +103,7 @@ curl http://localhost:8080/tasks/1 -Method DELETE
 C:.
 └───pz3-http
     ├───go.mod
-    ├───README.md
+    ├───README.md              
     ├───requests.md
     ├───Makefile
     │
@@ -119,7 +119,7 @@ C:.
     │   │   ├───handlers.go
     │   │   ├───middleware.go
     │   │   ├───add.go
-    │   │   ├───handlers_test.go
+    │   │   ├───handlers_test.go 
     │   │   └───responses.go
     │   │
     │   └───storage

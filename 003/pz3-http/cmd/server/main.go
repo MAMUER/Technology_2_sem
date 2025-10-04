@@ -58,44 +58,44 @@ func main() {
 		}
 	})
 	/*
-	// Подключаем логирование
-	handler := api.Logging(mux)
+		// Подключаем логирование
+		handler := api.Logging(mux)
 	*/
 	handler := api.Logging(api.CORS(mux))
 
 	addr := ":8080"
 
 	if port := os.Getenv("PORT"); port != "" {
-        addr = ":" + port
-    }
-
-    srv := &http.Server{
-        Addr:    addr,
-        Handler: handler,
-    }
-
-    go func() {
-        log.Println("listening on", addr)
-        if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-            log.Fatalf("server error: %v", err)
-        }
-    }()
-
-    quit := make(chan os.Signal, 1)
-    signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-    <-quit
-
-    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-    defer cancel()
-    log.Println("shutting down server...")
-    if err := srv.Shutdown(ctx); err != nil {
-        log.Fatalf("server shutdown failed: %v", err)
-    }
-    log.Println("server exited gracefully")
-	/*
-	log.Println("listening on", addr)
-	if err := http.ListenAndServe(addr, handler); err != nil {
-		log.Fatal(err)
+		addr = ":" + port
 	}
+
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: handler,
+	}
+
+	go func() {
+		log.Println("listening on", addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	log.Println("shutting down server...")
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("server shutdown failed: %v", err)
+	}
+	log.Println("server exited gracefully")
+	/*
+		log.Println("listening on", addr)
+		if err := http.ListenAndServe(addr, handler); err != nil {
+			log.Fatal(err)
+		}
 	*/
 }

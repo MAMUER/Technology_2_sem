@@ -53,22 +53,22 @@ func (s *MemoryStore) List() []*Task {
 }
 
 func (s *MemoryStore) MarkDone(id int64) (*Task, error) {
-    s.mu.Lock()
-    defer s.mu.Unlock()
-    t, ok := s.tasks[id]
-    if !ok {
-        return nil, errors.New("not found")
-    }
-    t.Done = true
-    return t, nil
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	t, ok := s.tasks[id]
+	if !ok {
+		return nil, errors.New("not found")
+	}
+	t.Done = true
+	return t, nil
 }
 
 func (s *MemoryStore) Delete(id int64) error {
-    s.mu.Lock()
-    defer s.mu.Unlock()
-    if _, ok := s.tasks[id]; !ok {
-        return errors.New("not found")
-    }
-    delete(s.tasks, id)
-    return nil
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, ok := s.tasks[id]; !ok {
+		return errors.New("not found")
+	}
+	delete(s.tasks, id)
+	return nil
 }

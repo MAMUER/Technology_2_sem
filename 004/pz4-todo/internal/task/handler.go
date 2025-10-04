@@ -146,15 +146,15 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
-    id, bad := parseID(w, r)
-    if bad {
-        return
-    }
-    if err := h.repo.Delete(id); err != nil {
-        httpError(w, http.StatusNotFound, err.Error())
-        return
-    }
-    w.WriteHeader(http.StatusNoContent) // 204 No Content - успешное удаление, тело не нужно
+	id, bad := parseID(w, r)
+	if bad {
+		return
+	}
+	if err := h.repo.Delete(id); err != nil {
+		httpError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent) // 204 No Content - успешное удаление, тело не нужно
 }
 
 // helpers

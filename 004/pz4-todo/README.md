@@ -127,7 +127,7 @@ C:.
     ├───go.sum
     ├───main.go
     ├───Makefile
-    ├───README.md
+    ├───README.md      
     ├───tasks.json
     │
     ├───bin
@@ -135,7 +135,7 @@ C:.
     │
     ├───internal
     │   └───task
-    │       ├───handler.go
+    │       ├───handler.go 
     │       ├───model.go
     │       └───repo.go
     │

@@ -13,7 +13,7 @@ import (
 
 func main() {
 	repo := task.NewRepo("tasks.json")
-    h := task.NewHandler(repo)
+	h := task.NewHandler(repo)
 
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)

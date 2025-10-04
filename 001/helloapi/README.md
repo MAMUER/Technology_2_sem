@@ -63,17 +63,17 @@ curl http://localhost:8080/health
 ```
  C:.
  └───helloapi
-    ├───go.mod
-    ├───go.sum
-    ├───helloapi.exe
-    ├───Makefile
-    ├───README.md
+    ├───go.mod          
+    ├───go.sum          
+    ├───helloapi.exe    
+    ├───Makefile        
+    ├───README.md      
     │
     ├───cmd
     │   └───server
     │       └───main.go
     │
-    └───PR1
+    └───PR1           
 ```
 ## Примечания по конфигурации
 

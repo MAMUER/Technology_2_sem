@@ -17,7 +17,7 @@ func main() {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		// fallback — прямой DSN в коде (только для учебного стенда!)
-		dsn = "postgres://postgres:YOUR_PASSWORD@localhost:5432/todo?sslmode=disable"
+		dsn = "postgres://postgres:1@localhost:5432/todo?sslmode=disable"
 	}
 
 	db, err := openDB(dsn)
