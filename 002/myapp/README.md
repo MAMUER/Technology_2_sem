@@ -57,6 +57,7 @@ curl http://localhost:8080/fail
 C:.
 └───myapp
     ├───go.mod
+    ├───Makefile
     ├───README.md
     │
     ├───bin
