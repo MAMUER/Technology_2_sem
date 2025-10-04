@@ -13,13 +13,13 @@
 
 ### Сборка приложения:
 
-go build -o myapp
+make build
 
 ### Запуск приложения (будет слушать порт 8080 по умолчанию):
 
-./myapp
+make run
 
-### Если нужно задать порт, например 8081:
+### Если нужно задать новый порт, например 8081:
 
 $env:APP_PORT="8081"
 
@@ -29,6 +29,12 @@ $env:APP_PORT="8081"
 
 curl http://localhost:8080/hello
 
+Ответ:
+
+{
+Hello, World!
+Hello, World!
+}
 
 #### Вывод информации о пользователе:
 
@@ -60,11 +66,12 @@ curl http://localhost:8080/health
     ├───go.mod
     ├───go.sum
     ├───helloapi.exe
+    ├───Makefile
     ├───README.md
     │
     ├───cmd
     │   └───server
-    │           main.go
+    │       └───main.go
     │
     └───PR1
 ```
@@ -80,6 +87,10 @@ curl http://localhost:8080/health
 Проверка наличия ПО
 
 ![фото1](./PR1/Screenshot_1.png)
+
+Смена языка консоли
+
+![фото10](./PR1/Screenshot_10.png)
 
 Переход в рабочую папку, инициализация модуля, подтягивание пакета для генерации UUID и запуск сервиса
 

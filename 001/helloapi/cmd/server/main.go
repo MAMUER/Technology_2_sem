@@ -26,7 +26,7 @@ func main() {
 		port = "8080"
 	}
 
-	mux := http.NewServeMux()
+	mux := http.NewServeMux() //простой роутер из стандартной библиотеки
 
 	// Текстовый ответ
 	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +44,7 @@ func main() {
 	})*/
 
 	mux.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json") //Для JSON всегда заголовок 
 		_ = json.NewEncoder(w).Encode(user{
 			ID:   uuid.NewString(), // теперь реальный UUID
 			Name: "Gopher",

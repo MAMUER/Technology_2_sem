@@ -171,23 +171,23 @@ C:.
 
 Создание задачи через curl (/tasks -POST)
 
-![фото5](./PR4/Screenshot_3.png)
+![фото4](./PR4/Screenshot_3.png)
 
 Проверка через curl (/tasks)
 
-![фото6](./PR4/Screenshot_4.png)
+![фото5](./PR4/Screenshot_4.png)
 
 Проверка через curl (/tasks/{id})
 
-![фото7](./PR4/Screenshot_5.png)
+![фото6](./PR4/Screenshot_5.png)
 
 Обновление задачи через curl (/tasks/{id} -PUT)
 
-![фото8](./PR4/Screenshot_6.png)
+![фото7](./PR4/Screenshot_6.png)
 
 Удаление задачи через curl (/tasks/{id} -DELETE)
 
-![фото9](./PR4/Screenshot_7.png)
+![фото8](./PR4/Screenshot_7.png)
 
 Проверка через curl (/tasks?page=1&limit=10)
 
@@ -195,7 +195,7 @@ C:.
 
 Проверка через curl (/tasks?done=true)
 
-![фото20](./PR4/Screenshot_14.png)
+![фото9](./PR4/Screenshot_14.png)
 
 Создание task (новый api/v1)
 
@@ -205,6 +205,10 @@ C:.
 
 ![фото12](./PR4/Screenshot_12.png)
 
+Проверки форматирования кода и базовая проверка
+
+![фото14](./PR3/Screenshot_9.png)
+
 Структура проекта
 
-![фото4](./PR4/Screenshot_15.png)
+![фото13](./PR4/Screenshot_15.png)
