@@ -5,6 +5,10 @@ run:
 build:
 	go build -o bin/server.exe ./
 
+check:	
+	go vet ./...
+	go fmt ./...
+
 #ssh -L 5433:localhost:5432 root@193.233.175.221 -N
 #ssh -L 5433:localhost:5432 root@193.233.175.221 -N -f
 
