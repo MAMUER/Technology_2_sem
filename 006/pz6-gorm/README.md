@@ -97,24 +97,24 @@ C:.
 
 Инициализация проекта
 
-![фото1](./PR5/Screenshot_1.png)
+![фото1](./PR6/Screenshot_1.png)
 
 Выдача прав пользователю
 
-![фото2](./PR5/Screenshot_2.png)
+![фото2](./PR6/Screenshot_2.png)
 
 Запуск проекта
 
-![фото3](./PR5/Screenshot_3.png)
+![фото3](./PR6/Screenshot_3.png)
 
 здоровье
 
-![фото4](./PR5/Screenshot_4.png)
+![фото4](./PR6/Screenshot_4.png)
 
 создаём пользователя, создаём заметку с тегами, получаем заметку с автором и тегами
 
-![фото4](./PR5/Screenshot_5.png)
+![фото4](./PR6/Screenshot_5.png)
 
 Структура проекта
 
-![фото8](./PR5/Screenshot_6.png)
+![фото8](./PR6/Screenshot_6.png)
