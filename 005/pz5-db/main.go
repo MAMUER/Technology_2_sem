@@ -11,13 +11,13 @@ import (
 )
 
 func main() {
-	// .env не обязателен; если файла нет — ошибка игнорируется
+	// Загружаем переменные окружения из .env файла (если есть)
 	_ = godotenv.Load()
 
+	// Получаем DSN из переменных окружения
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		// fallback — прямой DSN в коде (только для учебного стенда!)
-		dsn = "postgres://postgres:1@localhost:5432/todo?sslmode=disable"
+		log.Fatal("DATABASE_URL environment variable is required")
 	}
 
 	db, err := openDB(dsn)
