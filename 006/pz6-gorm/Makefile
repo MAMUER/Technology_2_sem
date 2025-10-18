@@ -9,8 +9,8 @@ check:
 	go vet ./...
 	go fmt ./...
 
-#ssh -L 5433:localhost:5432 root@193.233.175.221 -N
-#ssh -L 5433:localhost:5432 root@193.233.175.221 -N -f
+#ssh -L 5433:localhost:5432 root@193.233.175.221 -N -o ServerAliveInterval=30
+#ssh -L 5433:localhost:5432 root@193.233.175.221 -N -f -o ServerAliveInterval=30
 
 # Остановка туннелей
 tunnel-stop:
@@ -27,10 +27,9 @@ check-db:
 # Инструкция
 setup-teacher:
 	@echo === Установка для преподавателя ===
-	@echo 1. Убедитесь, что у вас установлен SSH-клиент
-	@echo 2. Запустите: make tunnel-background
-	@echo 3. В другом окне: make run
-	@echo 4. Для остановки туннеля: make tunnel-stop
+	@echo 1. Запустите SSH тоннель
+	@echo 2. В другом окне: make run
+	@echo 3. Для остановки туннеля: make tunnel-stop
 
 # Статус туннелей
 tunnel-status:

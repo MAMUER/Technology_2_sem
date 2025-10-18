@@ -3,17 +3,13 @@
 
 ## Описание проекта и требования
 
-GORM как ORM устраняет рутину работы с SQL, позволяя описывать модели Go-структурами с автоматической генерацией таблиц. Миграции и связи из коробки экономят время, а безопасность запросов защищает от инъекций. Идеально для быстрого старта и учебных проектов.
+Redis — быстрая in-memory БД для хранения временных данных. TTL автоматически удаляет данные по истечении срока их жизни, экономя память и поддерживая актуальность информации.
 
 ## Необходимые пароли
 
 Пользователь сервера
 логин: teacher
 пароль: 1
-
-Пользователь БД
-логин: teacher_app 
-пароль: secure_password_123
 
 ## Команды запуска/сборки
 
@@ -27,15 +23,11 @@ make run
 
 ### Запуск тоннеля подключения к серверу (в отдельной консоли):
 
-ssh -L 5433:localhost:5432 teacher@193.233.175.221 -N
+ssh -L 6379:localhost:6379 teacher@193.233.175.221 -N -o ServerAliveInterval=30
 
 ### Остановка тоннеля подключения:
 
 make tunnel-stop
-
-### Проверка подключения:
-
-make check-db
 
 ### Иснтрукция подключения:
 
@@ -47,23 +39,19 @@ make tunnel-status
 
 ## Команды:
 
-# здоровье
-curl http://localhost:8080/health
+# установка значения
+curl "http://localhost:8080/set?key=test&value=hello"
 
-# создаём пользователя
-curl -X POST http://localhost:8080/users -H "Content-Type: application/json" -d "{\"name\":\"Alice\",\"email\":\"alice@example.com\"}"
+# получение значения
+curl "http://localhost:8080/get?key=test"
 
-# создаём заметку с тегами
-curl -X POST http://localhost:8080/notes -H "Content-Type: application/json" -d "{\"title\":\"Первая заметка\",\"content\":\"Текст...\",\"userId\":1,\"tags\":[\"go\",\"gorm\"]}"
-
-# получаем заметку с автором и тегами
-curl http://localhost:8080/notes/1
+# проверка TTL
+curl "http://localhost:8080/ttl?key=test"
 
 ## Структура проекта
 ```
 C:.
-└───pz6-gorm
-    │   .env
+└───pz7-redis
     │   go.mod
     │   go.sum
     │   Makefile
@@ -77,44 +65,49 @@ C:.
     │           main.go
     │
     ├───internal
-    │   ├───db
-    │   │       postgres.go
-    │   │
-    │   ├───httpapi
-    │   │       handlers.go
-    │   │       router.go
-    │   │
-    │   └───models
-    │           models.go
+    │   └───cache
+    │           cache.go
     │
-    └───PR6
+    └───PR7
 ```
-## Примечания по конфигурации
-
-- Подключение к PostgreSQL происходит через строку подключения из переменной окружения DB_DSN
-
 ## Скриншоты работы проекта
 
 Инициализация проекта
 
-![фото1](./PR5/Screenshot_1.png)
+![фото1](./PR7/Screenshot_1.png)
+
+Установка Docker на сервер
+
+![фото2](./PR7/Screenshot_2.png)
 
 Выдача прав пользователю
 
-![фото2](./PR5/Screenshot_2.png)
+![фото3](./PR7/Screenshot_3.png)
+
+Запуск SSH тоннеля
+
+![фото4](./PR7/Screenshot_4.png)
+
+Запуск Redis
+
+![фото5](./PR7/Screenshot_5.png)
 
 Запуск проекта
 
-![фото3](./PR5/Screenshot_3.png)
+![фото6](./PR7/Screenshot_6.png)
 
-здоровье
+Установка значения
 
-![фото4](./PR5/Screenshot_4.png)
+![фото7](./PR7/Screenshot_7.png)
 
-создаём пользователя, создаём заметку с тегами, получаем заметку с автором и тегами
+Получение значения
 
-![фото4](./PR5/Screenshot_5.png)
+![фото8](./PR7/Screenshot_8.png)
+
+Проверка TTL
+
+![фото9](./PR7/Screenshot_9.png)
 
 Структура проекта
 
-![фото8](./PR5/Screenshot_6.png)
+![фото10](./PR7/Screenshot_10.png)

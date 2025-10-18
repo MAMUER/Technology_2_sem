@@ -1,24 +1,54 @@
 package main
 
 import (
-	"log"
-	"net/http"
+    "fmt"
+    "log"
+    "net/http"
+    "time"
 
-	"example.com/pz6-gorm/internal/db"
-	"example.com/pz6-gorm/internal/httpapi"
-	"example.com/pz6-gorm/internal/models"
+    "example.com/pz7-redis/internal/cache"
 )
 
 func main() {
-	d := db.Connect()
+    c := cache.New("localhost:6379")
 
-	// Автоматически создаст (или обновит) таблицы под наши модели
-	if err := d.AutoMigrate(&models.User{}, &models.Note{}, &models.Tag{}); err != nil {
-		log.Fatal("migrate:", err)
-	}
+    mux := http.NewServeMux()
 
-	r := httpapi.BuildRouter(d)
+    mux.HandleFunc("/set", func(w http.ResponseWriter, r *http.Request) {
+        key := r.URL.Query().Get("key")
+        value := r.URL.Query().Get("value")
+        if key == "" || value == "" {
+            http.Error(w, "key and value required", http.StatusBadRequest)
+            return
+        }
+        err := c.Set(key, value, 10*time.Second) // TTL = 10 сек
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        fmt.Fprintf(w, "OK: %s=%s (TTL 10s)", key, value)
+    })
 
-	log.Println("listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+    mux.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
+        key := r.URL.Query().Get("key")
+        val, err := c.Get(key)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusNotFound)
+            return
+        }
+        fmt.Fprintf(w, "VALUE: %s=%s", key, val)
+    })
+
+    mux.HandleFunc("/ttl", func(w http.ResponseWriter, r *http.Request) {
+        key := r.URL.Query().Get("key")
+        ttl, err := c.TTL(key)
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        fmt.Fprintf(w, "TTL for %s: %v", key, ttl)
+    })
+
+    log.Println("Listening on :8080")
+    log.Fatal(http.ListenAndServe(":8080", mux))
 }

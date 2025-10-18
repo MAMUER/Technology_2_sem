@@ -1,24 +1,33 @@
-package main
+package cache
 
 import (
-	"log"
-	"net/http"
+    "context"
+    "time"
 
-	"example.com/pz6-gorm/internal/db"
-	"example.com/pz6-gorm/internal/httpapi"
-	"example.com/pz6-gorm/internal/models"
+    "github.com/redis/go-redis/v9"
 )
 
-func main() {
-	d := db.Connect()
+type Cache struct {
+    rdb *redis.Client
+}
 
-	// Автоматически создаст (или обновит) таблицы под наши модели
-	if err := d.AutoMigrate(&models.User{}, &models.Note{}, &models.Tag{}); err != nil {
-		log.Fatal("migrate:", err)
-	}
+func New(addr string) *Cache {
+    rdb := redis.NewClient(&redis.Options{
+        Addr: addr,
+        Password: "",
+        DB: 0,
+    })
+    return &Cache{rdb: rdb}
+}
 
-	r := httpapi.BuildRouter(d)
+func (c *Cache) Set(key string, value string, ttl time.Duration) error {
+    return c.rdb.Set(context.Background(), key, value, ttl).Err()
+}
 
-	log.Println("listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+func (c *Cache) Get(key string) (string, error) {
+    return c.rdb.Get(context.Background(), key).Result()
+}
+
+func (c *Cache) TTL(key string) (time.Duration, error) {
+    return c.rdb.TTL(context.Background(), key).Result()
 }
