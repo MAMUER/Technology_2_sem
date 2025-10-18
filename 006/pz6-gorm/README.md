@@ -63,29 +63,29 @@ curl http://localhost:8080/notes/1
 ```
 C:.
 └───pz6-gorm
-    │   .env
-    │   go.mod
-    │   go.sum
-    │   Makefile
-    │   README.md
+    ├───.env
+    ├───go.mod
+    ├───go.sum
+    ├───Makefile
+    ├───README.md
     │
     ├───bin
-    │       server.exe
+    │   └───server.exe
     │
     ├───cmd
     │   └───server
-    │           main.go
+    │       └───main.go
     │
     ├───internal
     │   ├───db
-    │   │       postgres.go
+    │   │   └───postgres.go
     │   │
     │   ├───httpapi
-    │   │       handlers.go
-    │   │       router.go
+    │   │   ├───handlers.go
+    │   │   └───router.go
     │   │
     │   └───models
-    │           models.go
+    │       └───models.go
     │
     └───PR6
 ```

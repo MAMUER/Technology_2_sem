@@ -55,7 +55,9 @@ func (h *Handlers) CreateNote(w http.ResponseWriter, r *http.Request) {
 	// Находим/создаём теги
 	var tags []models.Tag
 	for _, name := range in.Tags {
-		if name == "" { continue }
+		if name == "" {
+			continue
+		}
 		t := models.Tag{Name: name}
 		if err := h.db.FirstOrCreate(&t, models.Tag{Name: name}).Error; err == nil {
 			tags = append(tags, t)
@@ -96,7 +98,9 @@ func (h *Handlers) GetNoteByID(w http.ResponseWriter, r *http.Request) {
 }
 
 // helpers (единый JSON-ответ)
-type jsonErr struct{ Error string `json:"error"` }
+type jsonErr struct {
+	Error string `json:"error"`
+}
 
 func writeJSON(w http.ResponseWriter, code int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")

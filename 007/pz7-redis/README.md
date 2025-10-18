@@ -52,21 +52,21 @@ curl "http://localhost:8080/ttl?key=test"
 ```
 C:.
 └───pz7-redis
-    │   go.mod
-    │   go.sum
-    │   Makefile
-    │   README.md
+    ├───go.mod
+    ├───go.sum
+    ├───Makefile
+    ├───README.md
     │
     ├───bin
-    │       server.exe
+    │   └───server.exe
     │
     ├───cmd
     │   └───server
-    │           main.go
+    │       └───main.go
     │
     ├───internal
     │   └───cache
-    │           cache.go
+    │       └───cache.go
     │
     └───PR7
 ```

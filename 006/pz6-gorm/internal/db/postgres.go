@@ -13,7 +13,7 @@ import (
 
 func Connect() *gorm.DB {
 	_ = godotenv.Load(".env")
-	
+
 	dsn := os.Getenv("DB_DSN")
 	if dsn == "" {
 		log.Fatal("DB_DSN is empty")

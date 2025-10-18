@@ -44,7 +44,7 @@ func main() {
 	})*/
 
 	mux.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json") //Для JSON всегда заголовок 
+		w.Header().Set("Content-Type", "application/json") //Для JSON всегда заголовок
 		_ = json.NewEncoder(w).Encode(user{
 			ID:   uuid.NewString(), // теперь реальный UUID
 			Name: "Gopher",
