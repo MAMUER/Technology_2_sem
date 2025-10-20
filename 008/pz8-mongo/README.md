@@ -38,6 +38,8 @@ IP: 193.233.175.221
 ## Команды запуска/сборки
 
 ### Запуск MongoDB на сервере:
+ssh teacher@193.233.175.221
+
 cd ~/pz8-mongo
 docker-compose up -d
 
@@ -73,28 +75,56 @@ make tunnel-status
 # Базовая проверка здоровья
 curl http://localhost:8080/health
 
+Ответ:
+
+{"status":"ok"}
+
 # Создание заметки:
-curl -X POST http://localhost:8080/api/v1/notes \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Первая заметка","content":"Текст заметки..."}'
+curl -X POST http://localhost:8080/api/v1/notes ^
+  -H "Content-Type: application/json" ^
+  -d "{\"title\":\"Первая заметка\",\"content\":\"Текст заметки...\"}"
+
+Ответ:
+
+{"id":"68f62982646a61dc68d7c292","title":"Первая заметка","content":"Текст заметки...","createdAt":"2025-10-20T15:22:26.7451612+03:00","updatedAt":"2025-10-20T15:22:26.7451612+03:00"}
 
 # Получение списка заметок:
 # простой список
 curl "http://localhost:8080/api/v1/notes?limit=5&skip=0"
 
+Ответ:
+
+{"notes":[{"id":"68f62982646a61dc68d7c292","title":"Первая заметка","content":"Текст заметки...","createdAt":"2025-10-20T12:22:26.745Z","updatedAt":"2025-10-20T12:22:26.745Z","score":1},{"id":"68f4fe160b08ca63d9be709e","title":"Remote note","content":"Working with remote MongoDB!","createdAt":"2025-10-19T15:04:54.171Z","updatedAt":"2025-10-19T15:04:54.171Z","score":1}],"query":"","searchType":""}
+
 # поиск по заголовку (regex)
 curl "http://localhost:8080/api/v1/notes?q=заметка&limit=5"
+
+Ответ:
+
+{"notes":[{"id":"68f62982646a61dc68d7c292","title":"Первая заметка","content":"Текст заметки...","createdAt":"2025-10-20T12:22:26.745Z","updatedAt":"2025-10-20T12:22:26.745Z","score":1}],"query":"заметка","searchType":""}
 
 # полнотекстовый поиск
 curl "http://localhost:8080/api/v1/notes/search/text?q=программирование&limit=10"
 
+Ответ:
+
+{"notes":null,"query":"программирование","total":0}
+
 # Получение заметки по ID:
 curl http://localhost:8080/api/v1/notes/<object_id_here>
 
+Ответ:
+
+{"id":"68f62982646a61dc68d7c292","title":"Первая заметка","content":"Текст заметки...","createdAt":"2025-10-20T12:22:26.745Z","updatedAt":"2025-10-20T12:22:26.745Z"}
+
 # Частичное обновление заметки:
-curl -X PATCH http://localhost:8080/api/v1/notes/<object_id_here> \
-  -H "Content-Type: application/json" \
-  -d '{"content":"Обновленный текст"}'
+curl -X PATCH http://localhost:8080/api/v1/notes/68f62982646a61dc68d7c292 ^
+  -H "Content-Type: application/json" ^
+  -d "{\"content\":\"Обновленный текст\"}"
+
+Ответ:
+
+{"id":"68f62982646a61dc68d7c292","title":"Первая заметка","content":"Обновленный текст","createdAt":"2025-10-20T12:22:26.745Z","updatedAt":"2025-10-20T12:25:51.365Z"}
 
 # Удаление заметки:
 curl -X DELETE http://localhost:8080/api/v1/notes/<object_id_here>
@@ -102,8 +132,16 @@ curl -X DELETE http://localhost:8080/api/v1/notes/<object_id_here>
 # Общая статистика:
 curl http://localhost:8080/api/v1/notes/stats
 
+Ответ:
+
+{"totalNotes":1,"avgContentLength":28,"maxContentLength":28,"minContentLength":28}
+
 # Статистика по дням:
 curl "http://localhost:8080/api/v1/notes/stats/daily?days=7"
+
+Ответ:
+
+{"period":7,"stats":[{"date":"2025-10-19","count":1}]}
 
 ## Структура проекта
 ```

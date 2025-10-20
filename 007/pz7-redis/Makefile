@@ -21,9 +21,10 @@ tunnel-stop:
 # Инструкция
 setup-teacher:
 	@echo === Установка для преподавателя ===
-	@echo 1. Запустите SSH тоннель
-	@echo 2. В другом окне: make run
-	@echo 3. Для остановки туннеля: make tunnel-stop
+	@echo 1. Зайти на сервер, запустить redis
+	@echo 2. Запустите SSH тоннель
+	@echo 3. В другом окне: make run
+	@echo 4. Для остановки туннеля: make tunnel-stop
 
 # Статус туннелей
 tunnel-status:

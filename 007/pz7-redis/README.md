@@ -24,6 +24,10 @@ IP: 193.233.175.221
 
 ## Команды запуска/сборки
 
+### Запуск Redis:
+
+docker run --name redis -p 6379:6379 -d redis
+
 ### Сборка приложения:
 
 make build
@@ -53,11 +57,23 @@ make tunnel-status
 # установка значения
 curl "http://localhost:8080/set?key=test&value=hello"
 
+Ответ:
+
+OK: test=hello (TTL 10s)
+
 # получение значения
 curl "http://localhost:8080/get?key=test"
 
+Ответ:
+
+VALUE: test=hello
+
 # проверка TTL
 curl "http://localhost:8080/ttl?key=test"
+
+Ответ:
+
+TTL for test: -2ns
 
 ## Структура проекта
 ```
