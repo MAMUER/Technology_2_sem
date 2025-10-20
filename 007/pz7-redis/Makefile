@@ -9,6 +9,7 @@ check:
 	go vet ./...
 	go fmt ./...
 
+#ssh root@193.233.175.221
 #ssh -L 6379:localhost:6379 root@193.233.175.221 -N -o ServerAliveInterval=30
 #ssh -L 6379:localhost:6379 root@193.233.175.221 -N -f -o ServerAliveInterval=30
 
