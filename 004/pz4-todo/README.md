@@ -163,39 +163,39 @@ C:.
 
 Запуск и логи проекта
 
-![фото2](./PR4/Screenshot_8.png)
+![фото8](./PR4/Screenshot_8.png)
 
 Проверка в браузере (/health)
 
-![фото3](./PR4/Screenshot_2.png)
+![фото2](./PR4/Screenshot_2.png)
 
 Создание задачи через curl (/tasks -POST)
 
-![фото4](./PR4/Screenshot_3.png)
+![фото3](./PR4/Screenshot_3.png)
 
 Проверка через curl (/tasks)
 
-![фото5](./PR4/Screenshot_4.png)
+![фото4](./PR4/Screenshot_4.png)
 
 Проверка через curl (/tasks/{id})
 
-![фото6](./PR4/Screenshot_5.png)
+![фото5](./PR4/Screenshot_5.png)
 
 Обновление задачи через curl (/tasks/{id} -PUT)
 
-![фото7](./PR4/Screenshot_6.png)
+![фото6](./PR4/Screenshot_6.png)
 
 Удаление задачи через curl (/tasks/{id} -DELETE)
 
-![фото8](./PR4/Screenshot_7.png)
+![фото7](./PR4/Screenshot_7.png)
 
 Проверка через curl (/tasks?page=1&limit=10)
 
-![фото10](./PR4/Screenshot_13.png)
+![фото13](./PR4/Screenshot_13.png)
 
 Проверка через curl (/tasks?done=true)
 
-![фото9](./PR4/Screenshot_14.png)
+![фото14](./PR4/Screenshot_14.png)
 
 Создание task (новый api/v1)
 
@@ -207,8 +207,8 @@ C:.
 
 Проверки форматирования кода и базовая проверка
 
-![фото14](./PR3/Screenshot_9.png)
+![фото9](./PR4/Screenshot_9.png)
 
 Структура проекта
 
-![фото13](./PR4/Screenshot_15.png)
+![фото15](./PR4/Screenshot_15.png)

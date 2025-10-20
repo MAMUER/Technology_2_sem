@@ -23,11 +23,11 @@
 
 ### Сборка приложения:
 
-go build -o bin\server.exe ./cmd/server
+make build
 
 ### Запуск приложения:
 
-.\bin\server.exe
+make run
 
 ### Примеры запросов:
 

@@ -18,11 +18,11 @@
 
 ### Сборка приложения:
 
-go build -o bin\myapp.exe ./cmd/myapp
+make build
 
 ### Запуск приложения:
 
-.\bin\myapp.exe
+make run
 
 ### Примеры запросов:
 
