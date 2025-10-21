@@ -13,6 +13,10 @@ check:
 #ssh -L 5433:localhost:5432 root@193.233.175.221 -N -o ServerAliveInterval=30
 #ssh -L 5433:localhost:5432 root@193.233.175.221 -N -f -o ServerAliveInterval=30
 
+#Пользователь PostgreSQL
+#логин: postgres
+#пароль: 1
+
 # Остановка туннелей
 tunnel-stop:
 	taskkill /F /IM ssh.exe 2>nul || echo No SSH tunnels found
@@ -20,10 +24,10 @@ tunnel-stop:
 
 # Проверка подключения
 check-db-root:
-	psql postgres://postgres:1@localhost:5433/todo?sslmode=disable -c "SELECT version();"
+	psql postgres://postgres:1@localhost:5432/todo?sslmode=disable -c "SELECT version();"
 
 check-db:
-	psql postgres://teacher_app:secure_password_123@localhost:5433/todo?sslmode=disable -c "SELECT version();"
+	psql postgres://teacher_app:secure_password_123@localhost:5432/todo?sslmode=disable -c "SELECT version();"
 
 # Инструкция
 setup-teacher:

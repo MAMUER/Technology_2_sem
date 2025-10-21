@@ -25,15 +25,15 @@ MongoDB как документная NoSQL-база предоставляет 
 ## Необходимые пароли
 
 Пользователь сервера
-логин: teacher
-пароль: 1
-IP: 193.233.175.221
+- логин: teacher
+- пароль: 1
+- IP: 193.233.175.221
 
 Пользователь MongoDB
-логин: teacher
-пароль: teacher_password_123
-порт: 27017
-база данных: pz8
+- логин: teacher
+- пароль: teacher_password_123
+- порт: 27017
+- база данных: pz8
 
 ## Команды запуска/сборки
 
@@ -48,7 +48,7 @@ docker-compose exec mongo mongosh -u root -p secret --authenticationDatabase adm
 
 ### Запуск тоннеля подключения к серверу (в отдельной консоли):
 
-ssh -L 27017:localhost:27017 teacher@193.233.175.221 -N
+ssh -L 27017:localhost:27017 teacher@193.233.175.221 -N -o ServerAliveInterval=30
 
 ### Сборка приложения:
 

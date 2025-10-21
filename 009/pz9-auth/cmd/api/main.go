@@ -4,21 +4,34 @@ import (
 	"log"
 	"net/http"
 
-	"example.com/pz6-gorm/internal/db"
-	"example.com/pz6-gorm/internal/httpapi"
-	"example.com/pz6-gorm/internal/models"
+	"github.com/go-chi/chi/v5"
+
+	"example.com/pz9-auth/internal/http/handlers"
+	"example.com/pz9-auth/internal/platform/config"
+	"example.com/pz9-auth/internal/repo"
 )
 
 func main() {
-	d := db.Connect()
+	cfg := config.Load()
+	db, err := repo.Open(cfg.DB_DSN)
+	if err != nil {
+		log.Fatal("db connect:", err)
+	}
 
-	// Автоматически создаст (или обновит) таблицы под наши модели
-	if err := d.AutoMigrate(&models.User{}, &models.Note{}, &models.Tag{}); err != nil {
+	if err := db.Exec("SET timezone TO 'UTC'").Error; err != nil { /* необязательно */
+	}
+
+	users := repo.NewUserRepo(db)
+	if err := users.AutoMigrate(); err != nil {
 		log.Fatal("migrate:", err)
 	}
 
-	r := httpapi.BuildRouter(d)
+	auth := &handlers.AuthHandler{Users: users, BcryptCost: cfg.BcryptCost}
 
-	log.Println("listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	r := chi.NewRouter()
+	r.Post("/auth/register", auth.Register)
+	r.Post("/auth/login", auth.Login)
+
+	log.Println("listening on", cfg.Addr)
+	log.Fatal(http.ListenAndServe(cfg.Addr, r))
 }

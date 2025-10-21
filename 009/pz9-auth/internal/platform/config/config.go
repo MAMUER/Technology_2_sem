@@ -1,31 +1,47 @@
-package models
+package config
 
-import "time"
+import (
+	"log"
+	"os"
+	"strconv"
 
-type User struct {
-	ID        uint   `gorm:"primaryKey"`
-	Name      string `gorm:"size:100;not null"`
-	Email     string `gorm:"size:200;uniqueIndex;not null"`
-	Notes     []Note // 1:N
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	"github.com/joho/godotenv"
+)
+
+type Config struct {
+	DB_DSN     string
+	BcryptCost int // например, 12
+	Addr       string
 }
 
-type Note struct {
-	ID        uint   `gorm:"primaryKey"`
-	Title     string `gorm:"size:200;not null"`
-	Content   string `gorm:"type:text"`
-	UserID    uint   `gorm:"not null"`
-	User      User
-	Tags      []Tag `gorm:"many2many:note_tags;"` // M:N
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
+func Load() Config {
+	// Загружаем .env файл (игнорируем ошибку если файла нет)
+	_ = godotenv.Load()
 
-type Tag struct {
-	ID        uint   `gorm:"primaryKey"`
-	Name      string `gorm:"size:50;uniqueIndex;not null"`
-	Notes     []Note `gorm:"many2many:note_tags;"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	cost := 12
+	if v := os.Getenv("BCRYPT_COST"); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
+			cost = parsed
+		} else {
+			log.Printf("Invalid BCRYPT_COST '%s', using default: %d", v, cost)
+		}
+	}
+
+	addr := os.Getenv("APP_ADDR")
+	if addr == "" {
+		addr = ":8080"
+	}
+
+	dsn := os.Getenv("DB_DSN")
+	if dsn == "" {
+		log.Fatal("DB_DSN environment variable is required")
+	}
+
+	log.Printf("Config loaded: Addr=%s, BcryptCost=%d", addr, cost)
+	
+	return Config{
+		DB_DSN:     dsn,
+		BcryptCost: cost,
+		Addr:       addr,
+	}
 }

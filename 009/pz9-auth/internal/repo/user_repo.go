@@ -1,31 +1,39 @@
-package models
+package repo
 
-import "time"
+import (
+	"context"
+	"errors"
 
-type User struct {
-	ID        uint   `gorm:"primaryKey"`
-	Name      string `gorm:"size:100;not null"`
-	Email     string `gorm:"size:200;uniqueIndex;not null"`
-	Notes     []Note // 1:N
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	"example.com/pz9-auth/internal/core"
+	"gorm.io/gorm"
+)
+
+var ErrUserNotFound = errors.New("user not found")
+var ErrEmailTaken = errors.New("email already in use")
+
+type UserRepo struct{ db *gorm.DB }
+
+func NewUserRepo(db *gorm.DB) *UserRepo { return &UserRepo{db: db} }
+
+func (r *UserRepo) AutoMigrate() error {
+	return r.db.AutoMigrate(&core.User{})
 }
 
-type Note struct {
-	ID        uint   `gorm:"primaryKey"`
-	Title     string `gorm:"size:200;not null"`
-	Content   string `gorm:"type:text"`
-	UserID    uint   `gorm:"not null"`
-	User      User
-	Tags      []Tag `gorm:"many2many:note_tags;"` // M:N
-	CreatedAt time.Time
-	UpdatedAt time.Time
+func (r *UserRepo) Create(ctx context.Context, u *core.User) error {
+	if err := r.db.WithContext(ctx).Create(u).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return ErrEmailTaken
+		}
+		return err
+	}
+	return nil
 }
 
-type Tag struct {
-	ID        uint   `gorm:"primaryKey"`
-	Name      string `gorm:"size:50;uniqueIndex;not null"`
-	Notes     []Note `gorm:"many2many:note_tags;"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+func (r *UserRepo) ByEmail(ctx context.Context, email string) (core.User, error) {
+	var u core.User
+	err := r.db.WithContext(ctx).Where("email = ?", email).First(&u).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return core.User{}, ErrUserNotFound
+	}
+	return u, err
 }

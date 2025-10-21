@@ -115,9 +115,11 @@ make tunnel-status
 
 ![фото10](./PR5/Screenshot_10.png)
 
+![фото13](./PR5/Screenshot_13.png)
+
 Создание пользователя БД
 
-![фото11](./PR5/Screenshot_12.png)
+![фото12](./PR5/Screenshot_12.png)
 
 РАБОТАТЕТ!!!
 

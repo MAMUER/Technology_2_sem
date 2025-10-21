@@ -3,12 +3,13 @@ run:
 	.\bin\server
 
 build:
-	go build -o bin/server.exe ./cmd/server
+	go build -o bin/server.exe ./cmd/api
 
 check:	
 	go vet ./...
 	go fmt ./...
 
+#ssh root@193.233.175.221
 #ssh -L 5433:localhost:5432 root@193.233.175.221 -N
 #ssh -L 5433:localhost:5432 root@193.233.175.221 -N -f
 
@@ -19,10 +20,10 @@ tunnel-stop:
 
 # Проверка подключения
 check-db-root:
-	psql postgres://postgres:1@localhost:5433/pz6_gorm?sslmode=disable -c "SELECT version();"
+	psql postgres://postgres:1@localhost:5433/todo?sslmode=disable -c "SELECT version();"
 
 check-db:
-	psql postgres://teacher_app:secure_password_123@localhost:5433/pz6_gorm?sslmode=disable -c "SELECT version();"
+	psql postgres://teacher_app:secure_password_123@localhost:5433/todo?sslmode=disable -c "SELECT version();"
 
 # Инструкция
 setup-teacher:

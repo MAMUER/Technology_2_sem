@@ -1,21 +1,36 @@
-# Практическая работа №6
+# Практическая работа №8
 # Николаенко Михаил ЭФМО-02-21
 
 ## Описание проекта и требования
 
-GORM как ORM устраняет рутину работы с SQL, позволяя описывать модели Go-структурами с автоматической генерацией таблиц. Миграции и связи из коробки экономят время, а безопасность запросов защищает от инъекций. Идеально для быстрого старта и учебных проектов.
+Данный сервис предоставляет REST API для регистрации и аутентификации пользователей с безопасным хранением паролей using bcrypt хэшированием. Реализованы эндпоинты для создания учетных записей и входа в систему с валидацией входных данных и защитой от утечки информации.
+
+Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
+
+Проект на языке Go (необходима версия 1.21 и выше) с REST-API:
+
+Основные эндпоинты:
+
+- `POST /auth/register` – регистрация пользователя с валидацией email и пароля
+- `POST /auth/login` – аутентификация пользователя с проверкой учетных данных
 
 ## Необходимые пароли
 
-Пользователь сервера
-логин: teacher
-пароль: 1
+Подключение к серверу
+- логин: teacher
+- пароль: 1
+- IP: 193.233.175.221
 
-Пользователь БД
-логин: teacher_app 
-пароль: secure_password_123
+Пользователь PostgreSQL
+- логин: teacher_app 
+- пароль: secure_password_123
+- порт: 5432
 
 ## Команды запуска/сборки
+
+### Запуск тоннеля подключения к серверу (в отдельной консоли):
+
+ssh -L 5433:localhost:5432 teacher@193.233.175.221 -N -o ServerAliveInterval=30
 
 ### Сборка приложения:
 
@@ -25,17 +40,9 @@ make build
 
 make run
 
-### Запуск тоннеля подключения к серверу (в отдельной консоли):
-
-ssh -L 5433:localhost:5432 teacher@193.233.175.221 -N
-
 ### Остановка тоннеля подключения:
 
 make tunnel-stop
-
-### Проверка подключения:
-
-make check-db
 
 ### Иснтрукция подключения:
 
@@ -47,74 +54,102 @@ make tunnel-status
 
 ## Команды:
 
-# здоровье
-curl http://localhost:8080/health
+# Базовая и повторная регистрации
+curl -X POST http://localhost:8080/auth/register ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"user@example.com\",\"password\":\"Secret123!\"}"
 
-# создаём пользователя
-curl -X POST http://localhost:8080/users -H "Content-Type: application/json" -d "{\"name\":\"Alice\",\"email\":\"alice@example.com\"}"
+curl -X POST http://localhost:8080/auth/register ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"user@example.com\",\"password\":\"AnotherPass\"}"
 
-# создаём заметку с тегами
-curl -X POST http://localhost:8080/notes -H "Content-Type: application/json" -d "{\"title\":\"Первая заметка\",\"content\":\"Текст...\",\"userId\":1,\"tags\":[\"go\",\"gorm\"]}"
+Ответы:
 
-# получаем заметку с автором и тегами
-curl http://localhost:8080/notes/1
+{"status":"ok","user":{"id":1,"email":"user@example.com"}}
+
+{"error":"email_taken"}
+
+# Успешная и неуспешная аутентификации:
+curl -X POST http://localhost:8080/auth/login ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"user@example.com\",\"password\":\"Secret123!\"}"
+
+curl -X POST http://localhost:8080/auth/login ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"user@example.com\",\"password\":\"wrong\"}"
+
+Ответы:
+
+{"status":"ok","user":{"id":1,"email":"user@example.com"}}
+
+{"error":"invalid_credentials"}
 
 ## Структура проекта
 ```
 C:.
-└───pz6-gorm
-    │   .env
-    │   go.mod
-    │   go.sum
-    │   Makefile
-    │   README.md
-    │
-    ├───bin
-    │       server.exe
-    │
-    ├───cmd
-    │   └───server
-    │           main.go
-    │
-    ├───internal
-    │   ├───db
-    │   │       postgres.go
-    │   │
-    │   ├───httpapi
-    │   │       handlers.go
-    │   │       router.go
-    │   │
-    │   └───models
-    │           models.go
-    │
-    └───PR6
+├───.env
+├───go.mod
+├───go.sum
+├───Makefile
+├───README.md
+│
+├───bin
+│   └───server.exe
+│
+├───cmd
+│   └───api
+│       └───main.go
+│
+├───internal
+│   ├───core
+│   │       user.go
+│   │
+│   ├───http
+│   │   └───handlers
+│   │       └───auth.go
+│   │
+│   ├───platform
+│   │   └───config
+│   │       └───config.go
+│   │
+│   └───repo
+│       ├───postgres.go
+│       └───user_repo.go
+│
+└───PR9
 ```
 ## Примечания по конфигурации
 
-- Подключение к PostgreSQL происходит через строку подключения из переменной окружения DB_DSN
+Подключение к PostgreSQL происходит через файл .env
 
 ## Скриншоты работы проекта
 
 Инициализация проекта
 
-![фото1](./PR5/Screenshot_1.png)
+![фото1](./PR9/Screenshot_1.png)
 
-Выдача прав пользователю
+Настройка прав пользователя
 
-![фото2](./PR5/Screenshot_2.png)
+![фото5](./PR9/Screenshot_5.png)
 
-Запуск проекта
+Подключение к серверу по SSH тоннелю
 
-![фото3](./PR5/Screenshot_3.png)
+![фото3](./PR9/Screenshot_3.png)
 
-здоровье
+Проверка и запуск локального приложения
 
-![фото4](./PR5/Screenshot_4.png)
+![фото2](./PR9/Screenshot_2.png)
 
-создаём пользователя, создаём заметку с тегами, получаем заметку с автором и тегами
+![фото6](./PR9/Screenshot_6.png)
 
-![фото4](./PR5/Screenshot_5.png)
+Удачная и неудачная регистрации, удачный и неудачный логин:
+
+![фото7](./PR9/Screenshot_7.png)
+
+![фото8](./PR9/Screenshot_8.png)
+
+![фото9](./PR9/Screenshot_9.png)
 
 Структура проекта
 
-![фото8](./PR5/Screenshot_6.png)
+![фото4](./PR9/Screenshot_4.png)
