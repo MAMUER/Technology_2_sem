@@ -7,3 +7,6 @@ build:
 check:	
 	go vet ./...
 	go fmt ./...
+
+tree:
+	tree /f

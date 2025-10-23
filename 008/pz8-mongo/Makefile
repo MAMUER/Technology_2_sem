@@ -12,6 +12,9 @@ check:
 test:
 	go test ./...
 
+tree:
+	tree /f
+
 #ssh root@193.233.175.221
 #ssh -L 27017:localhost:27017 root@193.233.175.221 -N
 #ssh -L 27017:localhost:27017 root@193.233.175.221 -N -f

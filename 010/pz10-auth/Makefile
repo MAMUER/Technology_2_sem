@@ -14,3 +14,6 @@ help:
 	@echo "  admin@example.com / secret123 (role: admin)"
 	@echo "  user@example.com  / secret123 (role: user)"
 	@echo "  user2@example.com / secret123 (role: user)"
+
+tree:
+	tree /f
