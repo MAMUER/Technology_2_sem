@@ -1,108 +1,61 @@
-package httpapi
+package middleware
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
-	"strconv"
 
-	"github.com/go-chi/chi/v5"
-	"gorm.io/gorm"
-
-	"example.com/pz6-gorm/internal/models"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-type Handlers struct{ db *gorm.DB }
-
-func NewHandlers(db *gorm.DB) *Handlers { return &Handlers{db: db} }
-
-func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-}
-
-type createUserReq struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
-func (h *Handlers) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var in createUserReq
-	if err := json.NewDecoder(r.Body).Decode(&in); err != nil || in.Name == "" || in.Email == "" {
-		writeErr(w, http.StatusBadRequest, "name and email are required")
-		return
-	}
-	u := models.User{Name: in.Name, Email: in.Email}
-	if err := h.db.Create(&u).Error; err != nil {
-		writeErr(w, http.StatusConflict, err.Error()) // возможен конфликт по unique email
-		return
-	}
-	writeJSON(w, http.StatusCreated, u)
-}
-
-type createNoteReq struct {
-	Title   string   `json:"title"`
-	Content string   `json:"content"`
-	UserID  uint     `json:"userId"`
-	Tags    []string `json:"tags"` // имена тегов
-}
-
-func (h *Handlers) CreateNote(w http.ResponseWriter, r *http.Request) {
-	var in createNoteReq
-	if err := json.NewDecoder(r.Body).Decode(&in); err != nil || in.Title == "" || in.UserID == 0 {
-		writeErr(w, http.StatusBadRequest, "title and userId are required")
-		return
+func AuthZRoles(allowedRoles ...string) func(http.Handler) http.Handler {
+	allowed := make(map[string]bool)
+	for _, role := range allowedRoles {
+		allowed[role] = true
 	}
 
-	// Находим/создаём теги
-	var tags []models.Tag
-	for _, name := range in.Tags {
-		if name == "" { continue }
-		t := models.Tag{Name: name}
-		if err := h.db.FirstOrCreate(&t, models.Tag{Name: name}).Error; err == nil {
-			tags = append(tags, t)
-		}
-	}
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			claimsValue := r.Context().Value("claims")
+			if claimsValue == nil {
+				fmt.Println("AuthZ: No claims in context")
+				http.Error(w, `{"error": "unauthorized"}`, http.StatusUnauthorized)
+				return
+			}
 
-	note := models.Note{
-		Title:   in.Title,
-		Content: in.Content,
-		UserID:  in.UserID,
-		Tags:    tags,
-	}
-	if err := h.db.Create(&note).Error; err != nil {
-		writeErr(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	// Вернём с автором и тегами
-	if err := h.db.Preload("User").Preload("Tags").First(&note, note.ID).Error; err != nil {
-		writeErr(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	writeJSON(w, http.StatusCreated, note)
-}
+			// ПРИНИМАЕМ ЛЮБОЙ ТИП CLAIMS
+			var role string
+			
+			// Пробуем разные типы claims
+			switch claims := claimsValue.(type) {
+			case map[string]interface{}:
+				if r, ok := claims["role"].(string); ok {
+					role = r
+				}
+			case jwt.MapClaims:
+				if r, ok := claims["role"].(string); ok {
+					role = r
+				}
+			default:
+				fmt.Printf("AuthZ: Unknown claims type: %T\n", claimsValue)
+				http.Error(w, `{"error": "unauthorized"}`, http.StatusUnauthorized)
+				return
+			}
 
-func (h *Handlers) GetNoteByID(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil || id <= 0 {
-		writeErr(w, http.StatusBadRequest, "bad id")
-		return
-	}
-	var note models.Note
-	if err := h.db.Preload("User").Preload("Tags").First(&note, id).Error; err != nil {
-		writeErr(w, http.StatusNotFound, "note not found")
-		return
-	}
-	writeJSON(w, http.StatusOK, note)
-}
+			if role == "" {
+				fmt.Println("AuthZ: No role found in claims")
+				http.Error(w, `{"error": "unauthorized"}`, http.StatusUnauthorized)
+				return
+			}
 
-// helpers (единый JSON-ответ)
-type jsonErr struct{ Error string `json:"error"` }
+			fmt.Printf("AuthZ: User role = %s, allowed roles = %v\n", role, allowedRoles)
 
-func writeJSON(w http.ResponseWriter, code int, v any) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(code)
-	_ = json.NewEncoder(w).Encode(v)
-}
-func writeErr(w http.ResponseWriter, code int, msg string) {
-	writeJSON(w, code, jsonErr{Error: msg})
+			if !allowed[role] {
+				http.Error(w, `{"error": "insufficient permissions"}`, http.StatusForbidden)
+				return
+			}
+
+			fmt.Println("AuthZ: Authorization successful")
+			next.ServeHTTP(w, r)
+		})
+	}
 }

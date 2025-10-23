@@ -54,7 +54,7 @@ make tunnel-status
 
 ## Команды:
 
-# Базовая и повторная регистрации
+### Базовая и повторная регистрации
 curl -X POST http://localhost:8080/auth/register ^
   -H "Content-Type: application/json" ^
   -d "{\"email\":\"user@example.com\",\"password\":\"Secret123!\"}"
@@ -69,7 +69,7 @@ curl -X POST http://localhost:8080/auth/register ^
 
 {"error":"email_taken"}
 
-# Успешная и неуспешная аутентификации:
+### Успешная и неуспешная аутентификации:
 curl -X POST http://localhost:8080/auth/login ^
   -H "Content-Type: application/json" ^
   -d "{\"email\":\"user@example.com\",\"password\":\"Secret123!\"}"

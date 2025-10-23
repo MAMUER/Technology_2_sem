@@ -1,22 +1,45 @@
-package httpapi
+package router
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
-	"gorm.io/gorm"
+
+	"example.com/pz10-auth/internal/http/middleware"
+	"example.com/pz10-auth/internal/platform/config"
+	"example.com/pz10-auth/internal/platform/jwt"
+	"example.com/pz10-auth/internal/repo"
+	"example.com/pz10-auth/internal/core"
 )
 
-func BuildRouter(d *gorm.DB) *chi.Mux {
+func Build(cfg config.Config) http.Handler {
 	r := chi.NewRouter()
-	h := NewHandlers(d)
 
-	r.Get("/health", h.Health)
+	// Инициализация зависимостей
+	userRepo := repo.NewUserMem()
+	refreshStore := repo.NewRefreshStore()
+	jwtService := jwt.NewHS256(cfg.JWTSecret, cfg.AccessTTL, cfg.RefreshTTL)
+	service := core.NewService(userRepo, jwtService, refreshStore)
 
-	// Пользователи (упрощённо)
-	r.Post("/users", h.CreateUser)
+	// Публичные маршруты
+	r.Post("/api/v1/login", service.LoginHandler)
+	r.Post("/api/v1/refresh", service.RefreshHandler)
+	r.Post("/api/v1/logout", service.LogoutHandler)
 
-	// Заметки
-	r.Post("/notes", h.CreateNote)      // создаём заметку с тегами
-	r.Get("/notes/{id}", h.GetNoteByID) // получаем заметку с автором и тегами
+	// Защищённые маршруты
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(middleware.AuthN(jwtService))
+		r.Use(middleware.AuthZRoles("user", "admin"))
+		
+		r.Get("/me", service.MeHandler)
+		r.Get("/users/{id}", service.GetUserHandler) // ABAC защищенный эндпоинт
+		
+		// Админские маршруты
+		r.Route("/admin", func(r chi.Router) {
+			r.Use(middleware.AuthZRoles("admin"))
+			r.Get("/stats", service.AdminStats)
+		})
+	})
 
 	return r
 }

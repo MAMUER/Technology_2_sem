@@ -1,31 +1,58 @@
-package models
+package config
 
-import "time"
+import (
+	"log"
+	"os"
+	"time"
 
-type User struct {
-	ID        uint   `gorm:"primaryKey"`
-	Name      string `gorm:"size:100;not null"`
-	Email     string `gorm:"size:200;uniqueIndex;not null"`
-	Notes     []Note // 1:N
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	"github.com/joho/godotenv"
+)
+
+type Config struct {
+	Port       string
+	JWTSecret  []byte
+	AccessTTL  time.Duration
+	RefreshTTL time.Duration
 }
 
-type Note struct {
-	ID        uint   `gorm:"primaryKey"`
-	Title     string `gorm:"size:200;not null"`
-	Content   string `gorm:"type:text"`
-	UserID    uint   `gorm:"not null"`
-	User      User
-	Tags      []Tag `gorm:"many2many:note_tags;"` // M:N
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
+func Load() Config {
+	// Загружаем .env файл
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using system environment variables")
+	}
 
-type Tag struct {
-	ID        uint   `gorm:"primaryKey"`
-	Name      string `gorm:"size:50;uniqueIndex;not null"`
-	Notes     []Note `gorm:"many2many:note_tags;"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("JWT_SECRET is required")
+	}
+
+	accessTTL := os.Getenv("JWT_ACCESS_TTL")
+	if accessTTL == "" {
+		accessTTL = "15m"
+	}
+	accessDur, err := time.ParseDuration(accessTTL)
+	if err != nil {
+		log.Fatal("bad JWT_ACCESS_TTL")
+	}
+
+	refreshTTL := os.Getenv("JWT_REFRESH_TTL")
+	if refreshTTL == "" {
+		refreshTTL = "168h" // 7 дней
+	}
+	refreshDur, err := time.ParseDuration(refreshTTL)
+	if err != nil {
+		log.Fatal("bad JWT_REFRESH_TTL")
+	}
+
+	return Config{
+		Port:       ":" + port,
+		JWTSecret:  []byte(secret),
+		AccessTTL:  accessDur,
+		RefreshTTL: refreshDur,
+	}
 }

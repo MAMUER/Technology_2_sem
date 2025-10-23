@@ -59,28 +59,28 @@ make tunnel-status
 
 ## Команды:
 
-# здоровье
+### здоровье
 curl http://localhost:8080/health
 
 Ответ:
 
 {"status":"ok"}
 
-# создаём пользователя
+### создаём пользователя
 curl -X POST http://localhost:8080/users -H "Content-Type: application/json" -d "{\"name\":\"Alice\",\"email\":\"alice@example.com\"}"
 
 Ответ (только 1 раз):
 
 {"ID":1,"Name":"Alice","Email":" alice@example.com","Notes":null, "CreatedAt":"2025-10-17T13:56:21.1282025+03:00","UpdatedAt":"2025-10-17T13:56:21.1282025+03:00"}
 
-# создаём заметку с тегами
+### создаём заметку с тегами
 curl -X POST http://localhost:8080/notes -H "Content-Type: application/json" -d "{\"title\":\"Первая заметка\",\"content\":\"Текст...\",\"userId\":1,\"tags\":[\"go\",\"gorm\"]}"
 
 Ответ:
 
 {"ID":1,"Title":"Первая заметка","Content":"Текст...","UserID":1,"User":{"ID":1,"Name":"Alice","Email":"alice@example.com","Notes":null,"CreatedAt":"2025-10-17T13:56:21.128202+03:00","UpdatedAt":"2025-10-17T13:56:21.128202+03:00"},"Tags":[{"ID":1,"Name":"go","Notes":null,"CreatedAt":"2025-10-17T13:57:10.133358+03:00","UpdatedAt":"2025-10-17T13:57:10.133358+03:00"},{"ID":2,"Name":"gorm","Notes":null,"CreatedAt":"2025-10-17T13:57:10.958388+03:00","UpdatedAt":"2025-10-17T13:57:10.958388+03:00"}],"CreatedAt":"2025-10-20T14:42:26.642666+03:00","UpdatedAt":"2025-10-20T14:42:26.642666+03:00"}
 
-# получаем заметку с автором и тегами
+### получаем заметку с автором и тегами
 curl http://localhost:8080/notes/1
 
 Ответ:

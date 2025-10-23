@@ -57,21 +57,21 @@ make tunnel-status
 
 ## Команды:
 
-# установка значения
+### установка значения
 curl "http://localhost:8080/set?key=test&value=hello"
 
 Ответ:
 
 OK: test=hello (TTL 10s)
 
-# получение значения
+### получение значения
 curl "http://localhost:8080/get?key=test"
 
 Ответ:
 
 VALUE: test=hello
 
-# проверка TTL
+### проверка TTL
 curl "http://localhost:8080/ttl?key=test"
 
 Ответ:
