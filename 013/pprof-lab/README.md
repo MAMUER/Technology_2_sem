@@ -58,16 +58,16 @@ go tool pprof http://localhost:8080/debug/pprof/profile?seconds=30
 ### Heap-профиль (анализ памяти)
 go tool pprof -http=:9998 http://localhost:8080/debug/pprof/heap
 
-# CPU профиль
+### CPU профиль
 go tool pprof -http=:9999 http://localhost:8080/debug/pprof/profile?seconds=30
 
-# Heap профиль
+### Heap профиль
 go tool pprof -http=:9998 http://localhost:8080/debug/pprof/heap
 
-# Block профиль
+### Block профиль
 go tool pprof -http=:9997 http://localhost:8080/debug/pprof/block
 
-# Mutex профиль
+### Mutex профиль
 go tool pprof -http=:9996 http://localhost:8080/debug/pprof/mutex
 
 ## Структура проекта
