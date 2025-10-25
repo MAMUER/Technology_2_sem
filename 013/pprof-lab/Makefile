@@ -3,14 +3,14 @@ run:
 	.\bin\server
 
 build:
-	go build -o bin/server.exe ./cmd/server
+	go build -o bin/server.exe ./cmd/api
 
 check:	
 	go vet ./...
 	go fmt ./...
 
-help:
-	@echo "Test users:"
-	@echo "  admin@example.com / secret123 (role: admin)"
-	@echo "  user@example.com  / secret123 (role: user)"
-	@echo "  user2@example.com / secret123 (role: user)"
+test:
+	go test -bench=. -benchmem ./...
+
+tree:
+	tree /f
