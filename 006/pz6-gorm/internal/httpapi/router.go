@@ -11,7 +11,7 @@ func BuildRouter(d *gorm.DB) *chi.Mux {
 
 	r.Get("/health", h.Health)
 
-	// Пользователи (упрощённо)
+	// Пользователи
 	r.Post("/users", h.CreateUser)
 
 	// Заметки

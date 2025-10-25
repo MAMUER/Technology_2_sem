@@ -171,25 +171,15 @@ func (s *Service) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) MeHandler(w http.ResponseWriter, r *http.Request) {
-	claimsValue := r.Context().Value("claims")
-	if claimsValue == nil {
+	claims, ok := r.Context().Value("claims").(map[string]interface{})
+	if !ok {
 		httpError(w, 401, "unauthorized", "No claims in context")
 		return
 	}
 
-	var userID float64
-	var email, role string
-
-	switch claims := claimsValue.(type) {
-	case map[string]interface{}:
-		userID, _ = claims["sub"].(float64)
-		email, _ = claims["email"].(string)
-		role, _ = claims["role"].(string)
-	case jwt.MapClaims:
-		userID, _ = claims["sub"].(float64)
-		email, _ = claims["email"].(string)
-		role, _ = claims["role"].(string)
-	}
+	userID, _ := claims["sub"].(float64)
+	email, _ := claims["email"].(string)
+	role, _ := claims["role"].(string)
 
 	jsonOK(w, map[string]any{
 		"id":    int64(userID),
@@ -200,8 +190,8 @@ func (s *Service) MeHandler(w http.ResponseWriter, r *http.Request) {
 
 // ABAC: пользователь может получать только свой профиль
 func (s *Service) GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	claimsValue := r.Context().Value("claims")
-	if claimsValue == nil {
+	claims, ok := r.Context().Value("claims").(map[string]interface{})
+	if !ok {
 		httpError(w, 401, "unauthorized", "No claims in context")
 		return
 	}
@@ -215,29 +205,16 @@ func (s *Service) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Извлекаем ID из токена
-	var tokenUserID float64
-	switch claims := claimsValue.(type) {
-	case map[string]interface{}:
-		tokenUserID, _ = claims["sub"].(float64)
-	case jwt.MapClaims:
-		tokenUserID, _ = claims["sub"].(float64)
-	}
+	tokenUserID, _ := claims["sub"].(float64)
+	userRole, _ := claims["role"].(string)
 
 	// ABAC проверка: обычный пользователь может получать только свой профиль
-	userRole := ""
-	switch claims := claimsValue.(type) {
-	case map[string]interface{}:
-		userRole, _ = claims["role"].(string)
-	case jwt.MapClaims:
-		userRole, _ = claims["role"].(string)
-	}
-
 	if userRole == "user" && int64(tokenUserID) != requestedID {
 		httpError(w, 403, "forbidden", "You can only access your own profile")
 		return
 	}
 
-	// Получаем пользователя (моковые данные)
+	// Получаем пользователя
 	user, err := s.repo.GetUserByID(requestedID)
 	if err != nil {
 		httpError(w, 404, "user_not_found", "User not found")
@@ -252,9 +229,16 @@ func (s *Service) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) AdminStats(w http.ResponseWriter, r *http.Request) {
-	claimsValue := r.Context().Value("claims")
-	if claimsValue == nil {
+	claims, ok := r.Context().Value("claims").(map[string]interface{})
+	if !ok {
 		httpError(w, 401, "unauthorized", "No claims in context")
+		return
+	}
+
+	// Дополнительная проверка роли
+	role, _ := claims["role"].(string)
+	if role != "admin" {
+		httpError(w, 403, "forbidden", "Admin access required")
 		return
 	}
 

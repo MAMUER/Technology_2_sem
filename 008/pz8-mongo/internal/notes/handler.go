@@ -22,8 +22,6 @@ func (h *Handler) Routes() chi.Router {
 	r.Get("/{id}", h.get)
 	r.Patch("/{id}", h.patch)
 	r.Delete("/{id}", h.del)
-
-	// Новые эндпоинты
 	r.Get("/search/text", h.textSearch) // GET /api/v1/notes/search/text?q=query&limit=10
 	r.Get("/stats", h.stats)            // GET /api/v1/notes/stats
 	r.Get("/stats/daily", h.statsDaily) // GET /api/v1/notes/stats/daily?days=7
@@ -45,7 +43,7 @@ func (h *Handler) textSearch(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := reqCtx(r)
 	defer cancel()
 
-	// Используем поиск с релевантностью
+	// Поиск с релевантностью
 	notes, err := h.repo.TextSearchWithScore(ctx, q, limit, skip)
 	if err != nil {
 		writeJSON(w, 500, map[string]string{"error": err.Error()})
@@ -76,7 +74,7 @@ func (h *Handler) statsDaily(w http.ResponseWriter, r *http.Request) {
 	days, _ := strconv.Atoi(r.URL.Query().Get("days"))
 	if days <= 0 {
 		days = 7
-	} // по умолчанию последние 7 дней
+	} // последние 7 дней
 
 	ctx, cancel := reqCtx(r)
 	defer cancel()
@@ -140,7 +138,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query().Get("q")
-	searchType := r.URL.Query().Get("searchType") // "text" или "regex" (по умолчанию)
+	searchType := r.URL.Query().Get("searchType") // "text" или "regex"
 	limit, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 64)
 	skip, _ := strconv.ParseInt(r.URL.Query().Get("skip"), 10, 64)
 
@@ -158,10 +156,10 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if searchType == "text" && q != "" {
-		// Используем полнотекстовый поиск
+		// Полнотекстовый поиск
 		items, err = h.repo.TextSearchWithScore(ctx, q, limit, skip)
 	} else {
-		// Используем старый regex поиск
+		// Старый regex поиск
 		notes, err := h.repo.List(ctx, q, limit, skip)
 		if err != nil {
 			writeJSON(w, 500, map[string]string{"error": err.Error()})

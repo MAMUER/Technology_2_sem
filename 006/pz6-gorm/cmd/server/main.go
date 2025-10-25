@@ -12,7 +12,7 @@ import (
 func main() {
 	d := db.Connect()
 
-	// Автоматически создаст (или обновит) таблицы под наши модели
+	// Автоматически создаст (или обновит) таблицы
 	if err := d.AutoMigrate(&models.User{}, &models.Note{}, &models.Tag{}); err != nil {
 		log.Fatal("migrate:", err)
 	}

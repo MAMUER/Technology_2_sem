@@ -15,7 +15,7 @@ type Config struct {
 }
 
 func Load() Config {
-	// Загружаем .env файл (игнорируем ошибку если файла нет)
+	// Загружаем .env файл
 	_ = godotenv.Load()
 
 	cost := 12

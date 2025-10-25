@@ -154,7 +154,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		httpError(w, http.StatusNotFound, err.Error())
 		return
 	}
-	w.WriteHeader(http.StatusNoContent) // 204 No Content - успешное удаление, тело не нужно
+	w.WriteHeader(http.StatusNoContent) // 204 No Content - успешное удаление
 }
 
 // helpers

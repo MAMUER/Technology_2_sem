@@ -6,7 +6,7 @@ type User struct {
 	ID        uint   `gorm:"primaryKey"`
 	Name      string `gorm:"size:100;not null"`
 	Email     string `gorm:"size:200;uniqueIndex;not null"`
-	Notes     []Note // 1:N
+	Notes     []Note
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -17,7 +17,7 @@ type Note struct {
 	Content   string `gorm:"type:text"`
 	UserID    uint   `gorm:"not null"`
 	User      User
-	Tags      []Tag `gorm:"many2many:note_tags;"` // M:N
+	Tags      []Tag `gorm:"many2many:note_tags;"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

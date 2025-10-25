@@ -55,7 +55,6 @@ func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		token := parts[1]
-		// В реальном приложении здесь была бы проверка JWT токена
 		if !h.isValidToken(token) {
 			http.Error(w, `{"error": "Invalid token"}`, http.StatusUnauthorized)
 			return
@@ -66,8 +65,6 @@ func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
 }
 
 func (h *Handler) isValidToken(token string) bool {
-	// Заглушка для демонстрации
-	// В реальном приложении здесь была бы проверка подписи JWT
 	return token != "" && len(token) > 10
 }
 

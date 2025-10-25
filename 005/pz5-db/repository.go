@@ -28,7 +28,7 @@ func (r *Repo) CreateTask(ctx context.Context, title string) (int, error) {
 	return id, err
 }
 
-// ListTasks — базовый SELECT всех задач (демо для занятия)
+// ListTasks — базовый SELECT всех задач
 func (r *Repo) ListTasks(ctx context.Context) ([]Task, error) {
 	const q = `SELECT id, title, done, created_at FROM tasks ORDER BY id;`
 	rows, err := r.DB.QueryContext(ctx, q)

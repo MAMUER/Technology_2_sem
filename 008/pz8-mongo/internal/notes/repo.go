@@ -20,7 +20,7 @@ type Repo struct {
 func NewRepo(db *mongo.Database) (*Repo, error) {
 	col := db.Collection("notes")
 
-	// Создаем текстовый индекс для title и content
+	// Текстовый индекс для title и content
 	textIndex := mongo.IndexModel{
 		Keys: bson.D{
 			{Key: "title", Value: "text"},
@@ -28,13 +28,12 @@ func NewRepo(db *mongo.Database) (*Repo, error) {
 		},
 	}
 
-	// Уникальный индекс на title (оставляем)
+	// Уникальный индекс на title
 	uniqueIndex := mongo.IndexModel{
 		Keys:    bson.D{{Key: "title", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 
-	// Создаем оба индекса
 	_, err := col.Indexes().CreateMany(context.Background(), []mongo.IndexModel{
 		textIndex,
 		uniqueIndex,

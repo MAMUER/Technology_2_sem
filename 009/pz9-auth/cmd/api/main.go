@@ -18,7 +18,7 @@ func main() {
 		log.Fatal("db connect:", err)
 	}
 
-	if err := db.Exec("SET timezone TO 'UTC'").Error; err != nil { /* необязательно */
+	if err := db.Exec("SET timezone TO 'UTC'").Error; err != nil {
 	}
 
 	users := repo.NewUserRepo(db)

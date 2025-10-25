@@ -17,7 +17,6 @@ var (
 )
 
 func enableProfiling() {
-	// Включаем профили блокировок и мьютексов
 	runtime.SetBlockProfileRate(1)
 	runtime.SetMutexProfileFraction(1)
 	log.Println("Block and mutex profiling enabled")
@@ -44,7 +43,7 @@ func main() {
 		_, _ = w.Write([]byte(fmt.Sprintf("Fast: %d\n", res)))
 	})
 
-	// Добавим эндпоинт для демонстрации блокировок
+	// Эндпоинт для демонстрации блокировок
 	http.HandleFunc("/block-demo", func(w http.ResponseWriter, r *http.Request) {
 		// Демонстрация блокировок на каналах
 		ch := make(chan int)
@@ -54,7 +53,7 @@ func main() {
 			ch <- 42
 		}()
 
-		result := <-ch // БЛОКИРОВКА здесь
+		result := <-ch
 
 		// Демонстрация конкуренции за мьютекс
 		var wg sync.WaitGroup
@@ -63,9 +62,9 @@ func main() {
 			go func(id int) {
 				defer wg.Done()
 
-				globalMutex.Lock() // КОНКУРЕНЦИЯ здесь
+				globalMutex.Lock()
 				sharedData++
-				time.Sleep(10 * time.Millisecond) // Имитация работы
+				time.Sleep(10 * time.Millisecond)
 				globalMutex.Unlock()
 			}(i)
 		}

@@ -11,7 +11,7 @@ func NewRouter(h *handlers.Handler) *chi.Mux {
 
 	// Группа защищенных эндпоинтов
 	r.Route("/api/v1", func(r chi.Router) {
-		// Применяем JWT middleware ко всем эндпоинтам API
+		// JWT middleware ко всем эндпоинтам API
 		r.Use(h.AuthMiddleware)
 
 		r.Get("/notes", h.ListNotes)

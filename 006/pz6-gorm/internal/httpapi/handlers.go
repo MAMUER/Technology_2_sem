@@ -32,7 +32,7 @@ func (h *Handlers) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	u := models.User{Name: in.Name, Email: in.Email}
 	if err := h.db.Create(&u).Error; err != nil {
-		writeErr(w, http.StatusConflict, err.Error()) // возможен конфликт по unique email
+		writeErr(w, http.StatusConflict, err.Error())
 		return
 	}
 	writeJSON(w, http.StatusCreated, u)

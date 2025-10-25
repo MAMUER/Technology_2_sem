@@ -13,7 +13,7 @@ import (
 func TestCreateAndGet(t *testing.T) {
 	ctx := context.Background()
 
-	// Используем тестовую базу данных с уникальным именем
+	// Используем базу данных с уникальным именем
 	dbName := "pz8_test_" + time.Now().Format("20060102150405")
 	mongoURI := getTestMongoURI()
 
@@ -121,7 +121,7 @@ func TestByID_NotFound(t *testing.T) {
 	}
 
 	// Пытаемся получить несуществующую заметку
-	_, err = repo.ByID(ctx, "507f1f77bcf86cd799439011") // valid ObjectID format
+	_, err = repo.ByID(ctx, "507f1f77bcf86cd799439011")
 	if err != ErrNotFound {
 		t.Errorf("Expected ErrNotFound, got %v", err)
 	}
@@ -408,7 +408,7 @@ func TestGetStats(t *testing.T) {
 	}
 }
 
-// getTestMongoURI возвращает URI для тестовой MongoDB
+// getTestMongoURI возвращает URI для MongoDB
 func getTestMongoURI() string {
 	if uri := os.Getenv("MONGO_URI"); uri != "" {
 		return uri

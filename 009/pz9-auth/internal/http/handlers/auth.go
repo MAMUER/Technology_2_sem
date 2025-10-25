@@ -80,7 +80,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	u, err := h.Users.ByEmail(context.Background(), in.Email)
 	if err != nil {
-		// не раскрываем, что именно не так
 		writeErr(w, http.StatusUnauthorized, "invalid_credentials")
 		return
 	}
@@ -90,7 +89,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// В ПЗ10 здесь будет генерация JWT; пока просто ok
+	// пока просто ok
 	writeJSON(w, http.StatusOK, authResp{
 		Status: "ok",
 		User:   map[string]any{"id": u.ID, "email": u.Email},

@@ -112,7 +112,7 @@ func (r *Repo) LoadFromFile(filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil // нет файла — просто пустой репозиторий
+			return nil // пустой репозиторий
 		}
 		return err
 	}
@@ -134,7 +134,7 @@ func (r *Repo) LoadFromFile(filename string) error {
 	return nil
 }
 
-// Записывает переданный срез задач в файл, не блокирует mu
+// Записывает переданный срез задач в файл
 func (r *Repo) saveTasksToFile(tasks []*Task, filename string) error {
 	data, err := json.MarshalIndent(tasks, "", "  ")
 	if err != nil {

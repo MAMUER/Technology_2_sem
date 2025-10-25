@@ -15,8 +15,9 @@ type UserRecord struct {
 }
 
 type UserMem struct {
-	users map[string]UserRecord
+	users     map[string]UserRecord
 	usersByID map[int64]UserRecord
+	nextID    int64
 }
 
 func NewUserMem() *UserMem {
@@ -37,13 +38,14 @@ func NewUserMem() *UserMem {
 	}
 	
 	return &UserMem{
-		users: users,
+		users:     users,
 		usersByID: usersByID,
+		nextID:    4,
 	}
 }
 
 var (
-	ErrNotFound  = errors.New("user not found")
+	ErrNotFound = errors.New("user not found")
 	ErrBadCreds = errors.New("bad credentials")
 )
 

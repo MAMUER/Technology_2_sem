@@ -10,7 +10,7 @@ import (
 
 func main() {
 	cfg := config.Load()
-	mux := router.Build(cfg) // см. следующий шаг
+	mux := router.Build(cfg)
 	log.Println("listening on", cfg.Port)
 	log.Fatal(http.ListenAndServe(cfg.Port, mux))
 }

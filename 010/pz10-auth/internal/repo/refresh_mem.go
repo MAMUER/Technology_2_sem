@@ -7,8 +7,8 @@ import (
 
 type RefreshStore struct {
 	mu      sync.RWMutex
-	tokens  map[string]time.Time // token -> expiration time
-	revoked map[string]time.Time // token -> revocation time
+	tokens  map[string]time.Time
+	revoked map[string]time.Time
 }
 
 func NewRefreshStore() *RefreshStore {
@@ -29,14 +29,14 @@ func (s *RefreshStore) IsRevoked(token string) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	
-	// Проверяем, отозван ли токен
+	// Проверка, отозван ли токен
 	if _, revoked := s.revoked[token]; revoked {
 		return true
 	}
 	
-	// Проверяем, существует ли токен
+	// Проверка, существует ли токен
 	if exp, exists := s.tokens[token]; exists {
-		// Проверяем не истек ли срок
+		// Проверка, не истек ли срок
 		if time.Now().After(exp) {
 			return true
 		}
