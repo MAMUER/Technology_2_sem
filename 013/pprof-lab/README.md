@@ -13,8 +13,6 @@
 
 Проект на языке Go (необходима версия 1.21 и выше)
 
-## Необходимые пароли
-
 ## Команды запуска/сборки
 
 ### Сборка приложения:
@@ -24,6 +22,20 @@ make build
 ### Запуск приложения:
 
 make run
+
+## Запуск бенчмарков
+
+### Сравнение производительности
+
+make bench
+
+### Профилирование блокировок (через Makefile)
+
+make profile-block
+
+### Профилирование мьютексов (через Makefile)
+
+make profile-mutex
 
 ## Команды:
 
@@ -35,6 +47,9 @@ hey -n 200 -c 8 http://localhost:8080/work-slow
 
 ### Нагрузочное тестирование быстрой версии
 hey -n 200 -c 8 http://localhost:8080/work-fast
+
+### Тестирование блокировок
+hey -n 100 -c 5 http://localhost:8080/block-demo
 
 ### Открытие страницы профиля
 http://localhost:8080/debug/pprof/
@@ -48,26 +63,45 @@ http://localhost:8080/debug/pprof/heap
 ### Скачивание файла goroutine
 http://localhost:8080/debug/pprof/goroutine
 
+### Скачивание файла block
+http://localhost:8080/debug/pprof/block
+
+### качивание файла mutex
+http://localhost:8080/debug/pprof/mutex
+
 ### Анализ CPU профиля
 go tool pprof http://localhost:8080/debug/pprof/profile?seconds=30
+#### “топ пожирателей CPU”
+- (pprof) top
+#### показать исходник с “горячими” строками
+- (pprof) list main
+#### сгенерировать svg с графом вызовов
+- (pprof) web 
 
-- (pprof) top         # “топ пожирателей CPU”
-- (pprof) list main    # показать исходник с “горячими” строками
-- (pprof) web         # сгенерировать svg с графом вызовов
+### Анализ Block профиля
+go tool pprof http://localhost:8080/debug/pprof/block
+#### топ операций блокировки
+- (pprof) top
+#### показать где происходят блокировки
+- (pprof) list main   
 
-### Heap-профиль (анализ памяти)
-go tool pprof -http=:9998 http://localhost:8080/debug/pprof/heap
+### Анализ Mutex профиля
+go tool pprof http://localhost:8080/debug/pprof/mutex
+#### топ конфликтов мьютексов
+- (pprof) top
+#### показать где происходят блокировки мьютексов
+- (pprof) list main   
 
-### CPU профиль
+### CPU профиль с веб-интерфейсом
 go tool pprof -http=:9999 http://localhost:8080/debug/pprof/profile?seconds=30
 
-### Heap профиль
+### Heap профиль с веб-интерфейсом
 go tool pprof -http=:9998 http://localhost:8080/debug/pprof/heap
 
-### Block профиль
+### Block профиль с веб-интерфейсом
 go tool pprof -http=:9997 http://localhost:8080/debug/pprof/block
 
-### Mutex профиль
+### Mutex профиль с веб-интерфейсом
 go tool pprof -http=:9996 http://localhost:8080/debug/pprof/mutex
 
 ## Структура проекта
