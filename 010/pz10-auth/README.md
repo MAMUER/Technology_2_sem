@@ -42,6 +42,9 @@ curl -s -X POST http://localhost:8080/api/v1/login -H "Content-Type: application
 
 {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwejEwLWNsaWVudHMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiZXhwIjoxNzYxMjE2MzY1LCJpYXQiOjE3NjEyMDkxNjUsImlzcyI6InB6MTAtYXV0aCIsInJvbGUiOiJhZG1pbiIsInN1YiI6MX0.GqjQ13GOvySLMs1CIcst7Qf2jBnH-EXc8euAEGDnGJ8","user":{"email":"admin@example.com","id":1,"role":"admin"}}
 
+### Сохранение токена в переменную для удобства (работает не для всех консолей)
+set TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwejEwLWNsaWVudHMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiZXhwIjoxNzYxNDAyNTYzLCJpYXQiOjE3NjE0MDE2NjMsImlzcyI6InB6MTAtYXV0aCIsInJvbGUiOiJhZG1pbiIsInN1YiI6MSwidHlwZSI6ImFjY2VzcyJ9.V8rPOcpM9-LJIn4zMijt5tVF8RjX0Sa_ju7gYr4YtPI
+
 ### Доступ к защищённым ручкам:
 curl -s http://localhost:8080/api/v1/me -H "Authorization: Bearer $TOKEN"
 
@@ -62,21 +65,19 @@ curl -s -X POST http://localhost:8080/api/v1/login -H "Content-Type: application
 {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwejEwLWNsaWVudHMiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJleHAiOjE3NjEyMTg0MDIsImlhdCI6MTc2MTIxMTIwMiwiaXNzIjoicHoxMC1hdXRoIiwicm9sZSI6InVzZXIiLCJzdWIiOjJ9.i_RDZ-PhsO1JthNOS7uR4HweUXZ_YYzO-cEAKc7SKqE","user":{"email":"user@example.com","id":2,"role":"user"}}
 
 ### Доступ к защищённым ручкам:
-curl -i http://localhost:8080/api/v1/admin/stats -H "Authorization: Bearer $TOKEN_USER"  # ожидаем 403
+curl -i http://localhost:8080/api/v1/admin/stats -H "Authorization: Bearer $TOKEN_USER"
 
 Ответ:
+
 HTTP/1.1 403 Forbidden
 Content-Type: text/plain; charset=utf-8
 X-Content-Type-Options: nosniff
-Date: Thu, 23 Oct 2025 09:21:15 GMT
+Date: Sat, 25 Oct 2025 15:16:16 GMT
 Content-Length: 38
 
 {"error": "insufficient permissions"}
-curl: (3) URL rejected: No host part in the URL
-curl: (6) Could not resolve host: Р?РРёР?Р°РчР?
-curl: (7) Failed to connect to 0.0.1.147 port 80 after 0 ms: Could not connect to server
 
-## Тесты
+## Тесты (Для PowerShell)
 ### 1. Логин админа
 $admin = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/login" -Method POST -ContentType "application/json" -Body '{"email":"admin@example.com","password":"secret123"}'
 $ADMIN_ACCESS = $admin.access_token

@@ -1,19 +1,11 @@
 package middleware
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"example.com/pz10-auth/internal/platform/jwt"
-)
-
-// key - тип для ключей context чтобы избежать коллизий
-type key int
-
-const (
-	claimsKey key = iota
 )
 
 // AuthN middleware для аутентификации JWT токенов
@@ -35,15 +27,11 @@ func AuthN(v jwt.Validator) func(http.Handler) http.Handler {
 			}
 
 			fmt.Printf("JWT Validated: user %v, role %v\n", claims["sub"], claims["role"])
-			ctx := context.WithValue(r.Context(), claimsKey, claims)
+
+			// Используем общую функцию WithClaims
+			ctx := WithClaims(r.Context(), claims)
 			newReq := r.WithContext(ctx)
 			next.ServeHTTP(w, newReq)
 		})
 	}
-}
-
-// GetClaims извлекает claims из context
-func GetClaims(ctx context.Context) (map[string]interface{}, bool) {
-	claims, ok := ctx.Value(claimsKey).(map[string]interface{})
-	return claims, ok
 }

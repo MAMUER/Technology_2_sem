@@ -1,8 +1,8 @@
 package jwt
 
 import (
-	"time"
 	"github.com/golang-jwt/jwt/v5"
+	"time"
 )
 
 type Validator interface {
@@ -12,15 +12,15 @@ type Validator interface {
 }
 
 type HS256 struct {
-	secret []byte
-	accessTTL time.Duration
+	secret     []byte
+	accessTTL  time.Duration
 	refreshTTL time.Duration
 }
 
 func NewHS256(secret []byte, accessTTL, refreshTTL time.Duration) *HS256 {
 	return &HS256{
-		secret: secret, 
-		accessTTL: accessTTL,
+		secret:     secret,
+		accessTTL:  accessTTL,
 		refreshTTL: refreshTTL,
 	}
 }
@@ -59,19 +59,19 @@ func (h *HS256) Parse(tokenStr string) (jwt.MapClaims, error) {
 	t, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		return h.secret, nil
 	})
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if !t.Valid {
 		return nil, jwt.ErrTokenInvalidClaims
 	}
-	
+
 	claims, ok := t.Claims.(jwt.MapClaims)
 	if !ok {
 		return nil, jwt.ErrTokenInvalidClaims
 	}
-	
+
 	return claims, nil
 }

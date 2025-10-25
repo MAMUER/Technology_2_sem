@@ -19,7 +19,7 @@ func AuthZRoles(allowedRoles ...string) func(http.Handler) http.Handler {
 				http.Error(w, `{"error": "unauthorized"}`, http.StatusUnauthorized)
 				return
 			}
-			
+
 			role, _ := claims["role"].(string)
 			if role == "" {
 				fmt.Println("AuthZ: No role found in claims")

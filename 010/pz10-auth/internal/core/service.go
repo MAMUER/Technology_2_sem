@@ -8,6 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
+
+	"example.com/pz10-auth/internal/http/middleware"
 )
 
 type UserRepo interface {
@@ -53,7 +55,7 @@ func (s *Service) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		httpError(w, 400, "invalid_request", "Invalid JSON")
 		return
@@ -101,7 +103,7 @@ func (s *Service) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	var in struct {
 		RefreshToken string `json:"refresh_token"`
 	}
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		httpError(w, 400, "invalid_request", "Invalid JSON")
 		return
@@ -171,7 +173,7 @@ func (s *Service) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) MeHandler(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value("claims").(map[string]interface{})
+	claims, ok := middleware.GetClaims(r.Context())
 	if !ok {
 		httpError(w, 401, "unauthorized", "No claims in context")
 		return
@@ -190,7 +192,7 @@ func (s *Service) MeHandler(w http.ResponseWriter, r *http.Request) {
 
 // ABAC: пользователь может получать только свой профиль
 func (s *Service) GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value("claims").(map[string]interface{})
+	claims, ok := middleware.GetClaims(r.Context())
 	if !ok {
 		httpError(w, 401, "unauthorized", "No claims in context")
 		return
@@ -229,7 +231,7 @@ func (s *Service) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Service) AdminStats(w http.ResponseWriter, r *http.Request) {
-	claims, ok := r.Context().Value("claims").(map[string]interface{})
+	claims, ok := middleware.GetClaims(r.Context())
 	if !ok {
 		httpError(w, 401, "unauthorized", "No claims in context")
 		return
@@ -253,7 +255,7 @@ func (s *Service) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	var in struct {
 		RefreshToken string `json:"refresh_token"`
 	}
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		httpError(w, 400, "invalid_request", "Invalid JSON")
 		return

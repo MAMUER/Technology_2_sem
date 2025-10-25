@@ -17,3 +17,9 @@ help:
 
 tree:
 	tree /f
+
+fast:
+	go vet ./...
+	go fmt ./...
+	go build -o bin/server.exe ./cmd/server
+	.\bin\server

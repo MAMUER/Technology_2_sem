@@ -25,18 +25,18 @@ func NewUserMem() *UserMem {
 		h, _ := bcrypt.GenerateFromPassword([]byte(s), bcrypt.DefaultCost)
 		return h
 	}
-	
+
 	users := map[string]UserRecord{
 		"admin@example.com": {ID: 1, Email: "admin@example.com", Role: "admin", Hash: hash("secret123")},
 		"user@example.com":  {ID: 2, Email: "user@example.com", Role: "user", Hash: hash("secret123")},
 		"user2@example.com": {ID: 3, Email: "user2@example.com", Role: "user", Hash: hash("secret123")},
 	}
-	
+
 	usersByID := make(map[int64]UserRecord)
 	for _, user := range users {
 		usersByID[user.ID] = user
 	}
-	
+
 	return &UserMem{
 		users:     users,
 		usersByID: usersByID,

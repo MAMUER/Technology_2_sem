@@ -38,7 +38,7 @@ func Load() Config {
 	}
 
 	log.Printf("Config loaded: Addr=%s, BcryptCost=%d", addr, cost)
-	
+
 	return Config{
 		DB_DSN:     dsn,
 		BcryptCost: cost,
