@@ -22,10 +22,10 @@ func main() {
 
 	// Создаем репозиторий PostgreSQL
 	noteRepo := repo.NewNoteRepoPostgres(dbPool)
-	
+
 	// Создаем сервис
 	noteService := service.NewNoteService(noteRepo)
-	
+
 	// Создаем хендлер
 	h := &handlers.Handler{Service: noteService}
 	r := httpx.NewRouter(h)

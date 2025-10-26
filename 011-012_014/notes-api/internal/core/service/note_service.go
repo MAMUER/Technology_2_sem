@@ -59,7 +59,7 @@ func (s *NoteService) GetAllNotesWithPagination(cursorTime time.Time, cursorID i
 	}); ok {
 		return repo.GetAllWithPagination(cursorTime, cursorID, limit)
 	}
-	
+
 	// Fallback на обычный GetAll если репозиторий не поддерживает пагинацию
 	return s.repo.GetAll()
 }
@@ -71,7 +71,7 @@ func (s *NoteService) GetNotesByIDs(ids []int64) ([]*core.Note, error) {
 	}); ok {
 		return repo.GetByIDs(ids)
 	}
-	
+
 	// Fallback - последовательные запросы (неэффективно)
 	var notes []*core.Note
 	for _, id := range ids {

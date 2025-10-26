@@ -24,11 +24,11 @@ func NewDBPool() (*pgxpool.Pool, error) {
 	}
 
 	// Настройка пула соединений
-	cfg.MaxConns = 20                    // Максимальное количество соединений
-	cfg.MinConns = 5                     // Минимальное количество соединений
-	cfg.MaxConnLifetime = time.Hour      // Максимальное время жизни соединения
+	cfg.MaxConns = 20                     // Максимальное количество соединений
+	cfg.MinConns = 5                      // Минимальное количество соединений
+	cfg.MaxConnLifetime = time.Hour       // Максимальное время жизни соединения
 	cfg.MaxConnIdleTime = 5 * time.Minute // Максимальное время простоя соединения
-	cfg.HealthCheckPeriod = time.Minute  // Период проверки здоровья
+	cfg.HealthCheckPeriod = time.Minute   // Период проверки здоровья
 
 	// Создаем пул
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -44,7 +44,7 @@ func NewDBPool() (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("unable to ping database: %w", err)
 	}
 
-	log.Printf("Successfully connected to PostgreSQL. Pool stats: MaxConns=%d, MinConns=%d", 
+	log.Printf("Successfully connected to PostgreSQL. Pool stats: MaxConns=%d, MinConns=%d",
 		cfg.MaxConns, cfg.MinConns)
 	return pool, nil
 }

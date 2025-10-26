@@ -70,7 +70,7 @@ func (r *NoteRepoPostgres) Create(n core.Note) (int64, error) {
 }
 
 func (r *NoteRepoPostgres) GetAll() ([]*core.Note, error) {
-	return r.GetAllWithLimit(0) // Исправлено: GetAllWithLimit вместо getAllWithLimit
+	return r.GetAllWithLimit(10)
 }
 
 // GetAllWithPagination - keyset пагинация
@@ -85,7 +85,7 @@ func (r *NoteRepoPostgres) GetAllWithPagination(cursorTime time.Time, cursorID i
 }
 
 // GetAllWithLimit - для OFFSET пагинации (менее эффективно)
-func (r *NoteRepoPostgres) GetAllWithLimit(limit int) ([]*core.Note, error) { // Исправлено: GetAllWithLimit вместо getAllWithLimit
+func (r *NoteRepoPostgres) GetAllWithLimit(limit int) ([]*core.Note, error) {
 	query := getAllQuery
 	if limit > 0 {
 		query += fmt.Sprintf(" LIMIT %d", limit)
@@ -124,7 +124,7 @@ func (r *NoteRepoPostgres) GetByIDs(ids []int64) ([]*core.Note, error) {
 
 func (r *NoteRepoPostgres) Update(updatedNote *core.Note) (*core.Note, error) {
 	var note core.Note
-	err := r.db.QueryRow(context.Background(), updateQuery, 
+	err := r.db.QueryRow(context.Background(), updateQuery,
 		updatedNote.Title, updatedNote.Content, updatedNote.ID).Scan(
 		&note.ID, &note.Title, &note.Content, &note.CreatedAt,
 	)

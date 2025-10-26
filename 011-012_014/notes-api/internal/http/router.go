@@ -16,10 +16,10 @@ func NewRouter(h *handlers.Handler) *chi.Mux {
 		r.Patch("/notes/{id}", h.PatchNote)
 		r.Put("/notes/{id}", h.UpdateNote)
 		r.Delete("/notes/{id}", h.DeleteNote)
-		
+
 		// Новые оптимизированные эндпоинты
 		r.Get("/notes/paginated", h.ListNotesWithPagination) // Keyset пагинация
-		r.Get("/notes/batch", h.GetNotesBatch) // Батчинг
+		r.Get("/notes/batch", h.GetNotesBatch)               // Батчинг
 	})
 
 	return r

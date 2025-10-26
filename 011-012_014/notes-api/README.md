@@ -57,7 +57,11 @@ curl -X POST http://localhost:8080/api/v1/notes ^
 
 Ответ:
 
+#### In-memory
 {"ID":1,"Title":"Первая заметка","Content":"Это тест","CreatedAt":"0001-01-01T00:00:00Z","UpdatedAt":null}
+
+#### PostgreSQL
+{"id":301}
 
 ### Получение списка заметок
 curl -X GET "http://localhost:8080/api/v1/notes?page=1&limit=10&q=заметка" ^
@@ -66,7 +70,11 @@ curl -X GET "http://localhost:8080/api/v1/notes?page=1&limit=10&q=заметка
 
 Ответ:
 
+#### In-memory
 [{"ID":1,"Title":"Первая заметка","Content":"Это тест","CreatedAt":"2024-01-15T10:30:00Z","UpdatedAt":null}]
+
+#### PostgreSQL
+[{"id":301,"title":"Первая заметка","content":"Это тест","created_at":"2025-10-26T19:01:08.493454+03:00"},{"id":300,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":299,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":297,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":296,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":295,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":294,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":293,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":292,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":298,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.825408+03:00"}]
 
 ### Получение конкретной заметки
 curl -X GET http://localhost:8080/api/v1/notes/1 ^
@@ -75,7 +83,11 @@ curl -X GET http://localhost:8080/api/v1/notes/1 ^
 
 Ответ:
 
+#### In-memory
 {"ID":1,"Title":"Первая заметка","Content":"Это тест","CreatedAt":"2024-01-15T10:30:00Z","UpdatedAt":null}
+
+#### PostgreSQL
+{"id":1,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:49.029426+03:00"}
 
 ### Частичное обновление заметки
 curl -X PATCH http://localhost:8080/api/v1/notes/1 ^
@@ -85,7 +97,11 @@ curl -X PATCH http://localhost:8080/api/v1/notes/1 ^
 
 Ответ:
 
+#### In-memory
 {"ID":1,"Title":"Обновленная заметка","Content":"Это тест","CreatedAt":"2024-01-15T10:30:00Z","UpdatedAt":"2024-01-15T11:00:00Z"}
+
+#### PostgreSQL
+{"id":1,"title":"Обновленная заметка","content":"Content","created_at":"2025-10-26T18:50:49.029426+03:00"}
 
 ### Удаление заметки
 curl -X DELETE http://localhost:8080/api/v1/notes/1 ^
@@ -95,6 +111,7 @@ curl -X DELETE http://localhost:8080/api/v1/notes/1 ^
 ## Структура проекта
 ```
 C:.
+│   .env
 │   go.mod
 │   go.sum
 │   Makefile
@@ -116,11 +133,15 @@ C:.
 │       swagger.yaml
 │
 ├───internal
+│   ├───config
+│   │       database.go
+│   │
 │   ├───core
 │   │   │   note.go
 │   │   │
 │   │   └───service
 │   │           note_service.go
+│   │           transaction_service.go
 │   │
 │   ├───http
 │   │   │   router.go
@@ -130,6 +151,7 @@ C:.
 │   │
 │   └───repo
 │           note_mem.go
+│           note_postgres.go
 │
 └───PR11-12_14
 ```
@@ -149,6 +171,20 @@ C:.
 Создание БД
 
 ![фото10](./PR11-12_14/Screenshot_10.png)
+
+![фото13](./PR11-12_14/Screenshot_13.png)
+
+Добавление прав доступа
+
+![фото14](./PR11-12_14/Screenshot_14.png)
+
+![фото18](./PR11-12_14/Screenshot_18.png)
+
+Добавление shared_preload_libraries
+
+![фото17](./PR11-12_14/Screenshot_17.png)
+
+![фото16](./PR11-12_14/Screenshot_16.png)
 
 Создание файлов для подключения к БД
 
@@ -173,6 +209,42 @@ C:.
 Проверка обновленных команд
 
 ![фото9](./PR11-12_14/Screenshot_9.png)
+
+EXPLAIN/ANALYZE проблемных запросов
+
+![фото15](./PR11-12_14/Screenshot_15.png)
+
+Статистика запросов из БД
+
+![фото19](./PR11-12_14/Screenshot_19.png)
+
+Нагрузочное тестирование
+
+![фото20](./PR11-12_14/Screenshot_20.png)
+
+![фото21](./PR11-12_14/Screenshot_21.png)
+
+![фото22](./PR11-12_14/Screenshot_22.png)
+
+![фото23](./PR11-12_14/Screenshot_23.png)
+
+Тестирование разных размеров пула
+
+![фото24](./PR11-12_14/Screenshot_24.png)
+
+![фото25](./PR11-12_14/Screenshot_25.png)
+
+![фото26](./PR11-12_14/Screenshot_26.png)
+
+Мониторинг БД в реальном времени
+
+![фото27](./PR11-12_14/Screenshot_27.png)
+
+Проверка обновленных команд
+
+![фото28](./PR11-12_14/Screenshot_28.png)
+
+![фото29](./PR11-12_14/Screenshot_29.png)
 
 Структура проекта
 

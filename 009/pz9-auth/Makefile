@@ -18,9 +18,9 @@ fast:
 	go build -o bin/server.exe ./cmd/api
 	.\bin\server
 
-#ssh root@193.233.175.221
-#ssh -L 5433:localhost:5432 root@193.233.175.221 -N
-#ssh -L 5433:localhost:5432 root@193.233.175.221 -N -f
+# ssh root@193.233.175.221
+# ssh -L 5433:localhost:5432 root@193.233.175.221 -N
+# ssh -L 5433:localhost:5432 root@193.233.175.221 -N -f
 
 # Остановка туннелей
 tunnel-stop:

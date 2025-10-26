@@ -21,7 +21,7 @@ func NewTransactionService(db *pgxpool.Pool) *TransactionService {
 // CreateNoteWithTags - пример транзакции с несколькими операциями
 func (s *TransactionService) CreateNoteWithTags(note core.Note, tags []string) (int64, error) {
 	ctx := context.Background()
-	
+
 	// Начинаем транзакцию с уровнем изоляции Read Committed
 	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel: pgx.ReadCommitted,
@@ -32,7 +32,7 @@ func (s *TransactionService) CreateNoteWithTags(note core.Note, tags []string) (
 	defer tx.Rollback(ctx) // Безопасный откат
 
 	var noteID int64
-	
+
 	// 1. Создаем заметку
 	err = tx.QueryRow(ctx, `
 		INSERT INTO notes (title, content, created_at) 
@@ -47,7 +47,7 @@ func (s *TransactionService) CreateNoteWithTags(note core.Note, tags []string) (
 	// 2. Создаем теги (если бы была таблица tags)
 	// for _, tag := range tags {
 	// 	_, err := tx.Exec(ctx, `
-	// 		INSERT INTO note_tags (note_id, tag) 
+	// 		INSERT INTO note_tags (note_id, tag)
 	// 		VALUES ($1, $2)`,
 	// 		noteID, tag,
 	// 	)

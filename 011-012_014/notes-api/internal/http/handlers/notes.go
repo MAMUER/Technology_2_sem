@@ -16,7 +16,6 @@ type Handler struct {
 	Service *service.NoteService
 }
 
-
 // Простой middleware для примера (можно удалить если не нужен)
 func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -248,13 +247,13 @@ func (h *Handler) ListNotesWithPagination(w http.ResponseWriter, r *http.Request
 
 	var cursorTime time.Time
 	var cursorID int64
-	
+
 	if cursorTimeStr := r.URL.Query().Get("cursor_time"); cursorTimeStr != "" {
 		if t, err := time.Parse(time.RFC3339, cursorTimeStr); err == nil {
 			cursorTime = t
 		}
 	}
-	
+
 	if cursorIDStr := r.URL.Query().Get("cursor_id"); cursorIDStr != "" {
 		if id, err := strconv.ParseInt(cursorIDStr, 10, 64); err == nil {
 			cursorID = id

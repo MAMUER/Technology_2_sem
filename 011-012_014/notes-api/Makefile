@@ -21,6 +21,10 @@ fast:
 	go build -o bin/server.exe ./cmd/api
 	.\bin\server
 
+# ssh root@193.233.175.221
+# ssh -L 6379:localhost:6379 root@193.233.175.221 -N -o ServerAliveInterval=30
+# ssh -L 6379:localhost:6379 root@193.233.175.221 -N -f -o ServerAliveInterval=30
+
 # Нагрузочное тестирование
 load-test: load-test-pagination load-test-batch load-test-single load-test-create
 
@@ -61,11 +65,6 @@ db-stats:
 db-explain-pagination:
 	@echo "=== EXPLAIN Pagination Query ==="
 	psql postgres://teacher_app:secure_password_123@localhost:5433/notes?sslmode=disable -c "EXPLAIN (ANALYZE, BUFFERS) SELECT id, title, content, created_at FROM notes WHERE (created_at, id) < (now(), 1000) ORDER BY created_at DESC, id DESC LIMIT 20;"
-
-# SSH туннели
-tunnel:
-	@echo "=== Starting SSH Tunnel ==="
-	ssh -L 5433:localhost:5432 teacher@193.233.175.221 -N -o ServerAliveInterval=30
 
 tunnel-stop:
 	taskkill /F /IM ssh.exe 2>nul || echo No SSH tunnels found
