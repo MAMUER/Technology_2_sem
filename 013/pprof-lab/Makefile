@@ -2,6 +2,15 @@
 run:
 	go run main.go
 
+tree:
+	tree /f
+
+fast:
+	go vet ./...
+	go fmt ./...
+	go build -o bin/server.exe ./cmd/api
+	.\bin\server
+
 # Бенчмарки
 bench:
 	go test -bench=. -benchmem ./...
