@@ -28,7 +28,7 @@ func (d demoRepo) ByEmail(email string) (service.UserRecord, error) {
 
 func main() {
 	fmt.Println("=== Math Operations ===")
-	
+
 	// Тестируем mathx
 	sum := mathx.Sum(10, 5)
 	fmt.Printf("Sum(10, 5) = %d\n", sum)
@@ -47,7 +47,7 @@ func main() {
 	}
 
 	fmt.Println("\n=== String Operations ===")
-	
+
 	// Тестируем stringsx.Clip
 	clipped := stringsx.Clip("hello world", 5)
 	fmt.Printf("Clip('hello world', 5) = '%s'\n", clipped)
@@ -59,7 +59,7 @@ func main() {
 	fmt.Printf("Clip('short', 3) = '%s'\n", clipped)
 
 	fmt.Println("\n=== Service Operations ===")
-	
+
 	// Тестируем service
 	repo := demoRepo{}
 	svc := service.New(repo)

@@ -11,10 +11,10 @@ func TestClip(t *testing.T) {
 		// Пустая строка
 		result := Clip("", 5)
 		assert.Equal(t, "", result)
-		
+
 		result = Clip("", 0)
 		assert.Equal(t, "", result)
-		
+
 		result = Clip("", -1)
 		assert.Equal(t, "", result)
 	})
@@ -23,10 +23,10 @@ func TestClip(t *testing.T) {
 		// max = 0
 		result := Clip("hello", 0)
 		assert.Equal(t, "", result)
-		
+
 		result = Clip("test string", 0)
 		assert.Equal(t, "", result)
-		
+
 		result = Clip("a", 0)
 		assert.Equal(t, "", result)
 	})
@@ -35,10 +35,10 @@ func TestClip(t *testing.T) {
 		// max < 0
 		result := Clip("hello", -1)
 		assert.Equal(t, "", result)
-		
+
 		result = Clip("test", -5)
 		assert.Equal(t, "", result)
-		
+
 		result = Clip("abc", -10)
 		assert.Equal(t, "", result)
 	})
@@ -47,10 +47,10 @@ func TestClip(t *testing.T) {
 		// max == len(s)
 		result := Clip("hello", 5)
 		assert.Equal(t, "hello", result)
-		
+
 		result = Clip("test", 4)
 		assert.Equal(t, "test", result)
-		
+
 		result = Clip("a", 1)
 		assert.Equal(t, "a", result)
 	})
@@ -59,10 +59,10 @@ func TestClip(t *testing.T) {
 		// max > len(s)
 		result := Clip("hello", 10)
 		assert.Equal(t, "hello", result)
-		
+
 		result = Clip("test", 100)
 		assert.Equal(t, "test", result)
-		
+
 		result = Clip("", 5)
 		assert.Equal(t, "", result)
 	})
@@ -71,10 +71,10 @@ func TestClip(t *testing.T) {
 		// max < len(s) - обычное обрезание
 		result := Clip("hello world", 5)
 		assert.Equal(t, "hello", result)
-		
+
 		result = Clip("testing", 4)
 		assert.Equal(t, "test", result)
-		
+
 		result = Clip("abcdef", 3)
 		assert.Equal(t, "abc", result)
 	})
@@ -83,13 +83,13 @@ func TestClip(t *testing.T) {
 		// Граничные случаи
 		result := Clip("a", 1)
 		assert.Equal(t, "a", result)
-		
+
 		result = Clip("a", 0)
 		assert.Equal(t, "", result)
-		
+
 		result = Clip("ab", 1)
 		assert.Equal(t, "a", result)
-		
+
 		result = Clip("abc", 2)
 		assert.Equal(t, "ab", result)
 	})
@@ -119,8 +119,8 @@ func TestClip_TableDriven(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result := Clip(tc.input, tc.max)
-			assert.Equal(t, tc.expected, result, 
-				"Clip(%q, %d) = %q, expected %q", 
+			assert.Equal(t, tc.expected, result,
+				"Clip(%q, %d) = %q, expected %q",
 				tc.input, tc.max, result, tc.expected)
 		})
 	}
