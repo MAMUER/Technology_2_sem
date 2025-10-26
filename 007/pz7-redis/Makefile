@@ -12,6 +12,12 @@ check:
 tree:
 	tree /f
 
+fast:
+	go vet ./...
+	go fmt ./...
+	go build -o bin/server.exe ./cmd/server
+	.\bin\server
+
 #ssh root@193.233.175.221
 #ssh -L 6379:localhost:6379 root@193.233.175.221 -N -o ServerAliveInterval=30
 #ssh -L 6379:localhost:6379 root@193.233.175.221 -N -f -o ServerAliveInterval=30

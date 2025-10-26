@@ -15,6 +15,12 @@ swagger:
 tree:
 	tree /f
 
+fast:
+	go vet ./...
+	go fmt ./...
+	go build -o bin/server.exe ./cmd/api
+	.\bin\server
+
 # Нагрузочное тестирование
 load-test: load-test-pagination load-test-batch load-test-single load-test-create
 

@@ -10,3 +10,9 @@ check:
 
 tree:
 	tree /f
+
+fast:
+	go vet ./...
+	go fmt ./...
+	go build -o helloapi.exe ./cmd/server
+	go run ./cmd/server
