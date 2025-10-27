@@ -1,19 +1,15 @@
 package app
 
 import (
-	/*"encoding/json"
-	"time"*/
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/MAMUER/myapp/internal/app/handlers"
 	"github.com/MAMUER/myapp/utils"
+	"github.com/joho/godotenv"
 )
-
-/*type pingResp struct {
-	Status string `json:"status"`
-	Time   string `json:"time"`
-}*/
 
 func withRequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -24,6 +20,26 @@ func withRequestID(next http.Handler) http.Handler {
 		w.Header().Set("X-Request-Id", id)
 		next.ServeHTTP(w, r)
 	})
+}
+
+// getPort получает порт из .env файла или переменной окружения
+func getPort() string {
+	// Загружаем .env файл (игнорируем ошибку, если файла нет)
+	_ = godotenv.Load()
+
+	// Получаем порт из переменной окружения APP_PORT
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		port = "8080" // порт по умолчанию
+	}
+
+	// Проверяем, что порт валидный
+	if _, err := strconv.Atoi(port); err != nil {
+		utils.LogError(fmt.Sprintf("Invalid port %s, using default 8080", port))
+		port = "8080"
+	}
+
+	return port
 }
 
 func Run() {
@@ -43,24 +59,13 @@ func Run() {
 		fmt.Fprintln(w, "Hello, Go project structure!")
 	})
 
-	// Пример JSON-ручки: /ping
-	/*mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		utils.LogRequest(r)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		_ = json.NewEncoder(w).Encode(pingResp{
-			Status: "ok",
-			Time:   time.Now().UTC().Format(time.RFC3339),
-		})
-	})*/
 	handler := withRequestID(mux)
 
-	/*utils.LogInfo("Server is starting on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
-		utils.LogError("server error: " + err.Error())
-	}*/
+	port := getPort()
+	addr := ":" + port
 
-	utils.LogInfo("Server is starting on :8080")
-	if err := http.ListenAndServe(":8080", handler); err != nil {
+	utils.LogInfo(fmt.Sprintf("Server is starting on %s", addr))
+	if err := http.ListenAndServe(addr, handler); err != nil {
 		utils.LogError("server error: " + err.Error())
 	}
 }

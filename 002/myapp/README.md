@@ -3,84 +3,134 @@
 
 ## Описание проекта и требования
 
+Минимальный REST-API сервис на Go с правильной структурой проекта, включающий базовые эндпоинты и логирование запросов.
+
 ### Требования
 
-Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
+- Go версии 1.21 и выше
+- Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
 
-Проект на языке Go (необходима версия 1.21 и выше) с REST-API:
-
-Основные эндпоинты:
+## Основные эндпоинты
 - `GET /` – возвращает простой текстовый ответ.
 - `GET /ping` – возвращает JSON с информацией о состоянии сервера.
 - `GET /fail` – возвращает JSON с ошибкой и HTTP статусом 400 (Bad Request).
 
 ## Команды запуска и сборки
 
-### Сборка приложения:
+### Сборка приложения
 
 make build
 
-### Запуск приложения:
+### Запуск приложения
 
 make run
 
-### Примеры запросов:
+### Проверка кода и форматирование
 
-#### Проверка состояния сервера:
+make check
+
+### Быстрая сборка и запуск
+
+make fast
+
+### Показать структуру проекта
+
+make tree
+
+### Запуск на определенном порту
+
+make env PORT=####
+
+### Помощь
+
+make help
+
+## Примеры запросов
+
+### Проверка состояния сервера
 
 curl http://localhost:8080/ping
 
 Ответ:
 
-{
-"status": "ok",
-"time":"2025-09-30T16:55:17Z"
-}
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+X-Request-Id: 871651eaa2f0db81
+Date: Mon, 27 Oct 2025 14:28:56 GMT
+Content-Length: 46
 
-#### Вывод текста:
+{"status": "ok", "time":"2025-09-30T16:55:17Z"}
+
+### Проверка состояния сервера c Request-ID
+
+curl -i -H "X-Request-Id: demo-123" http://localhost:8081/ping
+
+Ответ:
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+X-Request-Id: demo-123
+Date: Mon, 27 Oct 2025 14:29:36 GMT
+Content-Length: 46
+
+{"status":"ok","time":"2025-10-27T14:29:36Z"}
+
+### Вывод текста
 
 curl http://localhost:8080/
 
 Ответ:
 
+HTTP/1.1 200 OK
+Content-Type: text/plain; charset=utf-8
+X-Request-Id: e76276ae7f4062ba
+Date: Mon, 27 Oct 2025 14:28:46 GMT
+Content-Length: 29
+
 Hello, Go project structure!
 
-#### Ошибка:
+### Ошибка
 
 curl http://localhost:8080/fail
 
 Ответ:
 
-{
-  "error": "bad_request_example"
-}
+HTTP/1.1 400 Bad Request
+Content-Type: application/json; charset=utf-8
+X-Request-Id: 27a6dd4602b87003
+Date: Mon, 27 Oct 2025 14:29:56 GMT
+Content-Length: 32
+
+{"error": "bad_request_example"}
 
 ## Структура проекта
 ```
 C:.
-└───myapp
-    ├───go.mod
-    ├───Makefile
-    ├───README.md           
-    │
-    ├───bin
-    │   └───myapp.exe
-    │
-    ├───cmd
-    │   └───myapp
-    │       └───main.go
-    │
-    ├───internal
-    │   └───app
-    │       │───app.go
-    │       │
-    │       └───handlers
-    │           └───ping.go 
-    ├───PR2
-    │
-    └───utils
-        ├───httpjson.go
-        └───logger.go
+│   .env
+│   go.mod
+│   go.sum
+│   Makefile
+│   README.md
+│
+├───bin
+│       myapp.exe
+│
+├───cmd
+│   └───myapp
+│           main.go
+│
+├───internal
+│   └───app
+│       │   app.go
+│       │
+│       └───handlers
+│               ping.go
+│
+├───PR2
+│
+└───utils
+        httpjson.go
+        logger.go
 ```
 
 ## Примечания по конфигурации
