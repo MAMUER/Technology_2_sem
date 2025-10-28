@@ -85,6 +85,7 @@ curl http://localhost:8080/health
 ```
 C:.
 │   .env
+│   .gitignore
 │   go.mod
 │   go.sum
 │   helloapi.exe
@@ -95,7 +96,7 @@ C:.
 │   └───server
 │           main.go
 │
-└───PR1         
+└───PR1      
 ```
 ## Примечания по конфигурации
 - Переменная окружения `APP_PORT` задаёт порт для запуска HTTP сервера.
