@@ -50,35 +50,29 @@ make help
 
 ### Вывод "Hello, World!"
 
-curl http://localhost:8080/hello
+http://localhost:8080/hello
 
 Ответ:
 
-{
-Hello, World!
-}
+{Hello, World!}
 
 ### Вывод информации о пользователе
 
-curl http://localhost:8080/user
+http://localhost:8080/user
 
 Ответ:
 
-{
-"id": "c8b1f953-2e2a-4c44-b79c-e3ee3288d37f", "name": "Gopher"
-}
+{"id": "c8b1f953-2e2a-4c44-b79c-e3ee3288d37f", "name": "Gopher"}
 
 
 ### Проверка состояния сервиса
 
-curl http://localhost:8080/health
+http://localhost:8080/health
 
 Ответ:
 
-{
-"status": "ok",
-"time": "2025-09-16T19:00:00Z"
-}
+{"status": "ok",
+"time": "2025-09-16T19:00:00Z"}
 
 
 ## Структура проекта
@@ -121,11 +115,15 @@ C:.
 
 Проверка эндпоинта "Hello, World!"
 
-![фото3](./PR1/Screenshot_3.png)
+![фото3](./PR1/Screenshot_11.png)
 
 Проверка эндпоинта "Пользователь"
 
-![фото4](./PR1/Screenshot_4.png)
+![фото4](./PR1/Screenshot_12.png)
+
+Проверка эндпоинта "Состояние сервера" на новом порте
+
+![фото8](./PR1/Screenshot_13.png)
 
 Проверки форматирования кода и базовая проверка
 
@@ -137,11 +135,7 @@ C:.
 
 Проверка эндпоинта "Hello, World!" на новом порте
 
-![фото7](./PR1/Screenshot_7.png)
-
-Проверка эндпоинта "Состояние сервера" на новом порте
-
-![фото8](./PR1/Screenshot_8.png)
+![фото7](./PR1/Screenshot_14.png)
 
 Структура проекта
 
