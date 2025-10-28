@@ -60,7 +60,7 @@ make tunnel-status
 ## Команды:
 
 ### здоровье
-curl http://localhost:8080/health
+curl http://193.233.175.221:8080/health
 
 Ответ:
 
