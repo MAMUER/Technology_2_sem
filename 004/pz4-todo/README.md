@@ -48,94 +48,67 @@ make test
 
 make help
 
-## Примеры запросов:
+## Примеры запросов
 
-### Проверка состояния сервера:
+### Проверка состояния сервера
 
 curl http://localhost:8080/health
 
 Ответ:
 
-{
-  "status": "ok"
-}
+{"status": "ok"}
 
-### Получение списка задач с пагинацией и фильтром:
+OK
+
+### Получение списка задач с пагинацией и фильтром
 
 curl "http://localhost:8080/api/v1/tasks?page=1&limit=10&done=false"
 
-### Получение списка задач:
+[{"id":1,"title":"??????? chi","done":false,"created_at":"2025-10-03T17:38:15.9068878+03:00","updated_at":"2025-10-03T17:38:15.9068878+03:00"},{"id":2,"title":"TEXT","done":false,"created_at":"2025-10-28T18:07:39.8530126+03:00","updated_at":"2025-10-28T18:07:39.8530126+03:00"}]
+
+### Получение списка задач
 
 curl http://localhost:8080/api/v1/tasks
 
 Ответ:
 
-[{
-  "id":1,"title":"TEXT","done":false},
-  {"id":2,"title":"TEXT","done":false},
-...}]
+[{"id":1,"title":"??????? chi","done":false,"created_at":"2025-10-03T17:38:15.9068878+03:00","updated_at":"2025-10-03T17:38:15.9068878+03:00"},{"id":2,"title":"TEXT","done":false,"created_at":"2025-10-28T18:07:39.8530126+03:00","updated_at":"2025-10-28T18:07:39.8530126+03:00"}]
 
-### Создание новой задачи:
+### Создание новой задачи
 
-curl -Method POST http://localhost:8080/api/v1/tasks `
-  -Headers @{"Content-Type"="application/json"} `
-  -Body '{"title":"TEXT"}'
+curl -X POST http://localhost:8080/api/v1/tasks -H "Content-Type: application/json" -d "{\"title\":\"TEXT\"}"
 
 Ответ:
 
-{
-  "id":1,
-  "title":"TEXT",
-  "done":false
-}
+{"id":2,"title":"TEXT","done":false,"created_at":"2025-10-28T18:07:39.8530126+03:00","updated_at":"2025-10-28T18:07:39.8530126+03:00"}
 
-### Обновление задачи:
+### Обновление задачи
 
-curl -Method PUT http://localhost:8080/api/v1/tasks/1 `
-  -Headers @{"Content-Type"="application/json"} `
-  -Body '{"title":"NEWTEXT","done":true}'
+curl -X PUT http://localhost:8080/api/v1/tasks/1 -H "Content-Type: application/json" -d "{\"title\":\"NEWTEXT\",\"done\":true}"
 
-#### Получение задачи по ID:
+#### Получение задачи по ID
 
 curl http://localhost:8080/api/v1/tasks/1
 
 Ответ:
 
-{
-  "id":1,
-  "title":"TEXT",
-  "done":false
-}
+{"id":1,"title":"NEWTEXT","done":true,"created_at":"2025-10-03T17:38:15.9068878+03:00","updated_at":"2025-10-28T18:09:09.4388096+03:00"}
 
-### Отметить задачу выполненной:
+### Отметить задачу выполненной
 
-curl http://localhost:8080/api/v1/tasks/1 -Method PATCH
+curl -X PATCH http://localhost:8080/api/v1/tasks/1
 
-Ответ:
-
-{
-  "id":1,
-  "title":"TEXT",
-  "done":true
-}
-
-### Поиск задач с фильтром:
+### Поиск задач с фильтром
 
 curl http://localhost:8080/api/v1/tasks?q=TEXT
 
 Ответ:
 
-[
-  {
-    "id":1,
-    "title":"TEXT",
-    "done":false
-  }
-]
+[{"id":1,"title":"NEWTEXT","done":true,"created_at":"2025-10-03T17:38:15.9068878+03:00","updated_at":"2025-10-28T18:09:09.4388096+03:00"},{"id":2,"title":"TEXT","done":false,"created_at":"2025-10-28T18:07:39.8530126+03:00","updated_at":"2025-10-28T18:07:39.8530126+03:00"}]
 
-### Удалить задачу:
+### Удалить задачу
 
-curl http://localhost:8080/api/v1/tasks/1 -Method DELETE
+curl -X DELETE http://localhost:8080/api/v1/tasks/1
 
 ## Структура проекта
 ```
@@ -166,11 +139,7 @@ C:.
 
 ## Примечания по конфигурации
 
-- Сервер использует хранение данных в памяти с сохранением в файл (in-memory storage + persistence).
-- Логи всех входящих запросов видны в консоли.
-- По умолчанию сервер слушает порт 8080.
-- Можно задать переменную окружения PORT для изменения порта запуска.
-- В проекте используется middleware для логирования запросов и CORS.
+- По умолчанию сервер слушает порт 8080
 
 ## Скриншоты работы проекта
 
