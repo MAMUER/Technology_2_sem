@@ -3,14 +3,13 @@
 
 ## Описание проекта и требования
 
+Простой HTTP-сервер для управления задачами (To-Do list) на стандартной библиотеке Go net/http с поддеркой CRUD операций и фильтрацией.
+
 ### Требования
+- Go версии 1.21 и выше
+- Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
 
-Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make.
-
-Проект на языке Go (требуется версия 1.21 и выше) с REST-API.:
-
-Основные эндпоинты:
-
+## Основные эндпоинты
 - `GET /health` – проверка состояния сервера.
 - `GET /api/v1/tasks` – получение списка всех задач.
 - `POST /api/v1/tasks` – создание новой задачи.
@@ -21,17 +20,37 @@
 
 ## Команды запуска и сборки
 
-### Сборка приложения:
+#### Сборка приложения
 
 make build
 
-### Запуск приложения:
+### Запуск приложения
 
 make run
 
-### Примеры запросов:
+### Проверка кода и форматирование
 
-#### Проверка состояния сервера:
+make check
+
+### Быстрая сборка и запуск
+
+make fast
+
+### Показать структуру проекта
+
+make tree
+
+### Запуск тестов
+
+make test
+
+### Помощь
+
+make help
+
+## Примеры запросов:
+
+### Проверка состояния сервера:
 
 curl http://localhost:8080/health
 
@@ -41,11 +60,11 @@ curl http://localhost:8080/health
   "status": "ok"
 }
 
-#### Получение списка задач с пагинацией и фильтром:
+### Получение списка задач с пагинацией и фильтром:
 
 curl "http://localhost:8080/api/v1/tasks?page=1&limit=10&done=false"
 
-#### Получение списка задач:
+### Получение списка задач:
 
 curl http://localhost:8080/api/v1/tasks
 
@@ -56,7 +75,7 @@ curl http://localhost:8080/api/v1/tasks
   {"id":2,"title":"TEXT","done":false},
 ...}]
 
-#### Создание новой задачи:
+### Создание новой задачи:
 
 curl -Method POST http://localhost:8080/api/v1/tasks `
   -Headers @{"Content-Type"="application/json"} `
@@ -70,12 +89,11 @@ curl -Method POST http://localhost:8080/api/v1/tasks `
   "done":false
 }
 
-#### Обновление задачи:
+### Обновление задачи:
 
 curl -Method PUT http://localhost:8080/api/v1/tasks/1 `
   -Headers @{"Content-Type"="application/json"} `
   -Body '{"title":"NEWTEXT","done":true}'
-
 
 #### Получение задачи по ID:
 
@@ -89,7 +107,7 @@ curl http://localhost:8080/api/v1/tasks/1
   "done":false
 }
 
-#### Отметить задачу выполненной:
+### Отметить задачу выполненной:
 
 curl http://localhost:8080/api/v1/tasks/1 -Method PATCH
 
@@ -101,7 +119,7 @@ curl http://localhost:8080/api/v1/tasks/1 -Method PATCH
   "done":true
 }
 
-#### Поиск задач с фильтром:
+### Поиск задач с фильтром:
 
 curl http://localhost:8080/api/v1/tasks?q=TEXT
 
@@ -115,36 +133,35 @@ curl http://localhost:8080/api/v1/tasks?q=TEXT
   }
 ]
 
-#### Удалить задачу:
+### Удалить задачу:
 
 curl http://localhost:8080/api/v1/tasks/1 -Method DELETE
 
 ## Структура проекта
 ```
 C:.
-└───pz4-todo
-    ├───go.mod
-    ├───go.sum
-    ├───main.go
-    ├───Makefile
-    ├───README.md      
-    ├───tasks.json
-    │
-    ├───bin
-    │   └───server.exe
-    │
-    ├───internal
-    │   └───task
-    │       ├───handler.go 
-    │       ├───model.go
-    │       └───repo.go
-    │
-    ├───pkg
-    │   └───middleware
-    │       ├───cors.go
-    │       └───logger.go
-    │
-    └───PR4
+│   go.mod
+│   go.sum
+│   main.go
+│   Makefile
+│   README.md
+│   tasks.json
+│
+├───bin
+│       server.exe
+│
+├───internal
+│   └───task
+│           handler.go
+│           model.go
+│           repo.go
+│
+├───pkg
+│   └───middleware
+│           cors.go
+│           logger.go
+│
+└───PR4
 ```
 
 ## Примечания по конфигурации

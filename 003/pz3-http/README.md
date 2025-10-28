@@ -3,35 +3,53 @@
 
 ## Описание проекта и требования
 
+Простой HTTP-сервер для управления задачами (To-Do list) на стандартной библиотеке Go net/http с поддеркой CRUD операций и фильтрацией.
+
 ### Требования
+- Go версии 1.21 и выше
+- Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
 
-Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
-
-Проект на языке Go (необходима версия 1.21 и выше) с REST-API:
-
-Основные эндпоинты:
-
-- `GET /health` – проверка состояния сервера.
-- `GET /tasks` – получение списка всех задач.
-- `POST /tasks` – создание новой задачи.
-- `GET /tasks/{id}` – получение конкретной задачи по ID.
-- `PATCH /tasks/{id}` – отметить задачу выполненной.
-- `GET /tasks?q=TEXT` – поиск задач с фильтром.
-- `DELETE /tasks/{id}` – удалить задачу.
+## Основные эндпоинты
+- `GET /health` – проверка состояния сервера
+- `GET /tasks` – получение списка всех задач (с поддержкой фильтрации)
+- `POST /tasks` – создание новой задачи
+- `GET /tasks/{id}` – получение конкретной задачи по ID
+- `PATCH /tasks/{id}` – отметить задачу выполненной
+- `DELETE /tasks/{id}` – удалить задачу
 
 ## Команды запуска и сборки
 
-### Сборка приложения:
+### Сборка приложения
 
 make build
 
-### Запуск приложения:
+### Запуск приложения
 
 make run
 
-### Примеры запросов:
+### Проверка кода и форматирование
 
-#### Проверка состояния сервера:
+make check
+
+### Быстрая сборка и запуск
+
+make fast
+
+### Показать структуру проекта
+
+make tree
+
+### Запуск на определенном порту
+
+make env PORT=####
+
+### Помощь
+
+make help
+
+## Примеры запросов:
+
+### Проверка состояния сервера:
 
 curl http://localhost:8080/health
 
@@ -41,7 +59,7 @@ curl http://localhost:8080/health
   "status": "ok"
 }
 
-#### Получение списка задач:
+### Получение списка задач:
 
 curl http://localhost:8080/tasks
 
@@ -52,11 +70,9 @@ curl http://localhost:8080/tasks
   {"id":2,"title":"TEXT","done":false},
 ...}]
 
-#### Создание новой задачи:
+### Создание новой задачи:
 
-curl -Method POST http://localhost:8080/tasks `
-  -Headers @{"Content-Type"="application/json"} `
-  -Body '{"title":"TEXT"}'
+curl -X POST http://localhost:8080/tasks -H "Content-Type: application/json" -d "{\"title\":\"TEXT\"}"
 
 Ответ:
 
@@ -64,7 +80,7 @@ curl -Method POST http://localhost:8080/tasks `
   "id":1,"title":"TEXT","done":false
 }
 
-#### Получение задачи по ID:
+### Получение задачи по ID:
 
 curl http://localhost:8080/tasks/1
 
@@ -74,9 +90,9 @@ curl http://localhost:8080/tasks/1
   "id":1,"title":"TEXT","done":false
 }
 
-#### Отметить задачу выполненной:
+### Отметить задачу выполненной:
 
-curl http://localhost:8080/tasks/1 -Method PATCH
+curl -X PATCH http://localhost:8080/tasks/1
 
 Ответ:
 
@@ -84,9 +100,9 @@ curl http://localhost:8080/tasks/1 -Method PATCH
   "id":1,"title":"TEXT","done":true
 }
 
-#### Поиск задач с фильтром:
+### Поиск задач с фильтром:
 
-curl http://localhost:8080/tasks/1
+curl http://localhost:8080/tasks?q=TEXT
 
 Ответ:
 
@@ -94,49 +110,46 @@ curl http://localhost:8080/tasks/1
   "id":1,"title":"TEXT","done":false
 }
 
-#### Удалить задачу:
+### Удалить задачу:
 
-curl http://localhost:8080/tasks/1 -Method DELETE
+curl -X DELETE http://localhost:8080/tasks/1
 
 ## Структура проекта
 ```
 C:.
-└───pz3-http
-    ├───go.mod
-    ├───README.md              
-    ├───requests.md
-    ├───Makefile
-    │
-    ├───bin
-    │   └───server.exe
-    │
-    ├───cmd
-    │   └───server
-    │       └───main.go
-    │
-    ├───internal
-    │   ├───api
-    │   │   ├───handlers.go
-    │   │   ├───middleware.go
-    │   │   ├───add.go
-    │   │   ├───handlers_test.go 
-    │   │   └───responses.go
-    │   │
-    │   └───storage
-    │       └───memory.go
-    │
-    └───PR3
+│   .env
+│   go.mod
+│   go.sum
+│   Makefile
+│   README.md
+│   requests.md
+│
+├───bin
+│       server.exe
+│
+├───cmd
+│   └───server
+│           main.go
+│
+├───internal
+│   ├───api
+│   │       add.go
+│   │       handlers.go
+│   │       handlers_test.go
+│   │       middleware.go
+│   │       responses.go
+│   │
+│   └───storage
+│           memory.go
+│
+└───PR3
 ```
 
 ## Примечания по конфигурации
 
-- Сервер использует память для хранения данных (in-memory storage) и логирует все входящие запросы.
-
 - По умолчанию сервер слушает порт 8080.
 
 - Переменная окружения `PORT` задаёт порт для запуска HTTP сервера.
-
-- Используется middleware для логирования запросов
 
 ## Скриншоты работы проекта
 

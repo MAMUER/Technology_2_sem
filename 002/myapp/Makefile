@@ -19,17 +19,17 @@ fast:
 
 # Создание .env файла с нужным портом
 env:
-	@echo "Usage: make env PORT=####"
+	@echo "Использование: make env PORT=####"
 	@echo APP_PORT=$(PORT) > .env
-	@echo "Created .env with PORT=$(PORT)"
+	@echo "Создан .env файл с PORT=$(PORT)"
 
 # Помощь
 help:
-	@echo "Available commands:"
-	@echo "  run       - Run server (uses .env or default port 8080)"
-	@echo "  build     - Build executable"
-	@echo "  check     - Run vet and fmt"
-	@echo "  fast      - Check, build and run"
-	@echo "  tree      - Show project structure"
-	@echo "  env       - Create .env file (usage: make env PORT=8081)"
-	@echo "  help      - Show this help"
+	@echo "Доступные команды:"
+	@echo "  run       - Запустить сервер (использует .env или порт 8080 по умолчанию)"
+	@echo "  build     - Собрать исполняемый файл"
+	@echo "  check     - Проверить код и форматирование"
+	@echo "  fast      - Проверить, собрать и запустить"
+	@echo "  tree      - Показать структуру проекта"
+	@echo "  env       - Создать .env файл (использование: make env PORT=8081)"
+	@echo "  help      - Показать эту справку"

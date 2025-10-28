@@ -33,7 +33,6 @@ func getPort() string {
 		port = "8080" // порт по умолчанию
 	}
 
-	// Проверяем, что порт валидный
 	if _, err := strconv.Atoi(port); err != nil {
 		utils.LogError(fmt.Sprintf("Invalid port %s, using default 8080", port))
 		port = "8080"
