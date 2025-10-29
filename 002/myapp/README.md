@@ -72,14 +72,19 @@ Content-Length: 46
 http://localhost:8080/ping?X-Request-Id=demo-123
 
 Key: X-Request-Id
+
 Value: demo-123
 
 Ответ:
 
 HTTP/1.1 200 OK
+
 Content-Type: application/json; charset=utf-8
+
 X-Request-Id: demo-123
+
 Date: Mon, 27 Oct 2025 14:29:36 GMT
+
 Content-Length: 46
 
 {"status":"ok","time":"2025-10-27T14:29:36Z"}
@@ -91,9 +96,13 @@ http://localhost:8080/
 Ответ:
 
 HTTP/1.1 200 OK
+
 Content-Type: text/plain; charset=utf-8
+
 X-Request-Id: e76276ae7f4062ba
+
 Date: Mon, 27 Oct 2025 14:28:46 GMT
+
 Content-Length: 29
 
 Hello, Go project structure!
@@ -105,9 +114,13 @@ http://localhost:8080/fail
 Ответ:
 
 HTTP/1.1 400 Bad Request
+
 Content-Type: application/json; charset=utf-8
+
 X-Request-Id: 27a6dd4602b87003
+
 Date: Mon, 27 Oct 2025 14:29:56 GMT
+
 Content-Length: 32
 
 {"error": "bad_request_example"}
