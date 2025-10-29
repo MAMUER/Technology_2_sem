@@ -12,9 +12,10 @@
 
 ## Основные эндпоинты
 
-- `GET /` – возвращает простой текстовый ответ.
-- `GET /ping` – возвращает JSON с информацией о состоянии сервера.
-- `GET /fail` – возвращает JSON с ошибкой и HTTP статусом 400 (Bad Request).
+- `GET http://localhost:8080/` – возвращает простой текстовый ответ.
+- `GET http://localhost:8080/ping` – возвращает JSON с информацией о состоянии сервера.
+- `GET http://localhost:8080/ping` с параметрами Headers Key: X-Request-Id Value: demo-123 – возвращает JSON с информацией о состоянии сервера и Request-ID.
+- `GET http://localhost:8080/fail` – возвращает JSON с ошибкой и HTTP статусом 400 (Bad Request).
 
 ## Команды запуска и сборки
 
@@ -50,7 +51,7 @@ make help
 
 ### Проверка состояния сервера
 
-curl http://localhost:8080/ping
+http://localhost:8080/ping
 
 Ответ:
 
@@ -64,7 +65,10 @@ Content-Length: 46
 
 ### Проверка состояния сервера c Request-ID
 
-curl -i -H "X-Request-Id: demo-123" http://localhost:8081/ping
+http://localhost:8080/ping?X-Request-Id=demo-123
+
+Key: X-Request-Id
+Value: demo-123
 
 Ответ:
 
@@ -78,7 +82,7 @@ Content-Length: 46
 
 ### Вывод текста
 
-curl http://localhost:8080/
+http://localhost:8080/
 
 Ответ:
 
@@ -92,7 +96,7 @@ Hello, Go project structure!
 
 ### Ошибка
 
-curl http://localhost:8080/fail
+http://localhost:8080/fail
 
 Ответ:
 
@@ -164,29 +168,26 @@ C:.
 
 ![фото13](./PR2/Screenshot_14.png)
 
-Проверка через curl (/)
+Проверка (/)
 
-![фото6](./PR2/Screenshot_8.png)
+![фото6](./PR2/Screenshot_15.png)
 
-Проверка через curl (/ping)
+Проверка (/ping)
 
-![фото7](./PR2/Screenshot_7.png)
+![фото7](./PR2/Screenshot_16.png)
 
-Проверка через curl (/fail)
+![фото7](./PR2/Screenshot_17.png)
 
-![фото8](./PR2/Screenshot_12.png)
+Проверка (/fail)
+
+![фото8](./PR2/Screenshot_18.png)
 
 Сборка бинарника и его запуск
 
 ![фото9](./PR2/Screenshot_6.png)
 
-Проверка через curl (Запросы через GitBush)
-
-![фото10](./PR2/Screenshot_9.png)
-
-![фото11](./PR2/Screenshot_10.png)
-
 Проверки форматирования кода и базовая проверка
+
 ![фото15](./PR2/Screenshot_5.png)
 
 Структура проекта
