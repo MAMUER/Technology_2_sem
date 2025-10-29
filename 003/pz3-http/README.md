@@ -10,12 +10,13 @@
 - Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
 
 ## Основные эндпоинты
-- `GET /health` – проверка состояния сервера
-- `GET /tasks` – получение списка всех задач (с поддержкой фильтрации)
-- `POST /tasks` – создание новой задачи
-- `GET /tasks/{id}` – получение конкретной задачи по ID
-- `PATCH /tasks/{id}` – отметить задачу выполненной
-- `DELETE /tasks/{id}` – удалить задачу
+- `GET http://localhost:8080/health` – проверка состояния сервера
+- `POST http://localhost:8080/tasks` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"title": "TEXT"} – создание новой задачи
+- `GET http://localhost:8080/tasks` – получение списка всех задач
+- `GET http://localhost:8080/tasks?q=TEXT` – получение списка всех задач с фильтром
+- `GET http://localhost:8080/tasks/1` – получение конкретной задачи по ID
+- `PATCH http://localhost:8080/tasks/1` – отметить задачу выполненной
+- `DELETE http://localhost:8080/tasks/1` – удалить задачу
 
 ## Команды запуска и сборки
 
@@ -51,7 +52,7 @@ make help
 
 ### Проверка состояния сервера:
 
-curl http://localhost:8080/health
+http://localhost:8080/health
 
 Ответ:
 
@@ -61,18 +62,19 @@ curl http://localhost:8080/health
 
 ### Получение списка задач:
 
-curl http://localhost:8080/tasks
+http://localhost:8080/tasks
 
 Ответ:
 
-[{
-  "id":1,"title":"TEXT","done":false},
-  {"id":2,"title":"TEXT","done":false},
-...}]
+[{"id":1,"title":"TEXT","done":false},{"id":2,"title":"TEXT","done":false},...}]
 
 ### Создание новой задачи:
 
-curl -X POST http://localhost:8080/tasks -H "Content-Type: application/json" -d "{\"title\":\"TEXT\"}"
+http://localhost:8080/tasks
+
+Key: Content-Type
+
+Value: application/json
 
 Ответ:
 
@@ -82,7 +84,7 @@ curl -X POST http://localhost:8080/tasks -H "Content-Type: application/json" -d 
 
 ### Получение задачи по ID:
 
-curl http://localhost:8080/tasks/1
+http://localhost:8080/tasks/1
 
 Ответ:
 
@@ -92,7 +94,11 @@ curl http://localhost:8080/tasks/1
 
 ### Отметить задачу выполненной:
 
-curl -X PATCH http://localhost:8080/tasks/1
+http://localhost:8080/tasks/1
+
+Key: Content-Type
+
+Value: application/json
 
 Ответ:
 
@@ -102,7 +108,7 @@ curl -X PATCH http://localhost:8080/tasks/1
 
 ### Поиск задач с фильтром:
 
-curl http://localhost:8080/tasks?q=TEXT
+http://localhost:8080/tasks?q=TEXT
 
 Ответ:
 
@@ -112,7 +118,7 @@ curl http://localhost:8080/tasks?q=TEXT
 
 ### Удалить задачу:
 
-curl -X DELETE http://localhost:8080/tasks/1
+http://localhost:8080/tasks/1
 
 ## Структура проекта
 ```
@@ -171,55 +177,35 @@ C:.
 
 ![фото3](./PR3/Screenshot_6.png)
 
-Проверка через curl (/health)
+Проверка через (/health)
 
-![фото4](./PR3/Screenshot_1.png)
+![фото4](./PR3/Screenshot_26.png)
 
-Создание задачи через curl (/tasks -POST)
+Создание задачи через (/tasks -POST)
 
-![фото5](./PR3/Screenshot_3.png)
+![фото5](./PR3/Screenshot_27.png)
 
-Проверка через curl (/tasks)
+![фото5](./PR3/Screenshot_28.png)
 
-![фото6](./PR3/Screenshot_20.png)
+Проверка через (/tasks)
 
-Проверка через curl (/tasks/{id})
+![фото6](./PR3/Screenshot_29.png)
 
-![фото7](./PR3/Screenshot_8.png)
+Проверка через (/tasks/{id})
 
-Проверка через curl (/tasks?q=TEXT)
+![фото7](./PR3/Screenshot_30.png)
 
-![фото8](./PR3/Screenshot_21.png)
+Проверка через (/tasks?q=TEXT)
 
-Проверка через curl (/tasks/{id} -DELETE)
+![фото8](./PR3/Screenshot_31.png)
 
-![фото9](./PR3/Screenshot_22.png)
+Проверка через (/tasks/{id} -DELETE)
 
-Проверка через curl (/tasks/{id} -PATCH)
+![фото9](./PR3/Screenshot_33.png)
 
-![фото10](./PR3/Screenshot_23.png)
+Проверка через (/tasks/{id} -PATCH)
 
-Проверка через Invoke-RestMethod
-
-![фото11](./PR3/Screenshot_12.png)
-
-![фото12](./PR3/Screenshot_13.png)
-
-![фото13](./PR3/Screenshot_14.png)
-
-![фото14](./PR3/Screenshot_15.png)
-
-Проверка через curl (Запросы через GitBush)
-
-![фото15](./PR3/Screenshot_9.png)
-
-![фото16](./PR3/Screenshot_5.png)
-
-![фото17](./PR3/Screenshot_10.png)
-
-![фото18](./PR3/Screenshot_11.png)
-
-![фото19](./PR3/Screenshot_16.png)
+![фото10](./PR3/Screenshot_32.png)
 
 Проверки форматирования кода и базовая проверка
 
