@@ -193,11 +193,11 @@ C:.
 
 Проверка через (/tasks/{id})
 
-![фото7](./PR3/Screenshot_30.png)
+![фото7](./PR3/Screenshot_31.png)
 
 Проверка через (/tasks?q=TEXT)
 
-![фото8](./PR3/Screenshot_31.png)
+![фото8](./PR3/Screenshot_30.png)
 
 Проверка через (/tasks/{id} -DELETE)
 
