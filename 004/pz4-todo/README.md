@@ -10,13 +10,15 @@
 - Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
 
 ## Основные эндпоинты
-- `GET /health` – проверка состояния сервера.
-- `GET /api/v1/tasks` – получение списка всех задач.
-- `POST /api/v1/tasks` – создание новой задачи.
-- `GET /api/v1/tasks/{id}` – получение конкретной задачи по ID.
-- `PATCH /api/v1/tasks/{id}` – отметить задачу выполненной.
-- `GET /api/v1/tasks?q=TEXT` – поиск задач с фильтром.
-- `DELETE /api/v1/tasks/{id}` – удалить задачу.
+- `GET http://localhost:8080/health` – проверка состояния сервера.
+- `POST http://localhost:8080/tasks` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"title": "TEXT"} – создание новой задачи
+- `GET http://localhost:8080/api/v1/tasks?page=1&limit=10&done=false` – получение списка всех задач с пагинацией.
+- `GET http://localhost:8080/api/v1/tasks` – получение списка всех задач.
+- `PUT http://localhost:8080/api/v1/tasks/1` – изменить текст задачи.
+- `GET http://localhost:8080/tasks/1` – получение конкретной задачи по ID
+- `PATCH http://localhost:8080/tasks/1` – отметить задачу выполненной
+- `GET http://localhost:8080/tasks?q=TEXT` – получение списка всех задач с фильтром
+- `DELETE http://localhost:8080/tasks/1` – удалить задачу
 
 ## Команды запуска и сборки
 
@@ -52,7 +54,7 @@ make help
 
 ### Проверка состояния сервера
 
-curl http://localhost:8080/health
+http://localhost:8080/health
 
 Ответ:
 
@@ -62,13 +64,13 @@ OK
 
 ### Получение списка задач с пагинацией и фильтром
 
-curl "http://localhost:8080/api/v1/tasks?page=1&limit=10&done=false"
+http://localhost:8080/api/v1/tasks?page=1&limit=10&done=false
 
 [{"id":1,"title":"??????? chi","done":false,"created_at":"2025-10-03T17:38:15.9068878+03:00","updated_at":"2025-10-03T17:38:15.9068878+03:00"},{"id":2,"title":"TEXT","done":false,"created_at":"2025-10-28T18:07:39.8530126+03:00","updated_at":"2025-10-28T18:07:39.8530126+03:00"}]
 
 ### Получение списка задач
 
-curl http://localhost:8080/api/v1/tasks
+http://localhost:8080/api/v1/tasks
 
 Ответ:
 
@@ -76,7 +78,7 @@ curl http://localhost:8080/api/v1/tasks
 
 ### Создание новой задачи
 
-curl -X POST http://localhost:8080/api/v1/tasks -H "Content-Type: application/json" -d "{\"title\":\"TEXT\"}"
+http://localhost:8080/api/v1/tasks
 
 Ответ:
 
@@ -84,11 +86,11 @@ curl -X POST http://localhost:8080/api/v1/tasks -H "Content-Type: application/js
 
 ### Обновление задачи
 
-curl -X PUT http://localhost:8080/api/v1/tasks/1 -H "Content-Type: application/json" -d "{\"title\":\"NEWTEXT\",\"done\":true}"
+http://localhost:8080/api/v1/tasks/1
 
 #### Получение задачи по ID
 
-curl http://localhost:8080/api/v1/tasks/1
+http://localhost:8080/api/v1/tasks/1
 
 Ответ:
 
@@ -96,11 +98,11 @@ curl http://localhost:8080/api/v1/tasks/1
 
 ### Отметить задачу выполненной
 
-curl -X PATCH http://localhost:8080/api/v1/tasks/1
+http://localhost:8080/api/v1/tasks/1
 
 ### Поиск задач с фильтром
 
-curl http://localhost:8080/api/v1/tasks?q=TEXT
+http://localhost:8080/api/v1/tasks?q=TEXT
 
 Ответ:
 
@@ -108,7 +110,7 @@ curl http://localhost:8080/api/v1/tasks?q=TEXT
 
 ### Удалить задачу
 
-curl -X DELETE http://localhost:8080/api/v1/tasks/1
+http://localhost:8080/api/v1/tasks/1
 
 ## Структура проекта
 ```
@@ -151,45 +153,37 @@ C:.
 
 ![фото8](./PR4/Screenshot_8.png)
 
-Проверка в браузере (/health)
+Проверка (/health)
 
 ![фото2](./PR4/Screenshot_2.png)
 
-Создание задачи через curl (/tasks -POST)
+Создание задачи (/tasks -POST)
 
 ![фото3](./PR4/Screenshot_3.png)
 
-Проверка через curl (/tasks)
+Проверка (/tasks)
 
 ![фото4](./PR4/Screenshot_4.png)
 
-Проверка через curl (/tasks/{id})
+Проверка (/tasks/{id})
 
 ![фото5](./PR4/Screenshot_5.png)
 
-Обновление задачи через curl (/tasks/{id} -PUT)
+Обновление задачи (/tasks/{id} -PUT)
 
 ![фото6](./PR4/Screenshot_6.png)
 
-Удаление задачи через curl (/tasks/{id} -DELETE)
+Удаление задачи (/tasks/{id} -DELETE)
 
 ![фото7](./PR4/Screenshot_7.png)
 
-Проверка через curl (/tasks?page=1&limit=10)
+Проверка (/tasks?page=1&limit=10)
 
 ![фото13](./PR4/Screenshot_13.png)
 
-Проверка через curl (/tasks?done=true)
+Проверка (/tasks?done=true)
 
 ![фото14](./PR4/Screenshot_14.png)
-
-Создание task (новый api/v1)
-
-![фото11](./PR4/Screenshot_11.png)
-
-Вывод всех tasks (новый api/v1)
-
-![фото12](./PR4/Screenshot_12.png)
 
 Проверки форматирования кода и базовая проверка
 
