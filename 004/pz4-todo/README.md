@@ -11,14 +11,14 @@
 
 ## Основные эндпоинты
 - `GET http://localhost:8080/health` – проверка состояния сервера.
-- `POST http://localhost:8080/tasks` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"title": "TEXT"} – создание новой задачи
+- `POST http://localhost:8080/api/v1/tasks` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"title": "TEXT"} – создание новой задачи
 - `GET http://localhost:8080/api/v1/tasks?page=1&limit=10&done=false` – получение списка всех задач с пагинацией.
 - `GET http://localhost:8080/api/v1/tasks` – получение списка всех задач.
-- `PUT http://localhost:8080/api/v1/tasks/1` – изменить текст задачи.
-- `GET http://localhost:8080/tasks/1` – получение конкретной задачи по ID
-- `PATCH http://localhost:8080/tasks/1` – отметить задачу выполненной
-- `GET http://localhost:8080/tasks?q=TEXT` – получение списка всех задач с фильтром
-- `DELETE http://localhost:8080/tasks/1` – удалить задачу
+- `PUT http://localhost:8080/api/v1/tasks/1` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"title": "NEWTEXT","done": true} – изменить текст задачи.
+- `GET http://localhost:8080/api/v1/tasks/1` – получение конкретной задачи по ID
+- `PATCH http://localhost:8080/api/v1/tasks/1` – отметить задачу выполненной
+- `GET http://localhost:8080/api/v1/tasks?q=TEXT` – получение списка всех задач с фильтром
+- `DELETE http://localhost:8080/api/v1/tasks/1` – удалить задачу
 
 ## Команды запуска и сборки
 
@@ -57,8 +57,6 @@ make help
 http://localhost:8080/health
 
 Ответ:
-
-{"status": "ok"}
 
 OK
 
@@ -155,35 +153,39 @@ C:.
 
 Проверка (/health)
 
-![фото2](./PR4/Screenshot_2.png)
+![фото2](./PR4/Screenshot_16.png)
 
 Создание задачи (/tasks -POST)
 
-![фото3](./PR4/Screenshot_3.png)
+![фото3](./PR4/Screenshot_17.png)
+
+![фото3](./PR4/Screenshot_18.png)
 
 Проверка (/tasks)
 
-![фото4](./PR4/Screenshot_4.png)
+![фото4](./PR4/Screenshot_20.png)
 
 Проверка (/tasks/{id})
 
-![фото5](./PR4/Screenshot_5.png)
+![фото5](./PR4/Screenshot_23.png)
+
+Проверка (/tasks?q=TEXT)
+
+![фото5](./PR4/Screenshot_25.png)
 
 Обновление задачи (/tasks/{id} -PUT)
 
-![фото6](./PR4/Screenshot_6.png)
+![фото6](./PR4/Screenshot_21.png)
+
+![фото6](./PR4/Screenshot_22.png)
 
 Удаление задачи (/tasks/{id} -DELETE)
 
-![фото7](./PR4/Screenshot_7.png)
+![фото7](./PR4/Screenshot_24.png)
 
 Проверка (/tasks?page=1&limit=10)
 
-![фото13](./PR4/Screenshot_13.png)
-
-Проверка (/tasks?done=true)
-
-![фото14](./PR4/Screenshot_14.png)
+![фото13](./PR4/Screenshot_19.png)
 
 Проверки форматирования кода и базовая проверка
 
