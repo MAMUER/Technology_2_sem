@@ -14,7 +14,7 @@
 
 - `GET http://localhost:8080/` – возвращает простой текстовый ответ.
 - `GET http://localhost:8080/ping` – возвращает JSON с информацией о состоянии сервера.
-- `GET http://localhost:8080/ping` с параметрами Headers Key: X-Request-Id Value: demo-123 – возвращает JSON с информацией о состоянии сервера и Request-ID.
+- `GET http://localhost:8080/ping` с параметрами `Headers` Key: X-Request-Id Value: demo-123 – возвращает JSON с информацией о состоянии сервера и Request-ID.
 - `GET http://localhost:8080/fail` – возвращает JSON с ошибкой и HTTP статусом 400 (Bad Request).
 
 ## Команды запуска и сборки
@@ -56,9 +56,13 @@ http://localhost:8080/ping
 Ответ:
 
 HTTP/1.1 200 OK
+
 Content-Type: application/json; charset=utf-8
+
 X-Request-Id: 871651eaa2f0db81
+
 Date: Mon, 27 Oct 2025 14:28:56 GMT
+
 Content-Length: 46
 
 {"status": "ok", "time":"2025-09-30T16:55:17Z"}
