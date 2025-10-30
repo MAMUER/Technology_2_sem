@@ -6,47 +6,95 @@
 JWT Authentication Microservice - это REST API сервис аутентификации и авторизации на Go. Сервис реализует stateless JWT-аутентификацию с access/refresh токенами, RBAC авторизацией и ABAC правилами доступа.
 Основные возможности: безопасный login/logout, обновление токенов, управление правами доступа на основе ролей (admin/user) и атрибутов пользователя. Сервис использует chi роутер, middleware-цепочки для аутентификации и современные практики безопасности включая bcrypt для хранения паролей.
 
-Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
+### Требования
+- Go версии 1.25 и выше
 
-Проект на языке Go (необходима версия 1.21 и выше) с REST-API
+## Основные эндпоинты
 
-- `POST /api/v1/login` - Авторизация пользователя
-- `POST /api/v1/refresh` - Токены обновления
-- `POST /api/v1/logout` - Выход пользователя
-- `GET  /api/v1/me` - Получить текущего пользователя
-- `GET  /api/v1/users/{id}` - Получить пользователя ID (ABAC защита)
-- `GET  /api/v1/admin/stats` - Admin статистика (RBAC защита)"
+### Аутентификация
+#### Авторизация админа
+- `POST http://localhost:8084/api/v1/login`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"Email": "admin@example.com","Password": "secret123"}
 
-## Команды запуска/сборки
+#### Авторизация пользователя  
+- `POST http://localhost:8084/api/v1/login`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"Email": "user@example.com","Password": "secret123"}
 
-### Сборка приложения:
+#### Обновление токена
+- `POST http://localhost:8084/api/v1/refresh`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"refresh_token": "token"}
 
-make build
+#### Выход пользователя
+- `POST http://localhost:8084/api/v1/logout`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"refresh_token": "token"}
 
-### Запуск приложения:
+### Пользовательские эндпоинты (требуют Authorization header)
+#### Получить текущего пользователя
+- `GET http://localhost:8084/api/v1/me`
+  - `Authorization` `Bearer Token` {token}
 
-make run
+#### Получить пользователя по ID (ABAC защита)
+- `GET http://localhost:8084/api/v1/users/{id}`
+  - `Authorization` `Bearer Token` {token}
 
-### Инструкция:
+#### Обновить пользователя (только свой профиль)
+- `PUT http://localhost:8084/api/v1/users/{id}`
+  - `Authorization` `Bearer Token` {token}
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"email": "new@example.com"}
 
-make help
+#### Смена пароля (только свой профиль)
+- `PATCH http://localhost:8084/api/v1/users/{id}`
+  - `Authorization` `Bearer Token` {token}
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"password": "newpassword123"}
 
-## Команды:
+### Админские эндпоинты (RBAC защита)
+#### Статистика системы (только для админа)
+- `GET http://localhost:8084/api/v1/admin/stats`
+  - `Authorization` `Bearer Token` {token}
+
+#### Список всех пользователей (только для админа)
+- `GET http://localhost:8084/api/v1/admin/users`
+  - `Authorization` `Bearer Token` {token}
+
+#### Получить любого пользователя (только для админа)
+- `GET http://localhost:8084/api/v1/admin/users/{id}`
+  - `Authorization` `Bearer Token` {token}
+
+#### Создать пользователя (только для админа)
+- `POST http://localhost:8084/api/v1/admin/users`
+  - `Authorization` `Bearer Token` {token}
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"email": "newuser@example.com","password": "password123","role": "user"}
+
+#### Обновить любого пользователя (только для админа)
+- `PUT http://localhost:8084/api/v1/admin/users/{id}`
+  - `Authorization` `Bearer Token` {token}
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"email": "updated@example.com","role": "admin"}
+
+#### Удалить пользователя (только для админа)
+- `DELETE http://localhost:8084/api/v1/admin/users/{id}`
+  - `Authorization` `Bearer Token` {token}
+
+## Команды
 
 ### Логин — получить токен админа
-curl -s -X POST http://localhost:8080/api/v1/login -H "Content-Type: application/json" -d "{\"Email\":\"admin@example.com\",\"Password\":\"secret123\"}"
+http://localhost:8084/api/v1/login
 
 Ответ:
 
 {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwejEwLWNsaWVudHMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiZXhwIjoxNzYxMjE2MzY1LCJpYXQiOjE3NjEyMDkxNjUsImlzcyI6InB6MTAtYXV0aCIsInJvbGUiOiJhZG1pbiIsInN1YiI6MX0.GqjQ13GOvySLMs1CIcst7Qf2jBnH-EXc8euAEGDnGJ8","user":{"email":"admin@example.com","id":1,"role":"admin"}}
 
-### Сохранение токена в переменную для удобства (работает не для всех консолей)
-set TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwejEwLWNsaWVudHMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiZXhwIjoxNzYxNDAyNTYzLCJpYXQiOjE3NjE0MDE2NjMsImlzcyI6InB6MTAtYXV0aCIsInJvbGUiOiJhZG1pbiIsInN1YiI6MSwidHlwZSI6ImFjY2VzcyJ9.V8rPOcpM9-LJIn4zMijt5tVF8RjX0Sa_ju7gYr4YtPI
-
 ### Доступ к защищённым ручкам:
-curl -s http://localhost:8080/api/v1/me -H "Authorization: Bearer $TOKEN"
+http://localhost:8084/api/v1/me
 
-curl -s http://localhost:8080/api/v1/admin/stats -H "Authorization: Bearer $TOKEN"
+http://localhost:8084/api/v1/admin/stats
 
 Ответы:
 
@@ -56,14 +104,14 @@ curl -s http://localhost:8080/api/v1/admin/stats -H "Authorization: Bearer $TOKE
 
 ### Логин — получить токен пользователя
 
-curl -s -X POST http://localhost:8080/api/v1/login -H "Content-Type: application/json" -d "{\"Email\":\"user@example.com\",\"Password\":\"secret123\"}"
+http://localhost:8084/api/v1/login
 
 Ответ:
 
 {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwejEwLWNsaWVudHMiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJleHAiOjE3NjEyMTg0MDIsImlhdCI6MTc2MTIxMTIwMiwiaXNzIjoicHoxMC1hdXRoIiwicm9sZSI6InVzZXIiLCJzdWIiOjJ9.i_RDZ-PhsO1JthNOS7uR4HweUXZ_YYzO-cEAKc7SKqE","user":{"email":"user@example.com","id":2,"role":"user"}}
 
 ### Доступ к защищённым ручкам:
-curl -i http://localhost:8080/api/v1/admin/stats -H "Authorization: Bearer $TOKEN_USER"
+http://localhost:8084/api/v1/admin/stats
 
 Ответ:
 
@@ -77,49 +125,49 @@ Content-Length: 38
 
 ## Тесты (Для PowerShell)
 ### 1. Логин админа
-$admin = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/login" -Method POST -ContentType "application/json" -Body '{"email":"admin@example.com","password":"secret123"}'
+$admin = Invoke-RestMethod -Uri "http://localhost:8084/api/v1/login" -Method POST -ContentType "application/json" -Body '{"email":"admin@example.com","password":"secret123"}'
 $ADMIN_ACCESS = $admin.access_token
 $ADMIN_REFRESH = $admin.refresh_token
 Write-Host "Admin Access: $ADMIN_ACCESS"
 Write-Host "Admin Refresh: $ADMIN_REFRESH"
 
 ### 2. Логин пользователя
-$user = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/login" -Method POST -ContentType "application/json" -Body '{"email":"user@example.com","password":"secret123"}'
+$user = Invoke-RestMethod -Uri "http://localhost:8084/api/v1/login" -Method POST -ContentType "application/json" -Body '{"email":"user@example.com","password":"secret123"}'
 $USER_ACCESS = $user.access_token
 $USER_REFRESH = $user.refresh_token
 Write-Host "User Access: $USER_ACCESS"
 Write-Host "User Refresh: $USER_REFRESH"
 
 ### 3. Тест /me для админа
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/me" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
+Invoke-RestMethod -Uri "http://localhost:8084/api/v1/me" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
 
 ### 4. Тест /me для пользователя
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/me" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
+Invoke-RestMethod -Uri "http://localhost:8084/api/v1/me" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
 
 ### 5. ABAC тест: пользователь запрашивает свой профиль (должен работать)
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/users/2" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
+Invoke-RestMethod -Uri "http://localhost:8084/api/v1/users/2" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
 
 ### 6. ABAC тест: пользователь запрашивает чужой профиль (должен вернуть 403)
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/users/1" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
+Invoke-RestMethod -Uri "http://localhost:8084/api/v1/users/1" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
 
 ### 7. ABAC тест: админ запрашивает любой профиль (должен работать)
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/users/2" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
+Invoke-RestMethod -Uri "http://localhost:8084/api/v1/users/2" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
 
 ### 8. Тест админского эндпоинта
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/admin/stats" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
+Invoke-RestMethod -Uri "http://localhost:8084/api/v1/admin/stats" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
 
 ### 9. Тест refresh токена
 $body = @{refresh_token = $USER_REFRESH} | ConvertTo-Json
-$refresh = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/refresh" -Method POST -ContentType "application/json" -Body $body
+$refresh = Invoke-RestMethod -Uri "http://localhost:8084/api/v1/refresh" -Method POST -ContentType "application/json" -Body $body
 $NEW_ACCESS = $refresh.access_token
 Write-Host "New Access: $($NEW_ACCESS)"
 
 ### 10. Тест нового access токена
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/me" -Headers @{"Authorization"="Bearer $NEW_ACCESS"}
+Invoke-RestMethod -Uri "http://localhost:8084/api/v1/me" -Headers @{"Authorization"="Bearer $NEW_ACCESS"}
 
 ### 11. Логаут
 $logoutBody = @{refresh_token = $USER_REFRESH} | ConvertTo-Json
-Invoke-RestMethod -Uri "http://localhost:8080/api/v1/logout" -Method POST -ContentType "application/json" -Body $logoutBody
+Invoke-RestMethod -Uri "http://localhost:8084/api/v1/logout" -Method POST -ContentType "application/json" -Body $logoutBody
 Write-Host "Logout successful"
 
 ## Структура проекта
@@ -166,7 +214,7 @@ C:.
 ```
 ## Переменные окружения (.env)
 
-APP_PORT=8080 - Порт сервера
+APP_PORT=8084 - Порт сервера
 
 JWT_SECRET=your-secret-key - JWT пароль (необходим)
 

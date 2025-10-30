@@ -9,18 +9,42 @@ MongoDB как документная NoSQL-база предоставляет 
 - Go версии 1.25 и выше
 
 ## Основные эндпоинты
+### Базовая проверка состояния сервиса
+- `GET http://193.233.175.221:8082/health`
 
-- `GET http://193.233.175.221:8082/health` – базовая проверка состояния сервиса.
-- `POST http://193.233.175.221:8082/api/v1/notes` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"title": "TEXT"} – создание новой заметки
-- `GET http://193.233.175.221:8082/api/v1/notes?limit=5&skip=0` – получение списка всех заметок с пагинацией.
-- `GET http://193.233.175.221:8082/api/v1/notes` – получение списка всех заметок.
-- `GET http://193.233.175.221:8082/api/v1/notes/<id>` – получение конкретной заметки по ID.
-- `PATCH http://193.233.175.221:8082/api/v1/notes/<id>` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"title": "NEWTEXT","content": "BLAH"} – изменить текст заметки.
-- `GET http://193.233.175.221:8082/api/v1/notes?q=TEXT&limit=5` – поиск заметок по заголовку (regex).
-- `GET http://193.233.175.221:8082/api/v1/notes/search/text?q=BLAH&limit=10` – полнотекстовый поиск по содержимому.
-- `GET http://193.233.175.221:8082/api/v1/notes/stats` – общая статистика по заметкам.
-- `GET http://193.233.175.221:8082/api/v1/notes/stats/daily?days=7` – статистика по дням.
-- `DELETE http://193.233.175.221:8082/api/v1/notes/<id>` – удалить заметку
+### Создание новой заметки
+- `POST http://193.233.175.221:8082/api/v1/notes`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"title": "TEXT"}
+
+### Получение списка заметок с пагинацией
+- `GET http://193.233.175.221:8082/api/v1/notes?limit=5&skip=0`
+
+### Получение списка всех заметок
+- `GET http://193.233.175.221:8082/api/v1/notes`
+
+### Получение конкретной заметки по ID
+- `GET http://193.233.175.221:8082/api/v1/notes/<id>`
+
+### Изменение текста заметки
+- `PATCH http://193.233.175.221:8082/api/v1/notes/<id>`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"title": "NEWTEXT","content": "BLAH"}
+
+### Поиск заметок по заголовку (regex)
+- `GET http://193.233.175.221:8082/api/v1/notes?q=TEXT&limit=5`
+
+### Полнотекстовый поиск по содержимому
+- `GET http://193.233.175.221:8082/api/v1/notes/search/text?q=BLAH&limit=10`
+
+### Общая статистика по заметкам
+- `GET http://193.233.175.221:8082/api/v1/notes/stats`
+
+### Статистика по дням
+- `GET http://193.233.175.221:8082/api/v1/notes/stats/daily?days=7`
+
+### Удаление заметки
+- `DELETE http://193.233.175.221:8082/api/v1/notes/<id>`
 
 ## Команды:
 

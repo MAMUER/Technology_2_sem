@@ -10,13 +10,28 @@
 - Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
 
 ## Основные эндпоинты
-- `GET http://localhost:8080/health` – проверка состояния сервера
-- `POST http://localhost:8080/tasks` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"title": "TEXT"} – создание новой задачи
-- `GET http://localhost:8080/tasks` – получение списка всех задач
-- `GET http://localhost:8080/tasks?q=TEXT` – получение списка всех задач с фильтром
-- `GET http://localhost:8080/tasks/1` – получение конкретной задачи по ID
-- `PATCH http://localhost:8080/tasks/1` – отметить задачу выполненной
-- `DELETE http://localhost:8080/tasks/1` – удалить задачу
+### Проверка состояния сервера
+- `GET http://localhost:8080/health`
+
+### Создание новой задачи
+- `POST http://localhost:8080/tasks`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"title": "TEXT"}
+
+### Получение списка всех задач
+- `GET http://localhost:8080/tasks`
+
+### Получение списка всех задач с фильтром
+- `GET http://localhost:8080/tasks?q=TEXT`
+
+### Получение конкретной задачи по ID
+- `GET http://localhost:8080/tasks/1`
+
+### Отметить задачу выполненной
+- `PATCH http://localhost:8080/tasks/1`
+
+### Удалить задачу
+- `DELETE http://localhost:8080/tasks/1`
 
 ## Команды запуска и сборки
 

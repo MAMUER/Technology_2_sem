@@ -10,15 +10,36 @@
 - Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
 
 ## Основные эндпоинты
-- `GET http://localhost:8080/health` – проверка состояния сервера.
-- `POST http://localhost:8080/api/v1/tasks` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"title": "TEXT"} – создание новой задачи
-- `GET http://localhost:8080/api/v1/tasks?page=1&limit=10&done=false` – получение списка всех задач с пагинацией.
-- `GET http://localhost:8080/api/v1/tasks` – получение списка всех задач.
-- `PUT http://localhost:8080/api/v1/tasks/1` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"title": "NEWTEXT","done": true} – изменить текст задачи.
-- `GET http://localhost:8080/api/v1/tasks/1` – получение конкретной задачи по ID
-- `PATCH http://localhost:8080/api/v1/tasks/1` – отметить задачу выполненной
-- `GET http://localhost:8080/api/v1/tasks?q=TEXT` – получение списка всех задач с фильтром
-- `DELETE http://localhost:8080/api/v1/tasks/1` – удалить задачу
+### Проверка состояния сервера
+- `GET http://localhost:8080/health`
+
+### Создание новой задачи
+- `POST http://localhost:8080/api/v1/tasks`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"title": "TEXT"}
+
+### Получение списка всех задач с пагинацией
+- `GET http://localhost:8080/api/v1/tasks?page=1&limit=10&done=false`
+
+### Получение списка всех задач
+- `GET http://localhost:8080/api/v1/tasks`
+
+### Изменение текста задачи
+- `PUT http://localhost:8080/api/v1/tasks/1`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"title": "NEWTEXT","done": true}
+
+### Получение конкретной задачи по ID
+- `GET http://localhost:8080/api/v1/tasks/1`
+
+### Отметить задачу выполненной
+- `PATCH http://localhost:8080/api/v1/tasks/1`
+
+### Получение списка всех задач с фильтром
+- `GET http://localhost:8080/api/v1/tasks?q=TEXT`
+
+### Удаление задачи
+- `DELETE http://localhost:8080/api/v1/tasks/1`
 
 ## Команды запуска и сборки
 

@@ -9,8 +9,17 @@
 - Go версии 1.25 и выше
 
 ## Основные эндпоинты
-- `POST http://193.233.175.221:8083/auth/register` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"email": "user@example.com","password": "Secret123!"} – регистрация пользователя с валидацией email и пароля (меняем пароль для проверки ошибки на {"email": "user@example.com","password": "AnotherPass!"} )
-- `POST http://193.233.175.221:8083/auth/login` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"email": "user@example.com","password": "Secret123!"} – аутентификация пользователя с проверкой учетных данных (меняем пароль для проверки ошибки на {"email": "user@example.com","password": "wrong"} )
+### Регистрация пользователя
+- `POST http://193.233.175.221:8083/auth/register`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"email": "user@example.com","password": "Secret123!"}
+  - *Примечание: для проверки ошибки измените пароль на {"email": "user@example.com","password": "AnotherPass!"}*
+
+### Аутентификация пользователя
+- `POST http://193.233.175.221:8083/auth/login`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"email": "user@example.com","password": "Secret123!"}
+  - *Примечание: для проверки ошибки измените пароль на {"email": "user@example.com","password": "wrong"}*
 
 ## Команды:
 

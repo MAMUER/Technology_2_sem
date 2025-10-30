@@ -1,9 +1,22 @@
+# Detect OS
+ifeq ($(OS),Windows_NT)
+    DETECTED_OS := Windows
+    BINARY := bin/server.exe
+    RUN_CMD := .\$(BINARY)
+    TREE_CMD := tree /f
+else
+    DETECTED_OS := Linux
+    BINARY := bin/server
+    RUN_CMD := ./$(BINARY)
+    TREE_CMD := tree
+endif
+
 # Основные команды
-run:
-	.\bin\server
+run: $(BINARY)
+	$(RUN_CMD)
 
 build:
-	go build -o bin/server.exe ./cmd/server
+	go build -o $(BINARY) ./cmd/server
 
 check:	
 	go vet ./...
@@ -16,10 +29,43 @@ help:
 	@echo "  user2@example.com / secret123 (role: user)"
 
 tree:
-	tree /f
+	$(TREE_CMD)
 
 fast:
 	go vet ./...
 	go fmt ./...
-	go build -o bin/server.exe ./cmd/server
-	.\bin\server
+	go build -o $(BINARY) ./cmd/server
+	$(RUN_CMD)
+
+# Docker команды
+docker-up:
+	docker-compose up --build -d
+
+docker-down:
+	docker-compose down
+
+docker-logs:
+	docker-compose logs -f
+
+docker-clean:
+	docker-compose down -v
+
+docker-restart: docker-down docker-up
+
+# Тестовые команды
+test-login-admin:
+	curl -X POST http://localhost:8084/api/v1/login \
+	  -H "Content-Type: application/json" \
+	  -d '{"email":"admin@example.com","password":"secret123"}'
+
+test-login-user:
+	curl -X POST http://localhost:8084/api/v1/login \
+	  -H "Content-Type: application/json" \
+	  -d '{"email":"user@example.com","password":"secret123"}'
+
+test-health:
+	curl http://localhost:8084/health
+
+.PHONY: run build docker-up docker-down docker-logs docker-clean \
+        docker-restart check test-login-admin test-login-user \
+        test-health help tree fast

@@ -11,11 +11,18 @@
 - Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
 
 ## Основные эндпоинты
+### Простой текстовый ответ
+- `GET http://localhost:8080/`
 
-- `GET http://localhost:8080/` – возвращает простой текстовый ответ.
-- `GET http://localhost:8080/ping` – возвращает JSON с информацией о состоянии сервера.
-- `GET http://localhost:8080/ping` с параметрами `Headers` Key: X-Request-Id Value: demo-123 – возвращает JSON с информацией о состоянии сервера и Request-ID.
-- `GET http://localhost:8080/fail` – возвращает JSON с ошибкой и HTTP статусом 400 (Bad Request).
+### Информация о состоянии сервера
+- `GET http://localhost:8080/ping`
+
+### Информация о состоянии сервера с Request-ID
+- `GET http://localhost:8080/ping`
+  - `Headers` Key: X-Request-Id Value: demo-123
+
+### Ошибка с HTTP статусом 400 (Bad Request)
+- `GET http://localhost:8080/fail`
 
 ## Команды запуска и сборки
 
