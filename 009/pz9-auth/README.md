@@ -5,63 +5,17 @@
 
 Данный сервис предоставляет REST API для регистрации и аутентификации пользователей с безопасным хранением паролей using bcrypt хэшированием. Реализованы эндпоинты для создания учетных записей и входа в систему с валидацией входных данных и защитой от утечки информации.
 
-Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey и установить команду make
+### Требования
+- Go версии 1.25 и выше
 
-Проект на языке Go (необходима версия 1.21 и выше) с REST-API:
-
-Основные эндпоинты:
-
-- `POST /auth/register` – регистрация пользователя с валидацией email и пароля
-- `POST /auth/login` – аутентификация пользователя с проверкой учетных данных
-
-## Необходимые пароли
-
-Подключение к серверу
-- логин: teacher
-- пароль: 1
-- IP: 193.233.175.221
-
-Пользователь PostgreSQL
-- логин: teacher_app 
-- пароль: secure_password_123
-- порт: 5432
-
-## Команды запуска/сборки
-
-### Запуск тоннеля подключения к серверу (в отдельной консоли):
-
-ssh -L 5433:localhost:5432 teacher@193.233.175.221 -N -o ServerAliveInterval=30
-
-### Сборка приложения:
-
-make build
-
-### Запуск приложения:
-
-make run
-
-### Остановка тоннеля подключения:
-
-make tunnel-stop
-
-### Иснтрукция подключения:
-
-make setup-teacher
-
-### Показать текущие туннели:
-
-make tunnel-status
+## Основные эндпоинты
+- `POST http://193.233.175.221:8083/auth/register` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"email": "user@example.com","password": "Secret123!"} – регистрация пользователя с валидацией email и пароля (меняем пароль для проверки ошибки на {"email": "user@example.com","password": "AnotherPass!"} )
+- `POST http://193.233.175.221:8083/auth/login` с параметрами `Headers` Key: Content-Type Value: application/json и`Body`: {"email": "user@example.com","password": "Secret123!"} – аутентификация пользователя с проверкой учетных данных (меняем пароль для проверки ошибки на {"email": "user@example.com","password": "wrong"} )
 
 ## Команды:
 
 ### Базовая и повторная регистрации
-curl -X POST http://localhost:8080/auth/register ^
-  -H "Content-Type: application/json" ^
-  -d "{\"email\":\"user@example.com\",\"password\":\"Secret123!\"}"
-
-curl -X POST http://localhost:8080/auth/register ^
-  -H "Content-Type: application/json" ^
-  -d "{\"email\":\"user@example.com\",\"password\":\"AnotherPass\"}"
+http://193.233.175.221:8083/auth/register
 
 Ответы:
 
@@ -70,13 +24,7 @@ curl -X POST http://localhost:8080/auth/register ^
 {"error":"email_taken"}
 
 ### Успешная и неуспешная аутентификации:
-curl -X POST http://localhost:8080/auth/login ^
-  -H "Content-Type: application/json" ^
-  -d "{\"email\":\"user@example.com\",\"password\":\"Secret123!\"}"
-
-curl -X POST http://localhost:8080/auth/login ^
-  -H "Content-Type: application/json" ^
-  -d "{\"email\":\"user@example.com\",\"password\":\"wrong\"}"
+http://193.233.175.221:8083/auth/login
 
 Ответы:
 
@@ -149,6 +97,8 @@ C:.
 ![фото8](./PR9/Screenshot_8.png)
 
 ![фото9](./PR9/Screenshot_9.png)
+
+![фото9](./PR9/Screenshot_10.png)
 
 Структура проекта
 

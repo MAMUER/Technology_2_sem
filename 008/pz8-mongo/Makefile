@@ -21,29 +21,10 @@ fast:
 	go build -o bin/server.exe ./cmd/api
 	.\bin\server
 
-#ssh root@193.233.175.221
-#ssh -L 27017:localhost:27017 root@193.233.175.221 -N
-#ssh -L 27017:localhost:27017 root@193.233.175.221 -N -f
-
-#Пользователь MongoDB
-#логин: root
-#пароль: secret
-#порт: 27017
-#база данных: pz8
-
 # Остановка туннелей
 tunnel-stop:
 	taskkill /F /IM ssh.exe 2>nul || echo No SSH tunnels found
 	taskkill /F /IM cmd.exe 2>nul || echo No CMD windows found
-
-# Инструкция
-setup-teacher:
-	@echo === Установка для преподавателя ===
-	@echo 1. Запустите SSH тоннель
-	@echo 2. Зайдите на сервер
-	@echo 3. Проверьте статус MongoDB (При необходимости - запустите MongoDB)
-	@echo 4. В другом окне: make run
-	@echo 3. Для остановки туннеля: make tunnel-stop
 
 # Статус туннелей
 tunnel-status:

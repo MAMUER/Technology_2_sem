@@ -91,11 +91,11 @@ C:.
 
 Получение значения
 
-![фото8](./PR7/Screenshot_8.png)
+![фото8](./PR7/Screenshot_12.png)
 
 Проверка TTL
 
-![фото9](./PR7/Screenshot_9.png)
+![фото9](./PR7/Screenshot_13.png)
 
 Структура проекта
 
