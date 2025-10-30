@@ -1,4 +1,29 @@
+# Environment variables
 .env
 .env.example
+
+# Binaries
 *.exe
 /bin/
+
+# Secrets
+passwords.txt
+
+# Docker
+docker.yml
+docker-compose.yml
+
+# Database
+*.sql
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+/logs/
