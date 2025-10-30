@@ -5,55 +5,41 @@
 
 Освоение принципов проектирования REST API и слоистой архитектуры через реализацию CRUD-интерфейса для системы заметок с использованием code-first подхода, при котором кодовая база предшествует формальному описанию API.
 
-Проект на языке Go (необходима версия 1.21 и выше) с REST-API
+### Требования
+- Go версии 1.25 и выше
 
-- `POST /api/v1/notes` - Создание заметки
-- `GET /api/v1/notes` - Получение списка заметок с пагинацией и поиском
-- `GET /api/v1/notes/{id}` - Получение конкретной заметки по ID
-- `PATCH /api/v1/notes/{id}` - Частичное обновление заметки
-- `DELETE /api/v1/notes/{id}` - Удаление заметки
+## Основные эндпоинты
+### Создание заметки
+- `POST http://193.233.175.221:8085/api/v1/notes`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Headers` Key: Authorization Value: Bearer {token}
+  - `Body`: {"title": "Первая заметка", "content": "Это тест"}
 
-## Необходимые пароли
+### Получение списка заметок с пагинацией и поиском
+- `GET http://193.233.175.221:8085/api/v1/notes?page=1&limit=10&q=заметка`
+  - `Headers` Key: Authorization Value: Bearer {token}
+  - `Headers` Key: Content-Type Value: application/json
 
-Подключение к серверу
-- логин: teacher
-- пароль: 1
-- IP: 193.233.175.221
+### Получение конкретной заметки по ID
+- `GET http://193.233.175.221:8085/api/v1/notes/{id}`
+  - `Headers` Key: Authorization Value: Bearer {token}
+  - `Headers` Key: Content-Type Value: application/json
 
-Пользователь PostgreSQL
-- логин: teacher_app 
-- пароль: secure_password_123
-- порт: 5432
-- БД: notes
+### Частичное обновление заметки
+- `PATCH http://193.233.175.221:8085/api/v1/notes/{id}`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Headers` Key: Authorization Value: Bearer {token}
+  - `Body`: {"title": "Обновленная заметка"}
 
-## Команды запуска/сборки
-
-### Подключение к серверу 
-ssh teacher@193.233.175.221
-
-### Запуск тоннеля подключения к серверу (в отдельной консоли):
-
-ssh -L 5433:localhost:5432 teacher@193.233.175.221 -N -o ServerAliveInterval=30
-
-### Сборка приложения:
-
-make build
-
-### Запуск приложения:
-
-make run
-
-### Запуск swagger:
-
-make swagger
+### Удаление заметки
+- `DELETE http://193.233.175.221:8085/api/v1/notes/{id}`
+  - `Headers` Key: Authorization Value: Bearer {token}
+  - `Headers` Key: Content-Type Value: application/json
 
 ## Команды:
 
 ### Создание заметки
-curl -X POST http://localhost:8080/api/v1/notes ^
--H "Content-Type: application/json" ^
--H "Authorization: Bearer test-token-12345" ^
--d "{\"title\":\"Первая заметка\", \"content\":\"Это тест\"}"
+http://193.233.175.221:8085/api/v1/notes
 
 Ответ:
 
@@ -64,9 +50,7 @@ curl -X POST http://localhost:8080/api/v1/notes ^
 {"id":301}
 
 ### Получение списка заметок
-curl -X GET "http://localhost:8080/api/v1/notes?page=1&limit=10&q=заметка" ^
--H "Authorization: Bearer test-token-12345" ^
--H "Content-Type: application/json"
+http://193.233.175.221:8085/api/v1/notes?page=1&limit=10&q=заметка
 
 Ответ:
 
@@ -77,9 +61,7 @@ curl -X GET "http://localhost:8080/api/v1/notes?page=1&limit=10&q=заметка
 [{"id":301,"title":"Первая заметка","content":"Это тест","created_at":"2025-10-26T19:01:08.493454+03:00"},{"id":300,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":299,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":297,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":296,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":295,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":294,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":293,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":292,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":298,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.825408+03:00"}]
 
 ### Получение конкретной заметки
-curl -X GET http://localhost:8080/api/v1/notes/1 ^
--H "Authorization: Bearer test-token-12345" ^
--H "Content-Type: application/json"
+http://193.233.175.221:8085/api/v1/notes/1
 
 Ответ:
 
@@ -90,10 +72,7 @@ curl -X GET http://localhost:8080/api/v1/notes/1 ^
 {"id":1,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:49.029426+03:00"}
 
 ### Частичное обновление заметки
-curl -X PATCH http://localhost:8080/api/v1/notes/1 ^
--H "Content-Type: application/json" ^
--H "Authorization: Bearer test-token-12345" ^
--d "{\"title\":\"Обновленная заметка\"}"
+http://193.233.175.221:8085/api/v1/notes/1
 
 Ответ:
 
@@ -104,9 +83,7 @@ curl -X PATCH http://localhost:8080/api/v1/notes/1 ^
 {"id":1,"title":"Обновленная заметка","content":"Content","created_at":"2025-10-26T18:50:49.029426+03:00"}
 
 ### Удаление заметки
-curl -X DELETE http://localhost:8080/api/v1/notes/1 ^
--H "Authorization: Bearer test-token-12345" ^
--H "Content-Type: application/json"
+http://193.233.175.221:8085/api/v1/notes/1
 
 ## Структура проекта
 ```

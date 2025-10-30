@@ -21,10 +21,6 @@ fast:
 	go build -o bin/server.exe ./cmd/api
 	.\bin\server
 
-# ssh root@193.233.175.221
-# ssh -L 6379:localhost:6379 root@193.233.175.221 -N -o ServerAliveInterval=30
-# ssh -L 6379:localhost:6379 root@193.233.175.221 -N -f -o ServerAliveInterval=30
-
 # Нагрузочное тестирование
 load-test: load-test-pagination load-test-batch load-test-single load-test-create
 

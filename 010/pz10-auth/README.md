@@ -13,88 +13,61 @@ JWT Authentication Microservice - это REST API сервис аутентиф�
 
 ### Аутентификация
 #### Авторизация админа
-- `POST http://localhost:8084/api/v1/login`
+- `POST http://193.233.175.221:8084/api/v1/login`
   - `Headers` Key: Content-Type Value: application/json
   - `Body`: {"Email": "admin@example.com","Password": "secret123"}
 
 #### Авторизация пользователя  
-- `POST http://localhost:8084/api/v1/login`
+- `POST http://193.233.175.221:8084/api/v1/login`
   - `Headers` Key: Content-Type Value: application/json
   - `Body`: {"Email": "user@example.com","Password": "secret123"}
 
-#### Обновление токена
-- `POST http://localhost:8084/api/v1/refresh`
+#### Авторизация пользователя 2
+- `POST http://193.233.175.221:8084/api/v1/login`
   - `Headers` Key: Content-Type Value: application/json
-  - `Body`: {"refresh_token": "token"}
+  - `Body`: {"Email": "user2@example.com","Password": "secret123"}
+
+#### Обновление токена
+- `POST http://193.233.175.221:8084/api/v1/refresh`
+  - `Headers` Key: Content-Type Value: application/json
+  - `Body`: {"refresh_token": "token{}"}
 
 #### Выход пользователя
-- `POST http://localhost:8084/api/v1/logout`
+- `POST http://193.233.175.221:8084/api/v1/logout`
   - `Headers` Key: Content-Type Value: application/json
   - `Body`: {"refresh_token": "token"}
 
 ### Пользовательские эндпоинты (требуют Authorization header)
 #### Получить текущего пользователя
-- `GET http://localhost:8084/api/v1/me`
+- `GET http://193.233.175.221:8084/api/v1/me`
   - `Authorization` `Bearer Token` {token}
 
 #### Получить пользователя по ID (ABAC защита)
-- `GET http://localhost:8084/api/v1/users/{id}`
+- `GET http://193.233.175.221:8084/api/v1/users/{id}`
   - `Authorization` `Bearer Token` {token}
-
-#### Обновить пользователя (только свой профиль)
-- `PUT http://localhost:8084/api/v1/users/{id}`
-  - `Authorization` `Bearer Token` {token}
-  - `Headers` Key: Content-Type Value: application/json
-  - `Body`: {"email": "new@example.com"}
-
-#### Смена пароля (только свой профиль)
-- `PATCH http://localhost:8084/api/v1/users/{id}`
-  - `Authorization` `Bearer Token` {token}
-  - `Headers` Key: Content-Type Value: application/json
-  - `Body`: {"password": "newpassword123"}
 
 ### Админские эндпоинты (RBAC защита)
 #### Статистика системы (только для админа)
-- `GET http://localhost:8084/api/v1/admin/stats`
-  - `Authorization` `Bearer Token` {token}
-
-#### Список всех пользователей (только для админа)
-- `GET http://localhost:8084/api/v1/admin/users`
+- `GET http://193.233.175.221:8084/api/v1/admin/stats`
   - `Authorization` `Bearer Token` {token}
 
 #### Получить любого пользователя (только для админа)
-- `GET http://localhost:8084/api/v1/admin/users/{id}`
-  - `Authorization` `Bearer Token` {token}
-
-#### Создать пользователя (только для админа)
-- `POST http://localhost:8084/api/v1/admin/users`
-  - `Authorization` `Bearer Token` {token}
-  - `Headers` Key: Content-Type Value: application/json
-  - `Body`: {"email": "newuser@example.com","password": "password123","role": "user"}
-
-#### Обновить любого пользователя (только для админа)
-- `PUT http://localhost:8084/api/v1/admin/users/{id}`
-  - `Authorization` `Bearer Token` {token}
-  - `Headers` Key: Content-Type Value: application/json
-  - `Body`: {"email": "updated@example.com","role": "admin"}
-
-#### Удалить пользователя (только для админа)
-- `DELETE http://localhost:8084/api/v1/admin/users/{id}`
+- `GET http://193.233.175.221:8084/api/v1/users/{id}`
   - `Authorization` `Bearer Token` {token}
 
 ## Команды
 
 ### Логин — получить токен админа
-http://localhost:8084/api/v1/login
+http://193.233.175.221:8084/api/v1/login
 
 Ответ:
 
 {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwejEwLWNsaWVudHMiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiZXhwIjoxNzYxMjE2MzY1LCJpYXQiOjE3NjEyMDkxNjUsImlzcyI6InB6MTAtYXV0aCIsInJvbGUiOiJhZG1pbiIsInN1YiI6MX0.GqjQ13GOvySLMs1CIcst7Qf2jBnH-EXc8euAEGDnGJ8","user":{"email":"admin@example.com","id":1,"role":"admin"}}
 
 ### Доступ к защищённым ручкам:
-http://localhost:8084/api/v1/me
+http://193.233.175.221:8084/api/v1/me
 
-http://localhost:8084/api/v1/admin/stats
+http://193.233.175.221:8084/api/v1/admin/stats
 
 Ответы:
 
@@ -104,14 +77,14 @@ http://localhost:8084/api/v1/admin/stats
 
 ### Логин — получить токен пользователя
 
-http://localhost:8084/api/v1/login
+http://193.233.175.221:8084/api/v1/login
 
 Ответ:
 
 {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwejEwLWNsaWVudHMiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJleHAiOjE3NjEyMTg0MDIsImlhdCI6MTc2MTIxMTIwMiwiaXNzIjoicHoxMC1hdXRoIiwicm9sZSI6InVzZXIiLCJzdWIiOjJ9.i_RDZ-PhsO1JthNOS7uR4HweUXZ_YYzO-cEAKc7SKqE","user":{"email":"user@example.com","id":2,"role":"user"}}
 
 ### Доступ к защищённым ручкам:
-http://localhost:8084/api/v1/admin/stats
+http://193.233.175.221:8084/api/v1/admin/stats
 
 Ответ:
 
@@ -125,49 +98,49 @@ Content-Length: 38
 
 ## Тесты (Для PowerShell)
 ### 1. Логин админа
-$admin = Invoke-RestMethod -Uri "http://localhost:8084/api/v1/login" -Method POST -ContentType "application/json" -Body '{"email":"admin@example.com","password":"secret123"}'
+$admin = Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/login" -Method POST -ContentType "application/json" -Body '{"email":"admin@example.com","password":"secret123"}'
 $ADMIN_ACCESS = $admin.access_token
 $ADMIN_REFRESH = $admin.refresh_token
 Write-Host "Admin Access: $ADMIN_ACCESS"
 Write-Host "Admin Refresh: $ADMIN_REFRESH"
 
 ### 2. Логин пользователя
-$user = Invoke-RestMethod -Uri "http://localhost:8084/api/v1/login" -Method POST -ContentType "application/json" -Body '{"email":"user@example.com","password":"secret123"}'
+$user = Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/login" -Method POST -ContentType "application/json" -Body '{"email":"user@example.com","password":"secret123"}'
 $USER_ACCESS = $user.access_token
 $USER_REFRESH = $user.refresh_token
 Write-Host "User Access: $USER_ACCESS"
 Write-Host "User Refresh: $USER_REFRESH"
 
 ### 3. Тест /me для админа
-Invoke-RestMethod -Uri "http://localhost:8084/api/v1/me" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
+Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/me" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
 
 ### 4. Тест /me для пользователя
-Invoke-RestMethod -Uri "http://localhost:8084/api/v1/me" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
+Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/me" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
 
 ### 5. ABAC тест: пользователь запрашивает свой профиль (должен работать)
-Invoke-RestMethod -Uri "http://localhost:8084/api/v1/users/2" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
+Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/users/2" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
 
 ### 6. ABAC тест: пользователь запрашивает чужой профиль (должен вернуть 403)
-Invoke-RestMethod -Uri "http://localhost:8084/api/v1/users/1" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
+Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/users/1" -Headers @{"Authorization"="Bearer $USER_ACCESS"}
 
 ### 7. ABAC тест: админ запрашивает любой профиль (должен работать)
-Invoke-RestMethod -Uri "http://localhost:8084/api/v1/users/2" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
+Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/users/2" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
 
 ### 8. Тест админского эндпоинта
-Invoke-RestMethod -Uri "http://localhost:8084/api/v1/admin/stats" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
+Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/admin/stats" -Headers @{"Authorization"="Bearer $ADMIN_ACCESS"}
 
 ### 9. Тест refresh токена
 $body = @{refresh_token = $USER_REFRESH} | ConvertTo-Json
-$refresh = Invoke-RestMethod -Uri "http://localhost:8084/api/v1/refresh" -Method POST -ContentType "application/json" -Body $body
+$refresh = Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/refresh" -Method POST -ContentType "application/json" -Body $body
 $NEW_ACCESS = $refresh.access_token
 Write-Host "New Access: $($NEW_ACCESS)"
 
 ### 10. Тест нового access токена
-Invoke-RestMethod -Uri "http://localhost:8084/api/v1/me" -Headers @{"Authorization"="Bearer $NEW_ACCESS"}
+Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/me" -Headers @{"Authorization"="Bearer $NEW_ACCESS"}
 
 ### 11. Логаут
 $logoutBody = @{refresh_token = $USER_REFRESH} | ConvertTo-Json
-Invoke-RestMethod -Uri "http://localhost:8084/api/v1/logout" -Method POST -ContentType "application/json" -Body $logoutBody
+Invoke-RestMethod -Uri "http://193.233.175.221:8084/api/v1/logout" -Method POST -ContentType "application/json" -Body $logoutBody
 Write-Host "Logout successful"
 
 ## Структура проекта
@@ -212,15 +185,6 @@ C:.
     │
     └───PR10
 ```
-## Переменные окружения (.env)
-
-APP_PORT=8084 - Порт сервера
-
-JWT_SECRET=your-secret-key - JWT пароль (необходим)
-
-JWT_ACCESS_TTL=15m - Токен доступа TTL
-
-JWT_REFRESH_TTL=168h - Токен обновления TTL (7 days)
 
 ## Скриншоты работы проекта
 
@@ -234,11 +198,9 @@ JWT_REFRESH_TTL=168h - Токен обновления TTL (7 days)
 
 ![фото3](./PR10/Screenshot_3.png)
 
-Регистрация админа и пользователя, затем входы в систему и проверка доступа фукнций
+Регистрация админа и пользователя, затем входы в систему и проверка доступа фукнций, проверка новых добавленных функций:
 
 ![фото4](./PR10/Screenshot_4.png)
-
-Проверка новых добавленных функций:
 
 ![фото5](./PR10/Screenshot_5.png)
 
@@ -253,8 +215,6 @@ JWT_REFRESH_TTL=168h - Токен обновления TTL (7 days)
 ![фото10](./PR10/Screenshot_10.png)
 
 ![фото11](./PR10/Screenshot_11.png)
-
-![фото12](./PR10/Screenshot_12.png)
 
 Структура проекта
 
