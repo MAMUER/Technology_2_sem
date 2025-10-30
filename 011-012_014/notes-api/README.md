@@ -12,28 +12,28 @@
 ### Создание заметки
 - `POST http://193.233.175.221:8085/api/v1/notes`
   - `Headers` Key: Content-Type Value: application/json
-  - `Headers` Key: Authorization Value: Bearer {token}
+  - `Authorization` Value: Bearer test-token-12345
   - `Body`: {"title": "Первая заметка", "content": "Это тест"}
 
 ### Получение списка заметок с пагинацией и поиском
 - `GET http://193.233.175.221:8085/api/v1/notes?page=1&limit=10&q=заметка`
-  - `Headers` Key: Authorization Value: Bearer {token}
+  - `Authorization` Value: Bearer test-token-12345
   - `Headers` Key: Content-Type Value: application/json
 
 ### Получение конкретной заметки по ID
 - `GET http://193.233.175.221:8085/api/v1/notes/{id}`
-  - `Headers` Key: Authorization Value: Bearer {token}
+  - `Authorization` Value: Bearer test-token-12345
   - `Headers` Key: Content-Type Value: application/json
 
 ### Частичное обновление заметки
 - `PATCH http://193.233.175.221:8085/api/v1/notes/{id}`
   - `Headers` Key: Content-Type Value: application/json
-  - `Headers` Key: Authorization Value: Bearer {token}
+  - `Authorization` Value: Bearer test-token-12345
   - `Body`: {"title": "Обновленная заметка"}
 
 ### Удаление заметки
 - `DELETE http://193.233.175.221:8085/api/v1/notes/{id}`
-  - `Headers` Key: Authorization Value: Bearer {token}
+  - `Authorization` Value: Bearer test-token-12345
   - `Headers` Key: Content-Type Value: application/json
 
 ## Команды:
