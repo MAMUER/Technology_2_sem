@@ -223,6 +223,12 @@ EXPLAIN/ANALYZE проблемных запросов
 
 ![фото29](./PR11-12_14/Screenshot_29.png)
 
+![фото29](./PR11-12_14/Screenshot_30.png)
+
+![фото29](./PR11-12_14/Screenshot_31.png)
+
+![фото29](./PR11-12_14/Screenshot_32.png)
+
 Структура проекта
 
 ![фото4](./PR11-12_14/Screenshot_4.png)

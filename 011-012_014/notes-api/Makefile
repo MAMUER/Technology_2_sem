@@ -38,7 +38,7 @@ fast:
 
 # Docker команды
 docker-up:
-	docker-compose up --build -d
+	docker-compose up -d
 
 docker-down:
 	docker-compose down
