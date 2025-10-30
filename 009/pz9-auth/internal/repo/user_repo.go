@@ -20,10 +20,18 @@ func (r *UserRepo) AutoMigrate() error {
 }
 
 func (r *UserRepo) Create(ctx context.Context, u *core.User) error {
+	// Сначала проверяем существует ли пользователь с таким email
+	var existing core.User
+	err := r.db.WithContext(ctx).Where("email = ?", u.Email).First(&existing).Error
+	if err == nil {
+		return ErrEmailTaken // Пользователь уже существует
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err // Другая ошибка БД
+	}
+
+	// Создаем нового пользователя
 	if err := r.db.WithContext(ctx).Create(u).Error; err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return ErrEmailTaken
-		}
 		return err
 	}
 	return nil
