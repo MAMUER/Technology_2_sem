@@ -14,7 +14,7 @@ func main() {
 	// Получаем адрес Redis из переменной окружения или используем по умолчанию
 	redisAddr := os.Getenv("REDIS_ADDR")
 	if redisAddr == "" {
-		redisAddr = "redis-tunnel:6379" // значение по умолчанию для Docker
+		redisAddr = "redis:6379" // значение по умолчанию для Docker Compose
 	}
 
 	log.Printf("Connecting to Redis at: %s", redisAddr)
