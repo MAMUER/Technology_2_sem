@@ -27,3 +27,12 @@ Thumbs.db
 # Logs
 *.log
 /logs/
+
+# Office temporary files
+~$*
+*.tmp
+
+# Word documents temporary files
+~$*.docx
+~$*.doc
+~$*.xlsx
