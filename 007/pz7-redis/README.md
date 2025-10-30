@@ -10,50 +10,28 @@ Redis — быстрая in-memory БД для хранения временны
 
 ## Основные эндпоинты
 
-- `GET http://193.233.175.221:8080/set?key=test&value=hello` – установка значения по ключу.
-- `GET http://193.233.175.221:8080/get?key=test` – получение значения по ключу.
-- `GET http://193.233.175.221:8080/ttl?key=test` – проверка TTL (времени жизни) ключа.
+- `POST http://193.233.175.221:8081/set?key=test&value=hello` – установка значения по ключу.
+- `GET http://193.233.175.221:8081/get?key=test` – получение значения по ключу.
+- `GET http://193.233.175.221:8081/ttl?key=test` – проверка TTL (времени жизни) ключа.
 
-## Команды запуска/сборки
-
-### Сборка приложения:
-
-make build
-
-### Запуск приложения:
-
-make run
-
-### Остановка тоннеля подключения:
-
-make tunnel-stop
-
-### Иснтрукция подключения:
-
-make setup-teacher
-
-### Показать текущие туннели:
-
-make tunnel-status
-
-## Команды:
+## Команды
 
 ### установка значения
-http://localhost:8080/set?key=test&value=hello
+http://localhost:8081/set?key=test&value=hello
 
 Ответ:
 
 OK: test=hello (TTL 10s)
 
 ### получение значения
-http://localhost:8080/get?key=test
+http://localhost:8081/get?key=test
 
 Ответ:
 
 VALUE: test=hello
 
 ### проверка TTL
-http://localhost:8080/ttl?key=test
+http://localhost:8081/ttl?key=test
 
 Ответ:
 

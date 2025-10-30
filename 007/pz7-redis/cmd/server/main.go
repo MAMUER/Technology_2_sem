@@ -4,13 +4,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"example.com/pz7-redis/internal/cache"
 )
 
 func main() {
-	c := cache.New("localhost:6379")
+	// Получаем адрес Redis из переменной окружения или используем по умолчанию
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "redis-tunnel:6379" // значение по умолчанию для Docker
+	}
+
+	log.Printf("Connecting to Redis at: %s", redisAddr)
+	c := cache.New(redisAddr)
 
 	mux := http.NewServeMux()
 
