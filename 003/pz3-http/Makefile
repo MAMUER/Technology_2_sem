@@ -12,15 +12,7 @@ check:
 	go fmt ./...
 
 tree:
-ifeq ($(DETECTED_OS),Windows)
 	$(TREE_CMD)
-else
-	@echo "Project structure:"
-	@find . -type f -name "*.go" | head -20
-	@echo ""
-	@echo "Directories:"
-	@ls -la
-endif
 
 fast:
 	go vet ./...
