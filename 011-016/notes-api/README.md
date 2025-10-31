@@ -51,6 +51,20 @@
 - `GET http://193.233.175.221:8085/debug/pprof/block`
 ### Профиль мьютексов
 - `GET http://193.233.175.221:8085/debug/pprof/mutex`
+### Профиль рутины
+- `GET http://localhost:8085/debug/pprof/goroutine`
+
+## Команды анализа в pprof:
+### Топ пожирателей CPU
+(pprof) top
+### Показать исходник с "горячими" строками
+(pprof) list main
+### Сгенерировать SVG с графом вызовов
+(pprof) web
+### Топ операций блокировки
+(pprof) top
+### Показать где происходят блокировки
+(pprof) list main
 
 ## Performance Testing
 ### Медленная Fibonacci (рекурсивная)
@@ -66,17 +80,32 @@
 
 ## Команды запуска/сборки
 
-### Сборка приложения:
-
-make build
-
-### Запуск приложения:
-
-make run
-
-### Инструкция:
-
-make help
+# Запуск с Docker (рекомендуется)
+make docker-dev      
+# Запуск Docker сервисов
+make docker-up       
+# Просмотр логов
+make docker-logs     
+# Остановка Docker сервисов
+make docker-down     
+# Перезапуск сервисов
+make docker-restart  
+# Остановка с удалением volumes
+make docker-clean    
+# Быстрый запуск (требует БД)
+make fast        
+# Сборка приложения   
+make build          
+# Запуск приложения
+make run           
+# Проверка кода (vet + fmt)
+make check         
+# Генерация Swagger документации
+make swagger       
+# Показать структуру проекта
+make tree          
+# Полный список команд
+make help           
 
 ## Запуск бенчмарков
 
@@ -84,12 +113,13 @@ make help
 
 make bench
 
-### Профилирование блокировок (через Makefile)
+### CPU профиль с веб-интерфейсом
+make profile-cpu
 
+### Block профиль с веб-интерфейсом
 make profile-block
 
-### Профилирование мьютексов (через Makefile)
-
+### Mutex профиль с веб-интерфейсом
 make profile-mutex
 
 ### Команды тестирования
@@ -98,7 +128,7 @@ make test
 
 #### Запуск тестов с подробным выводом:
 make test-v
-
+   
 #### Запуск тестов отдельных пакетов:
 make test-math
 make test-strings
@@ -124,6 +154,35 @@ make integration-test
 #### Запуск с покрытием
 make integration-test-cover
 
+### Нагрузочное тестирование API
+#### Тестирование пагинации (1000 запросов, 50 параллельных)
+make load-test-pagination
+
+#### Тестирование batch запросов (500 запросов, 20 параллельных)
+make load-test-batch
+
+#### Тестирование одиночных запросов (2000 запросов, 100 параллельных)
+make load-test-single
+
+#### Тестирование создания заметок (300 запросов, 10 параллельных)
+make load-test-create
+
+#### Все нагрузочные тесты
+make load-test
+
+### Нагрузочное тестирование производительности
+#### Базовая нагрузка
+hey -n 200 -c 8 http://localhost:8085/work
+
+#### Медленная версия Fibonacci
+hey -n 200 -c 8 http://localhost:8085/work-slow
+
+#### Быстрая версия Fibonacci  
+hey -n 200 -c 8 http://localhost:8085/work-fast
+
+#### Тестирование блокировок
+hey -n 100 -c 5 http://localhost:8085/block-demo
+
 ## Команды:
 
 ### Создание заметки
@@ -131,10 +190,6 @@ http://193.233.175.221:8085/api/v1/notes
 
 Ответ:
 
-#### In-memory
-{"ID":1,"Title":"Первая заметка","Content":"Это тест","CreatedAt":"0001-01-01T00:00:00Z","UpdatedAt":null}
-
-#### PostgreSQL
 {"id":301}
 
 ### Получение списка заметок
@@ -142,10 +197,6 @@ http://193.233.175.221:8085/api/v1/notes?page=1&limit=10&q=заметка
 
 Ответ:
 
-#### In-memory
-[{"ID":1,"Title":"Первая заметка","Content":"Это тест","CreatedAt":"2024-01-15T10:30:00Z","UpdatedAt":null}]
-
-#### PostgreSQL
 [{"id":301,"title":"Первая заметка","content":"Это тест","created_at":"2025-10-26T19:01:08.493454+03:00"},{"id":300,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":299,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":297,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":296,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":295,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":294,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":293,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":292,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.826133+03:00"},{"id":298,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:52.825408+03:00"}]
 
 ### Получение конкретной заметки
@@ -153,10 +204,6 @@ http://193.233.175.221:8085/api/v1/notes/1
 
 Ответ:
 
-#### In-memory
-{"ID":1,"Title":"Первая заметка","Content":"Это тест","CreatedAt":"2024-01-15T10:30:00Z","UpdatedAt":null}
-
-#### PostgreSQL
 {"id":1,"title":"Test","content":"Content","created_at":"2025-10-26T18:50:49.029426+03:00"}
 
 ### Частичное обновление заметки
@@ -164,79 +211,10 @@ http://193.233.175.221:8085/api/v1/notes/1
 
 Ответ:
 
-#### In-memory
-{"ID":1,"Title":"Обновленная заметка","Content":"Это тест","CreatedAt":"2024-01-15T10:30:00Z","UpdatedAt":"2024-01-15T11:00:00Z"}
-
-#### PostgreSQL
 {"id":1,"title":"Обновленная заметка","content":"Content","created_at":"2025-10-26T18:50:49.029426+03:00"}
 
 ### Удаление заметки
 http://193.233.175.221:8085/api/v1/notes/1
-
-### Нагрузка
-hey -n 200 -c 8 http://localhost:8080/work
-
-### Нагрузочное тестирование медленной версии
-hey -n 200 -c 8 http://localhost:8080/work-slow
-
-### Нагрузочное тестирование быстрой версии
-hey -n 200 -c 8 http://localhost:8080/work-fast
-
-### Тестирование блокировок
-hey -n 100 -c 5 http://localhost:8080/block-demo
-
-### Открытие страницы профиля
-http://localhost:8080/debug/pprof/
-
-### Скачивание файла profile
-http://localhost:8080/debug/pprof/profile?seconds=30 
-
-### Скачивание файла heap
-http://localhost:8080/debug/pprof/heap
-
-### Скачивание файла goroutine
-http://localhost:8080/debug/pprof/goroutine
-
-### Скачивание файла block
-http://localhost:8080/debug/pprof/block
-
-### качивание файла mutex
-http://localhost:8080/debug/pprof/mutex
-
-### Анализ CPU профиля
-go tool pprof http://localhost:8080/debug/pprof/profile?seconds=30
-#### “топ пожирателей CPU”
-- (pprof) top
-#### показать исходник с “горячими” строками
-- (pprof) list main
-#### сгенерировать svg с графом вызовов
-- (pprof) web 
-
-### Анализ Block профиля
-go tool pprof http://localhost:8080/debug/pprof/block
-#### топ операций блокировки
-- (pprof) top
-#### показать где происходят блокировки
-- (pprof) list main   
-
-### Анализ Mutex профиля
-go tool pprof http://localhost:8080/debug/pprof/mutex
-#### топ конфликтов мьютексов
-- (pprof) top
-#### показать где происходят блокировки мьютексов
-- (pprof) list main   
-
-### CPU профиль с веб-интерфейсом
-go tool pprof -http=:9999 http://localhost:8080/debug/pprof/profile?seconds=30
-
-### Heap профиль с веб-интерфейсом
-go tool pprof -http=:9998 http://localhost:8080/debug/pprof/heap
-
-### Block профиль с веб-интерфейсом
-go tool pprof -http=:9997 http://localhost:8080/debug/pprof/block
-
-### Mutex профиль с веб-интерфейсом
-go tool pprof -http=:9996 http://localhost:8080/debug/pprof/mutex
 
 ## Структура проекта
 ```
