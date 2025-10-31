@@ -134,39 +134,30 @@ Content-Length: 32
 
 ## Структура проекта
 ```
-C:.
-│   .env
-│   go.mod
-│   go.sum
-│   Makefile
-│   README.md
-│
-├───bin
-│       myapp.exe
-│
-├───cmd
-│   └───myapp
-│           main.go
-│
-├───internal
-│   └───app
-│       │   app.go
-│       │
-│       └───handlers
-│               ping.go
-│
-├───PR2
-│
-└───utils
-        httpjson.go
-        logger.go
+.
+├── bin
+│   └── myapp.exe
+├── cmd
+│   └── myapp
+│       └── main.go
+├── go.mod
+├── go.sum
+├── internal
+│   └── app
+│       ├── app.go
+│       └── handlers
+│           └── ping.go
+├── Makefile
+├── PR2
+├── README.md
+└── utils
+    ├── httpjson.go
+    └── logger.go
 ```
 
 ## Примечания по конфигурации
 
 - По умолчанию сервер слушает порт 8080.
-
-- Порт можно изменить в параметре http.ListenAndServe(":8080", handler) в файле запуска.
 
 - В проекте используется заголовок HTTP X-Request-Id для передачи уникального ID запроса. Если заголовок не указан, он создается автоматически.
 

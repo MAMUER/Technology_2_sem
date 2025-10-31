@@ -137,33 +137,27 @@ http://localhost:8080/tasks/1
 
 ## Структура проекта
 ```
-C:.
-│   .env
-│   go.mod
-│   go.sum
-│   Makefile
-│   README.md
-│   requests.md
-│
-├───bin
-│       server.exe
-│
-├───cmd
-│   └───server
-│           main.go
-│
-├───internal
-│   ├───api
-│   │       add.go
-│   │       handlers.go
-│   │       handlers_test.go
-│   │       middleware.go
-│   │       responses.go
-│   │
-│   └───storage
-│           memory.go
-│
-└───PR3
+.
+├── bin
+│   └── server.exe
+├── cmd
+│   └── server
+│       └── main.go
+├── go.mod
+├── go.sum
+├── internal
+│   ├── api
+│   │   ├── add.go
+│   │   ├── handlers.go
+│   │   ├── handlers_test.go
+│   │   ├── middleware.go
+│   │   └── responses.go
+│   └── storage
+│       └── memory.go
+├── Makefile
+├── PR3
+├── README.md
+└── requests.md
 ```
 
 ## Примечания по конфигурации

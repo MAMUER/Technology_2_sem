@@ -82,27 +82,22 @@ http://localhost:8080/health
 
 ## Структура проекта
 ```
-C:.
-│   .env
-│   .gitignore
-│   go.mod
-│   go.sum
-│   helloapi.exe
-│   Makefile
-│   README.md
-│
-├───cmd
-│   └───server
-│           main.go
-│
-└───PR1      
+.
+├── cmd
+│   └── server
+│       └── main.go
+├── go.mod
+├── go.sum
+├── helloapi.exe
+├── Makefile
+├── PR1
+└── README.md   
 ```
 ## Примечания по конфигурации
 - Переменная окружения `APP_PORT` задаёт порт для запуска HTTP сервера.
 - По умолчанию сервер слушает на порту 8080.
 - Все JSON-ответы содержат правильные заголовки `Content-Type: application/json`.
 - Временная метка в `/health` возвращается в формате RFC3339.
-- Для изменения порта отредактируйте файл .env или используйте make run-port.
 
 ## Скриншоты работы проекта
 
