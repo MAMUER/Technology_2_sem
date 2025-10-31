@@ -34,4 +34,4 @@ help:
 	@echo "  env       - Создать .env файл (использование: make env PORT=8081)"
 	@echo "  help      - Показать эту справку"
 
-.PHONY: tree
+.PHONY: run build check tree fast env help
