@@ -13,16 +13,15 @@ test:
 	go test ./...
 
 tree:
-	@if command -v tree >/dev/null 2>&1; then \
-		$(TREE_CMD); \
-	else \
-		echo "Tree command not found. Using alternative..."; \
-		echo "Go files:"; \
-		find . -type f -name "*.go" | head -20; \
-		echo ""; \
-		echo "Directories:"; \
-		ls -la; \
-	fi
+ifeq ($(DETECTED_OS),Windows)
+	$(TREE_CMD)
+else
+	@echo "Project structure:"
+	@find . -type f -name "*.go" | head -20
+	@echo ""
+	@echo "Directories:"
+	@ls -la
+endif
 
 fast: check build run
 
