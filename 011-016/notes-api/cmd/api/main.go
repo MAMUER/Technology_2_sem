@@ -3,7 +3,7 @@ package main
 import (
 	"example.com/notes-api/internal/config"
 	"example.com/notes-api/internal/core/service"
-	"example.com/notes-api/internal/http/handlers"
+	"example.com/notes-api/internal/httpapi/handlers"
 	"example.com/notes-api/internal/repo"
 	"example.com/notes-api/internal/work"
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"runtime"
 	"sync"
 
-	httpx "example.com/notes-api/internal/http"
+	httpx "example.com/notes-api/internal/httpapi"
 	httpSwagger "github.com/swaggo/http-swagger"
 
 	"example.com/notes-api/internal/mathx"

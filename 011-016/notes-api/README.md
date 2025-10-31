@@ -233,7 +233,58 @@ go tool pprof -http=:9996 http://localhost:8080/debug/pprof/mutex
 
 ## Структура проекта
 ```
-
+.
+├── api
+│   └── openapi.yaml
+├── cmd
+│   └── api
+│       └── main.go
+├── coverage.out
+├── docker-compose.yml
+├── Dockerfile
+├── docs
+│   ├── docs.go
+│   ├── swagger.json
+│   └── swagger.yaml
+├── go.mod
+├── go.sum
+├── internal
+│   ├── config
+│   │   └── database.go
+│   ├── core
+│   │   ├── note.go
+│   │   └── service
+│   │       ├── note_service.go
+│   │       └── transaction_service.go
+│   ├── db
+│   │   └── migrate.go
+│   ├── httpapi
+│   │   ├── handlers
+│   │   │   └── notes.go
+│   │   └── router.go
+│   ├── mathx
+│   │   ├── mathx.go
+│   │   └── mathx_test.go
+│   ├── repo
+│   │   ├── note_mem.go
+│   │   └── note_postgres.go
+│   ├── service
+│   │   ├── repo.go
+│   │   ├── service.go
+│   │   └── service_test.go
+│   ├── stringsx
+│   │   ├── stringsx.go
+│   │   └── stringsx_test.go
+│   └── work
+│       ├── slow.go
+│       ├── slow_test.go
+│       └── timer.go
+├── Makefile
+├── postgres
+│   └── init
+│       └── 01-init.sql
+├── PR11-16
+└── README.md
 ```
 
 ## Покрытие кода:

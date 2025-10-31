@@ -230,6 +230,35 @@ clean:
 	@rm -f coverage.out 2>/dev/null || true
 	@rm -f mathx.out stringsx.out service.out 2>/dev/null || true
 
+# Интеграционное тестирование
+integration-up:
+	docker-compose up -d postgres
+	@echo "Waiting for database to be ready..."
+	@sleep 5
+
+integration-down:
+	docker-compose down -v
+
+integration-test: integration-up
+	@echo "Running integration tests..."
+	TEST_DATABASE_URL="postgres://teacher_app:secure_password_123@localhost:5434/notes?sslmode=disable" \
+	go test -v -tags=integration ./integration/... -timeout=5m
+	$(MAKE) integration-down
+
+integration-test-cover: integration-up
+	@echo "Running integration tests with coverage..."
+	TEST_DATABASE_URL="postgres://teacher_app:secure_password_123@localhost:5434/notes?sslmode=disable" \
+	go test -v -tags=integration ./integration/... -cover -coverprofile=integration.coverage.out -timeout=5m
+	go tool cover -html=integration.coverage.out -o integration.coverage.html
+	$(MAKE) integration-down
+
+# Комбинация unit + integration тестов
+test-all: test integration-test
+
+# Очистка
+clean-integration:
+	rm -f integration.coverage.out integration.coverage.html
+
 help:
 	@echo "=== Available Commands ==="
 	@echo "BUILD:"
