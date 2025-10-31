@@ -239,20 +239,17 @@ integration-up:
 integration-down:
 	docker-compose down -v
 
-integration-test: integration-up
-	@echo "Running integration tests..."
-	TEST_DATABASE_URL="postgres://teacher_app:secure_password_123@localhost:5434/notes?sslmode=disable" \
-	go test -v -tags=integration ./integration/... -timeout=5m
-	$(MAKE) integration-down
+# Интеграционное тестирование с Testcontainers
+integration-test:
+	@echo "Running integration tests with Testcontainers..."
+	go test -v ./integration/... -timeout=5m
 
-integration-test-cover: integration-up
+integration-test-cover:
 	@echo "Running integration tests with coverage..."
-	TEST_DATABASE_URL="postgres://teacher_app:secure_password_123@localhost:5434/notes?sslmode=disable" \
-	go test -v -tags=integration ./integration/... -cover -coverprofile=integration.coverage.out -timeout=5m
+	go test -v ./integration/... -cover -coverprofile=integration.coverage.out -timeout=5m
 	go tool cover -html=integration.coverage.out -o integration.coverage.html
-	$(MAKE) integration-down
 
-# Комбинация unit + integration тестов
+# Все тесты
 test-all: test integration-test
 
 # Очистка
@@ -307,4 +304,5 @@ help:
 		test-coverage test-coverage-html test-coverage-internal test-coverage-internal-html \
 		test-math test-strings test-service \
 		check-coverage check-coverage-simple coverage-report \
-		clean help
+		clean help \
+		integration-test integration-test-cover test-all clean-integration
