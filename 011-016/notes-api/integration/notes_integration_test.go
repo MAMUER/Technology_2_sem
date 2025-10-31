@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"example.com/notes-api/internal/core/service"
+	httpx "example.com/notes-api/internal/httpapi"
 	"example.com/notes-api/internal/httpapi/handlers"
 	"example.com/notes-api/internal/repo"
-	httpx "example.com/notes-api/internal/httpapi"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
@@ -86,17 +86,17 @@ func newTestServer(db *pgxpool.Pool) *httptest.Server {
 	// Создаем сервисы
 	noteRepo := repo.NewNoteRepoPostgres(db)
 	noteService := service.NewNoteService(noteRepo)
-	
+
 	// Создаем хендлер и роутер
 	h := &handlers.Handler{Service: noteService}
 	router := httpx.NewRouter(h)
-	
+
 	return httptest.NewServer(router)
 }
 
 func TestCreateNote_Success(t *testing.T) {
 	ctx := context.Background()
-	
+
 	// Запускаем тестовую БД
 	container, dbPool, err := startTestDB(ctx)
 	if err != nil {
@@ -162,7 +162,7 @@ func TestCreateNote_Success(t *testing.T) {
 
 func TestGetNote_Success(t *testing.T) {
 	ctx := context.Background()
-	
+
 	container, dbPool, err := startTestDB(ctx)
 	if err != nil {
 		t.Fatalf("Failed to start test DB: %v", err)
@@ -223,7 +223,7 @@ func TestGetNote_Success(t *testing.T) {
 
 func TestGetNote_NotFound(t *testing.T) {
 	ctx := context.Background()
-	
+
 	container, dbPool, err := startTestDB(ctx)
 	if err != nil {
 		t.Fatalf("Failed to start test DB: %v", err)
@@ -253,7 +253,7 @@ func TestGetNote_NotFound(t *testing.T) {
 
 func TestUpdateNote_Success(t *testing.T) {
 	ctx := context.Background()
-	
+
 	container, dbPool, err := startTestDB(ctx)
 	if err != nil {
 		t.Fatalf("Failed to start test DB: %v", err)
@@ -314,7 +314,7 @@ func TestUpdateNote_Success(t *testing.T) {
 
 func TestDeleteNote_Success(t *testing.T) {
 	ctx := context.Background()
-	
+
 	container, dbPool, err := startTestDB(ctx)
 	if err != nil {
 		t.Fatalf("Failed to start test DB: %v", err)
@@ -379,7 +379,7 @@ func TestDeleteNote_Success(t *testing.T) {
 
 func TestGetAllNotes_Success(t *testing.T) {
 	ctx := context.Background()
-	
+
 	container, dbPool, err := startTestDB(ctx)
 	if err != nil {
 		t.Fatalf("Failed to start test DB: %v", err)
