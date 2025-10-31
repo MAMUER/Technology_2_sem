@@ -33,4 +33,4 @@ tunnel-status:
 	@echo === Listening Ports ===
 	@netstat -an | findstr 27017 || echo Port 27017 is not listening
 
-.PHONY: run build tunnel tunnel-background tunnel-stop check-db setup-teacher tunnel-status
+.PHONY: run build tunnel tunnel-background tunnel-stop check-db setup-teacher tunnel-status tree

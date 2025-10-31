@@ -33,3 +33,5 @@ help:
 	@echo "  tree      - Показать структуру проекта"
 	@echo "  env       - Создать .env файл (использование: make env PORT=8081)"
 	@echo "  help      - Показать эту справку"
+
+.PHONY: tree
