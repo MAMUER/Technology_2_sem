@@ -28,8 +28,17 @@ help:
 	@echo "  user@example.com  / secret123 (role: user)"
 	@echo "  user2@example.com / secret123 (role: user)"
 
+# Detect OS
+ifeq ($(OS),Windows_NT)
+    DETECTED_OS := Windows
+    TREE_CMD := tree /f
+else
+    DETECTED_OS := Linux
+    TREE_CMD := tree
+endif
+
 tree:
-	$(TREE_CMD)
+	@$(TREE_CMD)
 
 fast:
 	go vet ./...

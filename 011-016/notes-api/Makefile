@@ -29,8 +29,17 @@ check:
 swagger:
 	swag init -g cmd/api/main.go -o docs
 
+# Detect OS
+ifeq ($(OS),Windows_NT)
+    DETECTED_OS := Windows
+    TREE_CMD := tree /f
+else
+    DETECTED_OS := Linux
+    TREE_CMD := tree
+endif
+
 tree:
-	$(TREE_CMD)
+	@$(TREE_CMD)
 
 fast:
 	go vet ./...
