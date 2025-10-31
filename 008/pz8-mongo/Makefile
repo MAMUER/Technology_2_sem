@@ -16,18 +16,12 @@ tree:
 	@if command -v tree >/dev/null 2>&1; then \
 		$(TREE_CMD); \
 	else \
-		echo "Tree command not found. Installing..."; \
-		if command -v apt-get >/dev/null 2>&1; then \
-			sudo apt-get update && sudo apt-get install -y tree; \
-		elif command -v yum >/dev/null 2>&1; then \
-			sudo yum install -y tree; \
-		elif command -v apk >/dev/null 2>&1; then \
-			sudo apk add tree; \
-		else \
-			echo "Cannot install tree automatically. Please install manually: sudo apt-get install tree"; \
-			echo "Alternative: using find command:"; \
-			find . -type f -name "*.go" | head -20; \
-		fi; \
+		echo "Tree command not found. Using alternative..."; \
+		echo "Go files:"; \
+		find . -type f -name "*.go" | head -20; \
+		echo ""; \
+		echo "Directories:"; \
+		ls -la; \
 	fi
 
 fast:
