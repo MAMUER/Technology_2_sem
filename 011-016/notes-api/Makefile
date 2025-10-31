@@ -5,12 +5,14 @@ ifeq ($(OS),Windows_NT)
     RUN_CMD := .\$(BINARY)
     TREE_CMD := tree /f
     PSQL_CMD := psql
+    FIND_CMD := findstr
 else
     DETECTED_OS := Linux
     BINARY := bin/server
     RUN_CMD := ./$(BINARY)
     TREE_CMD := tree
     PSQL_CMD := psql
+    FIND_CMD := grep
 endif
 
 # Основные команды
@@ -28,7 +30,22 @@ swagger:
 	swag init -g cmd/api/main.go -o docs
 
 tree:
-	$(TREE_CMD)
+	@if command -v tree >/dev/null 2>&1; then \
+		$(TREE_CMD); \
+	else \
+		echo "Tree command not found. Installing..."; \
+		if command -v apt-get >/dev/null 2>&1; then \
+			sudo apt-get update && sudo apt-get install -y tree; \
+		elif command -v yum >/dev/null 2>&1; then \
+			sudo yum install -y tree; \
+		elif command -v apk >/dev/null 2>&1; then \
+			sudo apk add tree; \
+		else \
+			echo "Cannot install tree automatically. Please install manually: sudo apt-get install tree"; \
+			echo "Alternative: using find command:"; \
+			find . -type f -name "*.go" | head -20; \
+		fi; \
+	fi
 
 fast:
 	go vet ./...
@@ -180,78 +197,78 @@ test-strings:
 test-service:
 	go test -v -cover ./internal/service/...
 
-# Проверка покрытия для зачёта (≥70%) - Windows версия
+# Проверка покрытия для зачёта (≥70%)
 check-coverage:
-	@echo === Checking Test Coverage (min 70%) ===
-	@echo Mathx package:
-	@go test -cover ./internal/mathx/... | findstr "coverage:" || echo Coverage: 0.0%
-	@echo Stringsx package:
-	@go test -cover ./internal/stringsx/... | findstr "coverage:" || echo Coverage: 0.0%
-	@echo Service package:
-	@go test -cover ./internal/service/... | findstr "coverage:" || echo Coverage: 0.0%
+	@echo "=== Checking Test Coverage (min 70%) ==="
+	@echo "Mathx package:"
+	@go test -cover ./internal/mathx/... | $(FIND_CMD) "coverage:" || echo "Coverage: 0.0%"
+	@echo "Stringsx package:"
+	@go test -cover ./internal/stringsx/... | $(FIND_CMD) "coverage:" || echo "Coverage: 0.0%"
+	@echo "Service package:"
+	@go test -cover ./internal/service/... | $(FIND_CMD) "coverage:" || echo "Coverage: 0.0%"
 
 # Альтернативная проверка покрытия (простая)
 check-coverage-simple:
-	@echo === Test Coverage Summary ===
+	@echo "=== Test Coverage Summary ==="
 	@go test -cover ./internal/mathx/...
 	@go test -cover ./internal/stringsx/...
 	@go test -cover ./internal/service/...
 
 # Детальная проверка покрытия с отчётом
 coverage-report:
-	@echo === Detailed Coverage Report ===
+	@echo "=== Detailed Coverage Report ==="
 	@go test -coverprofile=mathx.out ./internal/mathx/...
-	@go tool cover -func=mathx.out | findstr "total:"
+	@go tool cover -func=mathx.out | $(FIND_CMD) "total:"
 	@go test -coverprofile=stringsx.out ./internal/stringsx/...
-	@go tool cover -func=stringsx.out | findstr "total:"
+	@go tool cover -func=stringsx.out | $(FIND_CMD) "total:"
 	@go test -coverprofile=service.out ./internal/service/...
-	@go tool cover -func=service.out | findstr "total:"
-	@del mathx.out stringsx.out service.out 2>nul
+	@go tool cover -func=service.out | $(FIND_CMD) "total:"
+	@rm -f mathx.out stringsx.out service.out 2>/dev/null || true
 
 clean:
-	@del bin\server.exe 2>nul
-	@del coverage.out 2>nul
-	@del mathx.out stringsx.out service.out 2>nul
+	@rm -f $(BINARY) 2>/dev/null || true
+	@rm -f coverage.out 2>/dev/null || true
+	@rm -f mathx.out stringsx.out service.out 2>/dev/null || true
 
 help:
-	@echo === Available Commands ===
-	@echo BUILD:
-	@echo   run           - Run the application
-	@echo   build         - Build the application
-	@echo   check         - Run vet and fmt
-	@echo   fast          - Check, build and run
-	@echo.
-	@echo TESTING:
-	@echo   test          - Run all tests
-	@echo   test-v        - Run all tests with verbose output
-	@echo   test-internal - Run internal tests with verbose output
-	@echo   test-cover    - Run all tests with coverage
-	@echo   test-cover-internal - Run internal tests with coverage
-	@echo.
-	@echo COVERAGE:
-	@echo   test-coverage     - Generate coverage report (text)
-	@echo   test-coverage-html - Generate coverage report (HTML)
-	@echo   test-coverage-internal - Internal coverage (text)
-	@echo   test-coverage-internal-html - Internal coverage (HTML)
-	@echo   check-coverage    - Quick coverage check for all packages
-	@echo   check-coverage-simple - Simple coverage check
-	@echo   coverage-report   - Detailed coverage report per package
-	@echo.
-	@echo PACKAGE TESTS:
-	@echo   test-math     - Run math tests with coverage
-	@echo   test-strings  - Run string tests with coverage
-	@echo   test-service  - Run service tests with coverage
-	@echo.
-	@echo UTILITY:
-	@echo   clean         - Clean build artifacts and coverage files
-	@echo   tree          - Show project structure
-	@echo   help          - Show this help message
-	@echo.
-	@echo BENCHMARKS:
-	@echo   bench          - Run math benchmarks
-	@echo   bench-math     - Run math benchmarks with memory stats
-	@echo   bench-all      - Run all benchmarks with memory stats
-	@echo   bench-math-verbose - Run math benchmarks with verbose output
+	@echo "=== Available Commands ==="
+	@echo "BUILD:"
+	@echo "  run           - Run the application"
+	@echo "  build         - Build the application"
+	@echo "  check         - Run vet and fmt"
+	@echo "  fast          - Check, build and run"
+	@echo ""
+	@echo "TESTING:"
+	@echo "  test          - Run all tests"
+	@echo "  test-v        - Run all tests with verbose output"
+	@echo "  test-internal - Run internal tests with verbose output"
+	@echo "  test-cover    - Run all tests with coverage"
+	@echo "  test-cover-internal - Run internal tests with coverage"
+	@echo ""
+	@echo "COVERAGE:"
+	@echo "  test-coverage     - Generate coverage report (text)"
+	@echo "  test-coverage-html - Generate coverage report (HTML)"
+	@echo "  test-coverage-internal - Internal coverage (text)"
+	@echo "  test-coverage-internal-html - Internal coverage (HTML)"
+	@echo "  check-coverage    - Quick coverage check for all packages"
+	@echo "  check-coverage-simple - Simple coverage check"
+	@echo "  coverage-report   - Detailed coverage report per package"
+	@echo ""
+	@echo "PACKAGE TESTS:"
+	@echo "  test-math     - Run math tests with coverage"
+	@echo "  test-strings  - Run string tests with coverage"
+	@echo "  test-service  - Run service tests with coverage"
+	@echo ""
+	@echo "UTILITY:"
+	@echo "  clean         - Clean build artifacts and coverage files"
+	@echo "  tree          - Show project structure"
+	@echo "  help          - Show this help message"
+	@echo ""
+	@echo "BENCHMARKS:"
+	@echo "  bench          - Run math benchmarks"
+	@echo "  bench-math     - Run math benchmarks with memory stats"
+	@echo "  bench-all      - Run all benchmarks with memory stats"
+	@echo "  bench-math-verbose - Run math benchmarks with verbose output"
 
 .PHONY: run build check swagger tree fast \
         docker-up docker-down docker-logs docker-clean docker-restart \
