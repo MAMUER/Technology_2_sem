@@ -52,7 +52,7 @@
 ### Профиль мьютексов
 - `GET http://193.233.175.221:8085/debug/pprof/mutex`
 ### Профиль рутины
-- `GET http://localhost:8085/debug/pprof/goroutine`
+- `GET http://193.233.175.221:8085/debug/pprof/goroutine`
 
 ## Команды анализа в pprof:
 ### Топ пожирателей CPU

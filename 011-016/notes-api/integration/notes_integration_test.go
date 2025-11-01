@@ -95,69 +95,82 @@ func newTestServer(db *pgxpool.Pool) *httptest.Server {
 }
 
 func TestCreateNote_Success(t *testing.T) {
-	ctx := context.Background()
+    ctx := context.Background()
 
-	// Запускаем тестовую БД
-	container, dbPool, err := startTestDB(ctx)
-	if err != nil {
-		t.Fatalf("Failed to start test DB: %v", err)
-	}
-	defer func() {
-		if err := container.Terminate(ctx); err != nil {
-			t.Logf("Failed to terminate container: %v", err)
-		}
-	}()
-	defer dbPool.Close()
+    container, dbPool, err := startTestDB(ctx)
+    if err != nil {
+        t.Fatalf("Failed to start test DB: %v", err)
+    }
+    defer container.Terminate(ctx)
+    defer dbPool.Close()
 
-	// Очищаем данные перед тестом
-	if err := cleanTestData(ctx, dbPool); err != nil {
-		t.Fatalf("Failed to clean test data: %v", err)
-	}
+    if err := cleanTestData(ctx, dbPool); err != nil {
+        t.Fatalf("Failed to clean test data: %v", err)
+    }
 
-	// Создаем тестовый сервер
-	server := newTestServer(dbPool)
-	defer server.Close()
+    server := newTestServer(dbPool)
+    defer server.Close()
 
-	// Тело запроса
-	noteData := map[string]string{
-		"title":   "Integration Test Note",
-		"content": "This is a test note created by integration test",
-	}
+    // Тело запроса
+    noteData := map[string]string{
+        "title":   "Integration Test Note", 
+        "content": "This is a test note created by integration test",
+    }
 
-	jsonData, err := json.Marshal(noteData)
-	if err != nil {
-		t.Fatalf("Failed to marshal note data: %v", err)
-	}
+    jsonData, err := json.Marshal(noteData)
+    if err != nil {
+        t.Fatalf("Failed to marshal note data: %v", err)
+    }
 
-	// Выполняем запрос
-	resp, err := http.Post(server.URL+"/api/v1/notes", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		t.Fatalf("Failed to create note: %v", err)
-	}
-	defer resp.Body.Close()
+    // Выполняем запрос
+    resp, err := http.Post(server.URL+"/api/v1/notes", "application/json", bytes.NewBuffer(jsonData))
+    if err != nil {
+        t.Fatalf("Failed to create note: %v", err)
+    }
+    defer resp.Body.Close()
 
-	// Проверяем статус
-	if resp.StatusCode != http.StatusCreated {
-		body, _ := io.ReadAll(resp.Body)
-		t.Fatalf("Expected status 201, got %d. Response: %s", resp.StatusCode, string(body))
-	}
+    // Проверяем статус
+    if resp.StatusCode != http.StatusCreated {
+        body, _ := io.ReadAll(resp.Body)
+        t.Fatalf("Expected status 201, got %d. Response: %s", resp.StatusCode, string(body))
+    }
 
-	// Проверяем структуру ответа
-	var createdNote map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&createdNote); err != nil {
-		t.Fatalf("Failed to decode response: %v", err)
-	}
+    // 🔥 ИСПРАВЛЕНИЕ: Ожидаем только ID в ответе
+    var response struct {
+        ID int `json:"id"`
+    }
+    if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+        t.Fatalf("Failed to decode response: %v", err)
+    }
 
-	// Валидация полей
-	if _, exists := createdNote["id"]; !exists {
-		t.Error("Created note should have an ID")
-	}
-	if createdNote["title"] != noteData["title"] {
-		t.Errorf("Expected title %s, got %s", noteData["title"], createdNote["title"])
-	}
-	if createdNote["content"] != noteData["content"] {
-		t.Errorf("Expected content %s, got %s", noteData["content"], createdNote["content"])
-	}
+    // Проверяем что ID создан
+    if response.ID == 0 {
+        t.Error("Created note should have a non-zero ID")
+    }
+
+    // 🔥 ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Получаем созданную заметку чтобы убедиться в данных
+    getResp, err := http.Get(fmt.Sprintf("%s/api/v1/notes/%d", server.URL, response.ID))
+    if err != nil {
+        t.Fatalf("Failed to get created note: %v", err)
+    }
+    defer getResp.Body.Close()
+
+    if getResp.StatusCode != http.StatusOK {
+        t.Fatalf("Expected status 200 for get, got %d", getResp.StatusCode)
+    }
+
+    var retrievedNote map[string]interface{}
+    if err := json.NewDecoder(getResp.Body).Decode(&retrievedNote); err != nil {
+        t.Fatalf("Failed to decode retrieved note: %v", err)
+    }
+
+    // Теперь проверяем данные
+    if retrievedNote["title"] != noteData["title"] {
+        t.Errorf("Expected title %s, got %s", noteData["title"], retrievedNote["title"])
+    }
+    if retrievedNote["content"] != noteData["content"] {
+        t.Errorf("Expected content %s, got %s", noteData["content"], retrievedNote["content"])
+    }
 }
 
 func TestGetNote_Success(t *testing.T) {

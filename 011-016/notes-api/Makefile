@@ -131,13 +131,6 @@ load-test-create:
 	@echo "=== Testing Create Operations (300 requests, 10 concurrent) ==="
 	hey -n 300 -c 10 -m POST -d "{\"title\":\"Test\",\"content\":\"Content\"}" "http://localhost:8085/api/v1/notes"
 
-# Проверка подключения
-check-db:
-	$(PSQL_CMD) postgres://teacher_app:secure_password_123@193.233.175.221:5434/notes?sslmode=disable -c "SELECT version();"
-
-check-db-docker:
-	docker exec postgres-pz11 psql -U teacher_app -d notes -c "SELECT version();"
-
 # Бенчмарки
 bench:
 	go test -bench=. -benchmem ./...
