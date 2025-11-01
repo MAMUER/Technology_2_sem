@@ -133,29 +133,25 @@ http://localhost:8080/api/v1/tasks/1
 
 ## Структура проекта
 ```
-C:.
-│   go.mod
-│   go.sum
-│   main.go
-│   Makefile
-│   README.md
-│   tasks.json
-│
-├───bin
-│       server.exe
-│
-├───internal
-│   └───task
-│           handler.go
-│           model.go
-│           repo.go
-│
-├───pkg
-│   └───middleware
-│           cors.go
-│           logger.go
-│
-└───PR4
+.
+├── bin
+│   └── server.exe
+├── go.mod
+├── go.sum
+├── internal
+│   └── task
+│       ├── handler.go
+│       ├── model.go
+│       └── repo.go
+├── main.go
+├── Makefile
+├── pkg
+│   └── middleware
+│       ├── cors.go
+│       └── logger.go
+├── PR4
+├── README.md
+└── tasks.json
 ```
 
 ## Примечания по конфигурации

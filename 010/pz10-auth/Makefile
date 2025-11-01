@@ -11,31 +11,15 @@ else
     TREE_CMD := tree
 endif
 
-# Основные команды
-run: $(BINARY)
+run:
 	$(RUN_CMD)
 
 build:
-	go build -o $(BINARY) ./cmd/server
+	go build -o $(BINARY) ./
 
 check:	
 	go vet ./...
 	go fmt ./...
-
-help:
-	@echo "Test users:"
-	@echo "  admin@example.com / secret123 (role: admin)"
-	@echo "  user@example.com  / secret123 (role: user)"
-	@echo "  user2@example.com / secret123 (role: user)"
-
-# Detect OS
-ifeq ($(OS),Windows_NT)
-    DETECTED_OS := Windows
-    TREE_CMD := tree /f
-else
-    DETECTED_OS := Linux
-    TREE_CMD := tree
-endif
 
 tree:
 	@$(TREE_CMD)
@@ -43,8 +27,14 @@ tree:
 fast:
 	go vet ./...
 	go fmt ./...
-	go build -o $(BINARY) ./cmd/server
+	go build -o $(BINARY) ./
 	$(RUN_CMD)
+
+help:
+	@echo "Test users:"
+	@echo "  admin@example.com / secret123 (role: admin)"
+	@echo "  user@example.com  / secret123 (role: user)"
+	@echo "  user2@example.com / secret123 (role: user)"
 
 # Docker команды
 docker-up:

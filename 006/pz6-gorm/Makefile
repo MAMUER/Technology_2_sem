@@ -1,43 +1,25 @@
-# Определение ОС
+# Detect OS
 ifeq ($(OS),Windows_NT)
-    # Windows
-    BINARY_NAME=server.exe
-    RUN_CMD=.\bin\$(BINARY_NAME)
-    TREE_CMD=tree /f
-    KILL_SSH=taskkill /F /IM ssh.exe 2>nul || echo No SSH tunnels found
-    KILL_CMD=taskkill /F /IM cmd.exe 2>nul || echo No CMD windows found
-    FIND_STR=findstr
-    NETSTAT=netstat -an
+    DETECTED_OS := Windows
+    BINARY := bin/server.exe
+    RUN_CMD := .\$(BINARY)
+    TREE_CMD := tree /f
 else
-    # Linux/Mac
-    BINARY_NAME=server
-    RUN_CMD=./bin/$(BINARY_NAME)
-    TREE_CMD=tree -I 'bin|vendor'
-    KILL_SSH=pkill ssh 2>/dev/null || echo No SSH tunnels found
-    KILL_CMD=pkill -f "ssh.*5433" 2>/dev/null || echo No SSH processes found
-    FIND_STR=grep
-    NETSTAT=netstat -an | grep 5433 || ss -tulpn | grep 5433
+    DETECTED_OS := Linux
+    BINARY := bin/server
+    RUN_CMD := ./$(BINARY)
+    TREE_CMD := tree
 endif
 
-# Основные команды
 run:
 	$(RUN_CMD)
 
 build:
-	go build -o bin/$(BINARY_NAME) ./cmd/server
+	go build -o $(BINARY) ./
 
 check:	
 	go vet ./...
 	go fmt ./...
-
-# Detect OS
-ifeq ($(OS),Windows_NT)
-    DETECTED_OS := Windows
-    TREE_CMD := tree /f
-else
-    DETECTED_OS := Linux
-    TREE_CMD := tree
-endif
 
 tree:
 	@$(TREE_CMD)
@@ -45,7 +27,7 @@ tree:
 fast:
 	go vet ./...
 	go fmt ./...
-	go build -o bin/$(BINARY_NAME) ./cmd/server
+	go build -o $(BINARY) ./
 	$(RUN_CMD)
 
 # SSH туннели

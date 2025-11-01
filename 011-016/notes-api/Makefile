@@ -4,39 +4,22 @@ ifeq ($(OS),Windows_NT)
     BINARY := bin/server.exe
     RUN_CMD := .\$(BINARY)
     TREE_CMD := tree /f
-    PSQL_CMD := psql
-    FIND_CMD := findstr
 else
     DETECTED_OS := Linux
     BINARY := bin/server
     RUN_CMD := ./$(BINARY)
     TREE_CMD := tree
-    PSQL_CMD := psql
-    FIND_CMD := grep
 endif
 
-# Основные команды
-run: $(BINARY)
+run:
 	$(RUN_CMD)
 
 build:
-	go build -o $(BINARY) ./cmd/api
+	go build -o $(BINARY) ./
 
 check:	
 	go vet ./...
 	go fmt ./...
-
-swagger:
-	swag init -g cmd/api/main.go -o docs
-
-# Detect OS
-ifeq ($(OS),Windows_NT)
-    DETECTED_OS := Windows
-    TREE_CMD := tree /f
-else
-    DETECTED_OS := Linux
-    TREE_CMD := tree
-endif
 
 tree:
 	@$(TREE_CMD)
@@ -44,8 +27,11 @@ tree:
 fast:
 	go vet ./...
 	go fmt ./...
-	go build -o $(BINARY) ./cmd/api
+	go build -o $(BINARY) ./
 	$(RUN_CMD)
+
+swagger:
+	swag init -g cmd/api/main.go -o docs
 
 # Docker команды
 docker-up:
