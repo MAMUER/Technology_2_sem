@@ -21,18 +21,17 @@ SetConnMaxLifetime(30 * time.Minute) — максимальное время ж�
 
 ## Структура проекта
 ```
-/project-root
-├── main.go        
-├── db.go        
-├── repository.go 
-├── go.mod     
-├── go.sum     
-├── README.md     
-├── .env         
-├── Makefile     
-├── PR5          
-└── bin            
-    └── server.exe
+.
+├── bin
+│   └── server.exe
+├── db.go
+├── go.mod
+├── go.sum
+├── main.go
+├── Makefile
+├── PR5
+├── README.md
+└── repository.go
 ```
 ## Примечания по конфигурации
 
