@@ -15,7 +15,7 @@ run:
 	$(RUN_CMD)
 
 build:
-	go build -o $(BINARY) ./
+	go build -o $(BINARY) ./cmd/server
 
 check:	
 	go vet ./...
@@ -27,7 +27,7 @@ tree:
 fast:
 	go vet ./...
 	go fmt ./...
-	go build -o $(BINARY) ./
+	go build -o $(BINARY) ./cmd/server
 	$(RUN_CMD)
 
 # SSH туннели
