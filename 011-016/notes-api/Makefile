@@ -4,13 +4,18 @@ ifeq ($(OS),Windows_NT)
     BINARY := bin/server.exe
     RUN_CMD := .\$(BINARY)
     TREE_CMD := tree /f
+    KILL_CMD := taskkill /F /IM
+    FIND_PROCESS := tasklist | findstr
 else
     DETECTED_OS := Linux
     BINARY := bin/server
     RUN_CMD := ./$(BINARY)
     TREE_CMD := tree
+    KILL_CMD := pkill -f
+    FIND_PROCESS := pgrep -f
 endif
 
+# Основные команды
 run:
 	$(RUN_CMD)
 
@@ -24,12 +29,43 @@ check:
 tree:
 	@$(TREE_CMD)
 
+# Быстрый запуск в фоне
 fast:
 	go vet ./...
 	go fmt ./...
 	go build -o $(BINARY) ./cmd/api
-	$(RUN_CMD)
+	@echo "Starting server in background on port 8080..."
+	@$(RUN_CMD) &
+	@echo "Server PID: $$!"
+	@sleep 2
+	@echo "Server started! Use 'make stop' to stop it."
+	@echo "Test endpoints:"
+	@echo "  http://localhost:8080/debug/pprof/"
+	@echo "  http://localhost:8080/api/v1/notes"
+	@echo "  http://localhost:8080/work-slow"
 
+# Остановка сервера
+stop:
+	@echo "Stopping server..."
+	@$(KILL_CMD) $(BINARY) 2>/dev/null || true
+	@echo "Server stopped."
+
+# Проверка статуса сервера
+status:
+	@if $(FIND_PROCESS) $(BINARY) > /dev/null; then \
+		echo "Server is running"; \
+	else \
+		echo "Server is not running"; \
+	fi
+
+# Запуск через Docker (рекомендуется для тестирования)
+docker-run:
+	docker-compose up -d
+	@sleep 3
+	@echo "Server running on http://localhost:8085"
+	@echo "Test PPROF: http://localhost:8085/debug/pprof/"
+
+# Остальные команды остаются без изменений...
 swagger:
 	swag init -g cmd/api/main.go -o docs
 
@@ -53,19 +89,19 @@ load-test: load-test-pagination load-test-batch load-test-single load-test-creat
 
 load-test-pagination:
 	@echo "=== Testing Pagination (1000 requests, 50 concurrent) ==="
-	hey -n 1000 -c 50 "http://193.233.175.221:8085/api/v1/notes?limit=20"
+	hey -n 1000 -c 50 "http://localhost:8085/api/v1/notes?limit=20"
 
 load-test-batch:
 	@echo "=== Testing Batch Requests (500 requests, 20 concurrent) ==="
-	hey -n 500 -c 20 "http://193.233.175.221:8085/api/v1/notes?ids=1,2,3,4,5"
+	hey -n 500 -c 20 "http://localhost:8085/api/v1/notes?ids=1,2,3,4,5"
 
 load-test-single:
 	@echo "=== Testing Single Requests (2000 requests, 100 concurrent) ==="
-	hey -n 2000 -c 100 "http://193.233.175.221:8085/api/v1/notes/1"
+	hey -n 2000 -c 100 "http://localhost:8085/api/v1/notes/1"
 
 load-test-create:
 	@echo "=== Testing Create Operations (300 requests, 10 concurrent) ==="
-	hey -n 300 -c 10 -m POST -d "{\"title\":\"Test\",\"content\":\"Content\"}" "http://193.233.175.221:8085/api/v1/notes"
+	hey -n 300 -c 10 -m POST -d "{\"title\":\"Test\",\"content\":\"Content\"}" "http://localhost:8085/api/v1/notes"
 
 # Проверка подключения
 check-db:
@@ -104,6 +140,15 @@ test-delete:
 
 test-swagger:
 	curl http://193.233.175.221:8085/docs/doc.json
+
+# PPROF тестирование
+test-pprof:
+	@echo "=== Testing PPROF Endpoints ==="
+	@curl -s http://localhost:8080/debug/pprof/ > /dev/null && echo "✓ PPROF main page" || echo "✗ PPROF main page"
+	@curl -s http://localhost:8080/debug/pprof/goroutine > /dev/null && echo "✓ Goroutine profile" || echo "✗ Goroutine profile"
+	@curl -s http://localhost:8080/debug/pprof/heap > /dev/null && echo "✓ Heap profile" || echo "✗ Heap profile"
+	@curl -s http://localhost:8080/debug/pprof/block > /dev/null && echo "✓ Block profile" || echo "✗ Block profile"
+	@curl -s http://localhost:8080/debug/pprof/mutex > /dev/null && echo "✓ Mutex profile" || echo "✗ Mutex profile"
 
 # Бенчмарки
 bench:
