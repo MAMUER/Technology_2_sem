@@ -1,21 +1,25 @@
+# Detect OS
+ifeq ($(OS),Windows_NT)
+    DETECTED_OS := Windows
+    BINARY := bin/server.exe
+    RUN_CMD := .\$(BINARY)
+    TREE_CMD := tree /f
+else
+    DETECTED_OS := Linux
+    BINARY := bin/server
+    RUN_CMD := ./$(BINARY)
+    TREE_CMD := tree
+endif
+
 run:
-	./
+	$(RUN_CMD)
 
 build:
-	go build -o bin/server.exe ./
+	go build -o $(BINARY) ./
 
 check:	
 	go vet ./...
 	go fmt ./...
-
-# Detect OS
-ifeq ($(OS),Windows_NT)
-    DETECTED_OS := Windows
-    TREE_CMD := tree /f
-else
-    DETECTED_OS := Linux
-    TREE_CMD := tree
-endif
 
 tree:
 	@$(TREE_CMD)
@@ -23,8 +27,8 @@ tree:
 fast:
 	go vet ./...
 	go fmt ./...
-	go build -o bin/server.exe ./
-	./
+	go build -o $(BINARY) ./
+	$(RUN_CMD)
 
 # Помощь
 help:
@@ -36,4 +40,4 @@ help:
 	@echo "  tree      - Показать структуру проекта"
 	@echo "  help      - Показать эту справку"
 
-.PHONY: tree
+.PHONY: run build check tree fast help
