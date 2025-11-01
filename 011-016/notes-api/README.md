@@ -465,6 +465,10 @@ Test и новый запуск проекта
 
 ![фото9](./PR11-16/Screenshot_15(9).png)
 
+![фото9](./PR11-16/Screenshot_33.png)
+
+![фото9](./PR11-16/Screenshot_34.png)
+
 Структура проекта
 
 ![фото4](./PR11-16/Screenshot_4.png)

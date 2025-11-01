@@ -1,4 +1,4 @@
-# Detect OS
+# Detect OS and set commands
 ifeq ($(OS),Windows_NT)
     DETECTED_OS := Windows
     BINARY := bin/server.exe
@@ -6,6 +6,7 @@ ifeq ($(OS),Windows_NT)
     TREE_CMD := tree /f
     KILL_CMD := taskkill /F /IM
     FIND_PROCESS := tasklist | findstr
+    FIND_CMD := findstr
 else
     DETECTED_OS := Linux
     BINARY := bin/server
@@ -13,6 +14,7 @@ else
     TREE_CMD := tree
     KILL_CMD := pkill -f
     FIND_PROCESS := pgrep -f
+    FIND_CMD := grep
 endif
 
 # Основные команды
