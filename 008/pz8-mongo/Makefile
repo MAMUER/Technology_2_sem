@@ -1,6 +1,6 @@
 # Основные команды
 run:
-	.\bin\server
+	./cmd/api
 
 build:
 	go build -o bin/server.exe ./cmd/api
@@ -28,7 +28,7 @@ fast:
 	go vet ./...
 	go fmt ./...
 	go build -o bin/server.exe ./cmd/api
-	.\bin\server
+	./cmd/api
 
 # Остановка туннелей
 tunnel-stop:
