@@ -1,5 +1,5 @@
 run:
-	.\bin\server
+	.\bin\server.exe
 
 build:
 	go build -o bin/server.exe ./
@@ -24,7 +24,7 @@ fast:
 	go vet ./...
 	go fmt ./...
 	go build -o bin/server.exe ./
-	.\bin\server
+	.\bin\server.exe
 
 # Помощь
 help:
