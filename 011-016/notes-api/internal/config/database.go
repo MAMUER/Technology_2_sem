@@ -14,7 +14,7 @@ func NewDBPool() (*pgxpool.Pool, error) {
 	// Получаем URL из переменной окружения или используем дефолтный
 	connString := os.Getenv("DATABASE_URL")
 	if connString == "" {
-		connString = "postgres://teacher_app:secure_password_123@localhost:5433/notes?sslmode=disable"
+		connString = "postgres://teacher_app:secure_password_123@localhost:5434/notes?sslmode=disable"
 	}
 
 	// Парсим конфигурацию
