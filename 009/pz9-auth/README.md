@@ -43,37 +43,31 @@ http://193.233.175.221:8083/auth/login
 
 ## Структура проекта
 ```
-C:.
-├───.env
-├───go.mod
-├───go.sum
-├───Makefile
-├───README.md
-│
-├───bin
-│   └───server.exe
-│
-├───cmd
-│   └───api
-│       └───main.go
-│
-├───internal
-│   ├───core
-│   │       user.go
-│   │
-│   ├───http
-│   │   └───handlers
-│   │       └───auth.go
-│   │
-│   ├───platform
-│   │   └───config
-│   │       └───config.go
-│   │
-│   └───repo
-│       ├───postgres.go
-│       └───user_repo.go
-│
-└───PR9
+.
+├── bin
+│   └── server.exe
+├── cmd
+│   └── api
+│       └── main.go
+├── docker-compose.yml
+├── Dockerfile
+├── go.mod
+├── go.sum
+├── internal
+│   ├── core
+│   │   └── user.go
+│   ├── http
+│   │   └── handlers
+│   │       └── auth.go
+│   ├── platform
+│   │   └── config
+│   │       └── config.go
+│   └── repo
+│       ├── postgres.go
+│       └── user_repo.go
+├── Makefile
+├── PR9
+└── README.md
 ```
 ## Примечания по конфигурации
 

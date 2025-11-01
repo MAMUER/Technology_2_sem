@@ -117,32 +117,27 @@ http://193.233.175.221:8082/api/v1/notes/stats/daily?days=7
 
 ## Структура проекта
 ```
-C:.
-└───pz8-mongo
-    ├───.env.example
-    ├───go.mod
-    ├───go.sum
-    ├───Makefile
-    ├───README.md
-    │
-    ├───bin
-    │   └───server.exe
-    │
-    ├───cmd
-    │   └───api
-    │       └───main.go
-    │
-    ├───internal
-    │   ├───db
-    │   │   └───mongo.go
-    │   │
-    │   └───notes
-    │       ├───handler.go
-    │       ├───model.go
-    │       ├───repo.go
-    │       └───repo_test.go
-    │
-    └───PR8
+.
+├── bin
+│   └── server.exe
+├── cmd
+│   └── api
+│       └── main.go
+├── docker-compose.yml
+├── Dockerfile
+├── go.mod
+├── go.sum
+├── internal
+│   ├── db
+│   │   └── mongo.go
+│   └── notes
+│       ├── handler.go
+│       ├── model.go
+│       ├── repo.go
+│       └── repo_test.go
+├── Makefile
+├── PR8
+└── README.md
 ```
 ## Примечания по конфигурации
 

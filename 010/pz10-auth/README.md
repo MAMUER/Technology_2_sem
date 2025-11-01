@@ -145,45 +145,37 @@ Write-Host "Logout successful"
 
 ## Структура проекта
 ```
-C:.
-└───pz10-auth
-    │   .env
-    │   go.mod
-    │   go.sum
-    │   Makefile
-    │   README.md
-    │
-    ├───bin
-    │       server.exe
-    │
-    ├───cmd
-    │   └───server
-    │           main.go
-    │
-    ├───internal
-    │   ├───core
-    │   │       service.go
-    │   │       user.go
-    │   │
-    │   ├───http
-    │   │   │   router.go
-    │   │   │
-    │   │   └───middleware
-    │   │           authn.go
-    │   │           authz.go
-    │   │
-    │   ├───platform
-    │   │   ├───config
-    │   │   │       config.go
-    │   │   │
-    │   │   └───jwt
-    │   │           jwt.go
-    │   │
-    │   └───repo
-    │           refresh_mem.go
-    │           user_mem.go
-    │
-    └───PR10
+.
+├── bin
+│   └── server.exe
+├── cmd
+│   └── server
+│       └── main.go
+├── docker-compose.yml
+├── Dockerfile
+├── go.mod
+├── go.sum
+├── internal
+│   ├── core
+│   │   ├── service.go
+│   │   └── user.go
+│   ├── http
+│   │   ├── middleware
+│   │   │   ├── authn.go
+│   │   │   ├── authz.go
+│   │   │   └── contex.go
+│   │   └── router.go
+│   ├── platform
+│   │   ├── config
+│   │   │   └── config.go
+│   │   └── jwt
+│   │       └── jwt.go
+│   └── repo
+│       ├── refresh_mem.go
+│       └── user_mem.go
+├── Makefile
+├── PR10
+└── README.md
 ```
 
 ## Скриншоты работы проекта

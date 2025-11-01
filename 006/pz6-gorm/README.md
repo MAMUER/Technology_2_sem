@@ -57,33 +57,27 @@ http://193.233.175.221:8080/notes/1
 
 ## Структура проекта
 ```
-C:.
-└───pz6-gorm
-    ├───.env
-    ├───go.mod
-    ├───go.sum
-    ├───Makefile
-    ├───README.md
-    │
-    ├───bin
-    │   └───server.exe
-    │
-    ├───cmd
-    │   └───server
-    │       └───main.go
-    │
-    ├───internal
-    │   ├───db
-    │   │   └───postgres.go
-    │   │
-    │   ├───httpapi
-    │   │   ├───handlers.go
-    │   │   └───router.go
-    │   │
-    │   └───models
-    │       └───models.go
-    │
-    └───PR6
+.
+├── bin
+│   └── server.exe
+├── cmd
+│   └── server
+│       └── main.go
+├── docker-compose.yml
+├── Dockerfile
+├── go.mod
+├── go.sum
+├── internal
+│   ├── db
+│   │   └── postgres.go
+│   ├── httpapi
+│   │   ├── handlers.go
+│   │   └── router.go
+│   └── models
+│       └── models.go
+├── Makefile
+├── PR6
+└── README.md
 ```
 ## Примечания по конфигурации
 

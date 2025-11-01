@@ -43,25 +43,22 @@ TTL for test: -2ns
 
 ## Структура проекта
 ```
-C:.
-└───pz7-redis
-    ├───go.mod
-    ├───go.sum
-    ├───Makefile
-    ├───README.md
-    │
-    ├───bin
-    │   └───server.exe
-    │
-    ├───cmd
-    │   └───server
-    │       └───main.go
-    │
-    ├───internal
-    │   └───cache
-    │       └───cache.go
-    │
-    └───PR7
+.
+├── bin
+│   └── server.exe
+├── cmd
+│   └── server
+│       └── main.go
+├── docker-compose.yml
+├── Dockerfile
+├── go.mod
+├── go.sum
+├── internal
+│   └── cache
+│       └── cache.go
+├── Makefile
+├── PR7
+└── README.md
 ```
 ## Скриншоты работы проекта
 
