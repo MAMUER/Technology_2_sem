@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	_ "net/http/pprof"
 	"runtime"
 	"sync"
 
@@ -68,8 +67,6 @@ func main() {
 
 	// Swagger документация
 	r.Get("/docs/*", httpSwagger.WrapHandler)
-
-	// 🔥 PPROF эндпоинты
 
 	// Медленная версия Fibonacci
 	r.HandleFunc("/work-slow", func(w http.ResponseWriter, r *http.Request) {
@@ -162,45 +159,6 @@ func main() {
 			fmt.Fprintf(w, "Found user '%s' with ID: %d\n", email, id)
 		}
 	})
-
-	// Демо страница со всеми операциями
-	r.HandleFunc("/demo", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, `Available Demo Endpoints:
-		
-Math Operations:
-  GET /math/sum/{a}/{b}           - Sum two numbers
-  GET /math/divide/{a}/{b}        - Divide two numbers
-
-String Operations:
-  GET /strings/clip/{text}/{max}  - Clip text to max length
-
-User Operations:
-  GET /users/find/{email}         - Find user by email
-
-Performance Tests:
-  GET /work-slow                  - Slow Fibonacci (recursive)
-  GET /work-fast                  - Fast Fibonacci (optimized)
-  GET /block-demo                 - Blocking operations demo
-
-Notes API:
-  GET /api/v1/notes/*             - CRUD operations for notes
-
-Profiling:
-  GET /debug/pprof/               - PPROF main page
-  GET /docs/                      - Swagger documentation
-`)
-	})
-
-	log.Println("Server started at :8080")
-	log.Println("Available endpoints:")
-	log.Println("  - Notes API: /api/v1/notes/*")
-	log.Println("  - Math Operations: /math/*")
-	log.Println("  - String Operations: /strings/*")
-	log.Println("  - User Service: /users/*")
-	log.Println("  - Demo Page: /demo")
-	log.Println("  - Swagger: /docs/")
-	log.Println("  - PPROF: /debug/pprof/")
-	log.Println("  - Performance tests: /work-slow, /work-fast, /block-demo")
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

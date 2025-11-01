@@ -84,6 +84,34 @@ docker-clean:
 
 docker-restart: docker-down docker-up
 
+# Профили (запускать при работающем сервере)
+profile-cpu:
+	go tool pprof -http=:9999 http://193.233.175.221:8085/debug/pprof/profile
+
+profile-block:
+	go tool pprof -http=:9998 http://193.233.175.221:8085/debug/pprof/block
+
+profile-mutex:
+	go tool pprof -http=:9997 http://193.233.175.221:8085/debug/pprof/mutex
+
+# Нагрузка (нужен hey: go install github.com/rakyll/hey@latest)
+load:
+	hey -n 100 -c 10 http://193.233.175.221:8085/work-slow
+
+# Нагрузочное тестирование PPROF эндпоинтов
+load-pprof:
+	@echo "=== Testing PPROF endpoints ==="
+	hey -n 50 -c 5 http://193.233.175.221:8085/debug/pprof/
+	hey -n 30 -c 3 http://193.233.175.221:8085/debug/pprof/heap
+	hey -n 20 -c 2 http://193.233.175.221:8085/debug/pprof/goroutine
+
+# Тестирование производительности
+load-performance:
+	@echo "=== Testing Performance Endpoints ==="
+	hey -n 100 -c 10 http://193.233.175.221:8085/work-slow
+	hey -n 200 -c 20 http://193.233.175.221:8085/work-fast
+	hey -n 50 -c 5 http://193.233.175.221:8085/block-demo
+
 # Нагрузочное тестирование
 load-test: load-test-pagination load-test-batch load-test-single load-test-create
 
@@ -110,46 +138,6 @@ check-db:
 check-db-docker:
 	docker exec postgres-pz11 psql -U teacher_app -d notes -c "SELECT version();"
 
-# Тестовые команды
-test-create:
-	curl -X POST http://193.233.175.221:8085/api/v1/notes \
-	  -H "Content-Type: application/json" \
-	  -H "Authorization: Bearer test-token" \
-	  -d '{"title":"Тестовая заметка","content":"Содержание"}'
-
-test-list:
-	curl -X GET "http://193.233.175.221:8085/api/v1/notes?page=1&limit=10" \
-	  -H "Authorization: Bearer test-token" \
-	  -H "Content-Type: application/json"
-
-test-get:
-	curl -X GET http://193.233.175.221:8085/api/v1/notes/1 \
-	  -H "Authorization: Bearer test-token" \
-	  -H "Content-Type: application/json"
-
-test-update:
-	curl -X PATCH http://193.233.175.221:8085/api/v1/notes/1 \
-	  -H "Content-Type: application/json" \
-	  -H "Authorization: Bearer test-token" \
-	  -d '{"title":"Обновленный заголовок"}'
-
-test-delete:
-	curl -X DELETE http://193.233.175.221:8085/api/v1/notes/1 \
-	  -H "Authorization: Bearer test-token" \
-	  -H "Content-Type: application/json"
-
-test-swagger:
-	curl http://193.233.175.221:8085/docs/doc.json
-
-# PPROF тестирование
-test-pprof:
-	@echo "=== Testing PPROF Endpoints ==="
-	@curl -s http://localhost:8080/debug/pprof/ > /dev/null && echo "✓ PPROF main page" || echo "✗ PPROF main page"
-	@curl -s http://localhost:8080/debug/pprof/goroutine > /dev/null && echo "✓ Goroutine profile" || echo "✗ Goroutine profile"
-	@curl -s http://localhost:8080/debug/pprof/heap > /dev/null && echo "✓ Heap profile" || echo "✗ Heap profile"
-	@curl -s http://localhost:8080/debug/pprof/block > /dev/null && echo "✓ Block profile" || echo "✗ Block profile"
-	@curl -s http://localhost:8080/debug/pprof/mutex > /dev/null && echo "✓ Mutex profile" || echo "✗ Mutex profile"
-
 # Бенчмарки
 bench:
 	go test -bench=. -benchmem ./...
@@ -165,20 +153,6 @@ bench-all:
 
 bench-math-verbose:
 	go test -bench . ./internal/mathx -v
-
-# Профили (запускать при работающем сервере)
-profile-cpu:
-	go tool pprof -http=:9999 http://193.233.175.221:8080/debug/pprof/profile
-
-profile-block:
-	go tool pprof -http=:9998 http://193.233.175.221:8080/debug/pprof/block
-
-profile-mutex:
-	go tool pprof -http=:9997 http://193.233.175.221:8080/debug/pprof/mutex
-
-# Нагрузка (нужен hey: go install github.com/rakyll/hey@latest)
-load:
-	hey -n 100 -c 10 http://193.233.175.221:8080/work-slow
 
 # Тестирование
 test:
