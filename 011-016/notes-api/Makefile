@@ -1,4 +1,4 @@
-# Detect OS and set commands
+# Определить ОС and set commands
 ifeq ($(OS),Windows_NT)
     DETECTED_OS := Windows
     BINARY := bin/server.exe
