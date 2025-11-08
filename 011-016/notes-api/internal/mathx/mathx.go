@@ -17,7 +17,7 @@ func Divide(a, b int) (int, error) {
 }
 
 // Factorial вычисляет факториал числа
-// Panic-ит если n < 0
+// Panic если n < 0
 func Factorial(n int) int {
 	if n < 0 {
 		panic("factorial of negative number")
@@ -33,7 +33,7 @@ func Factorial(n int) int {
 }
 
 // ValidatePositive проверяет что число положительное
-// Panic-ит если число <= 0
+// Panic если число <= 0
 func ValidatePositive(n int) {
 	if n <= 0 {
 		panic(fmt.Sprintf("number must be positive, got %d", n))

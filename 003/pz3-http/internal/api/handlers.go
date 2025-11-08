@@ -21,8 +21,6 @@ func NewHandlers(store *storage.MemoryStore) *Handlers {
 // GET /tasks
 func (h *Handlers) ListTasks(w http.ResponseWriter, r *http.Request) {
 	tasks := h.Store.List()
-
-	// Поддержка простых фильтров через query: ?q=text
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	if q != "" {
 		filtered := tasks[:0]
@@ -68,9 +66,8 @@ func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 	JSON(w, http.StatusCreated, t)
 }
 
-// GET /tasks/{id} (простой path-парсер без стороннего роутера)
+// GET /tasks/{id}
 func (h *Handlers) GetTask(w http.ResponseWriter, r *http.Request) {
-	// Ожидаем путь вида /tasks/123
 	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	if len(parts) != 2 {
 		NotFound(w, "invalid path")

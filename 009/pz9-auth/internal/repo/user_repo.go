@@ -22,32 +22,28 @@ func (r *UserRepo) AutoMigrate() error {
 
 func (r *UserRepo) Create(ctx context.Context, u *core.User) error {
 	log.Printf("=== DEBUG: Starting Create for email: %s", u.Email)
-	
-	// Сначала проверяем существует ли пользователь с таким email
 	var existing core.User
 	err := r.db.WithContext(ctx).Where("email = ?", u.Email).First(&existing).Error
-	
+
 	log.Printf("=== DEBUG: Check existing user error: %v", err)
 	log.Printf("=== DEBUG: Is ErrRecordNotFound? %v", errors.Is(err, gorm.ErrRecordNotFound))
-	
+
 	if err == nil {
 		log.Printf("=== DEBUG: Email already taken")
 		return ErrEmailTaken
 	}
-	
+
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Printf("=== DEBUG: Unexpected DB error in check: %v, type: %T", err, err)
 		return err
 	}
 
 	log.Printf("=== DEBUG: No existing user, creating new...")
-	
-	// Создаем нового пользователя
 	if err := r.db.WithContext(ctx).Create(u).Error; err != nil {
 		log.Printf("=== DEBUG: DB error in Create: %v", err)
 		return err
 	}
-	
+
 	log.Printf("=== DEBUG: User created successfully with ID: %d", u.ID)
 	return nil
 }

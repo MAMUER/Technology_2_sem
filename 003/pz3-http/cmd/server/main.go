@@ -68,7 +68,6 @@ func main() {
 		}
 	})
 
-	// Подключаем middleware
 	handler := api.Logging(api.CORS(mux))
 
 	// Получаем порт из .env
@@ -80,7 +79,6 @@ func main() {
 		Handler: handler,
 	}
 
-	// Запуск сервера в горутине
 	go func() {
 		log.Printf("Server is starting on %s", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -88,14 +86,12 @@ func main() {
 		}
 	}()
 
-	// Ожидание сигналов для graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	log.Println("Shutting down server...")
 
-	// Graceful shutdown с таймаутом
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

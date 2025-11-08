@@ -6,7 +6,6 @@ import (
 )
 
 func MustApplyMigrations(db *sql.DB) {
-	// Простейшая миграция без внешних инструментов:
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS notes (
 			id BIGSERIAL PRIMARY KEY,

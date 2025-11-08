@@ -14,8 +14,6 @@ import (
 
 func Build(cfg config.Config) http.Handler {
 	r := chi.NewRouter()
-
-	// Инициализация зависимостей
 	userRepo := repo.NewUserMem()
 	refreshStore := repo.NewRefreshStore()
 	jwtService := jwt.NewHS256(cfg.JWTSecret, cfg.AccessTTL, cfg.RefreshTTL)

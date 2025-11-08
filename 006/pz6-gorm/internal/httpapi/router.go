@@ -10,11 +10,7 @@ func BuildRouter(d *gorm.DB) *chi.Mux {
 	h := NewHandlers(d)
 
 	r.Get("/health", h.Health)
-
-	// Пользователи
 	r.Post("/users", h.CreateUser)
-
-	// Заметки
 	r.Post("/notes", h.CreateNote)      // создаём заметку с тегами
 	r.Get("/notes/{id}", h.GetNoteByID) // получаем заметку с автором и тегами
 

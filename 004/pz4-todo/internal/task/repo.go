@@ -96,7 +96,6 @@ func (r *Repo) Delete(id int64) error {
 	return nil
 }
 
-// Копирует текущие задачи под защитой блокировки, возвращает срез для записи
 func (r *Repo) copyTasks() []*Task {
 	tasks := make([]*Task, 0, len(r.items))
 	for _, t := range r.items {
@@ -134,7 +133,6 @@ func (r *Repo) LoadFromFile(filename string) error {
 	return nil
 }
 
-// Записывает переданный срез задач в файл
 func (r *Repo) saveTasksToFile(tasks []*Task, filename string) error {
 	data, err := json.MarshalIndent(tasks, "", "  ")
 	if err != nil {

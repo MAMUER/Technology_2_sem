@@ -1,4 +1,4 @@
-# Определить ОС and set commands
+# Определить ОС
 ifeq ($(OS),Windows_NT)
     DETECTED_OS := Windows
     BINARY := bin/server.exe
@@ -7,6 +7,7 @@ ifeq ($(OS),Windows_NT)
     KILL_CMD := taskkill /F /IM
     FIND_PROCESS := tasklist | findstr
     FIND_CMD := findstr
+    SLEEP_CMD := timeout
 else
     DETECTED_OS := Linux
     BINARY := bin/server
@@ -15,6 +16,7 @@ else
     KILL_CMD := pkill -f
     FIND_PROCESS := pgrep -f
     FIND_CMD := grep
+    SLEEP_CMD := sleep
 endif
 
 # Основные команды
@@ -31,7 +33,20 @@ check:
 tree:
 	@$(TREE_CMD)
 
-# Быстрый запуск в фоне
+# Быстрый запуск в фоне (кросс-платформенный)
+ifeq ($(OS),Windows_NT)
+fast:
+	go vet ./...
+	go fmt ./...
+	go build -o $(BINARY) ./cmd/api
+	@echo Starting server in background on port 8080...
+	@start /B $(RUN_CMD)
+	@echo Server started in background! Use 'make stop' to stop it.
+	@echo Test endpoints:
+	@echo   http://localhost:8080/debug/pprof/
+	@echo   http://localhost:8080/api/v1/notes
+	@echo   http://localhost:8080/work-slow
+else
 fast:
 	go vet ./...
 	go fmt ./...
@@ -39,33 +54,31 @@ fast:
 	@echo "Starting server in background on port 8080..."
 	@$(RUN_CMD) &
 	@echo "Server PID: $$!"
-	@sleep 2
+	@$(SLEEP_CMD) 2
 	@echo "Server started! Use 'make stop' to stop it."
 	@echo "Test endpoints:"
 	@echo "  http://localhost:8080/debug/pprof/"
 	@echo "  http://localhost:8080/api/v1/notes"
 	@echo "  http://localhost:8080/work-slow"
+endif
 
 # Остановка сервера
 stop:
-	@echo "Stopping server..."
-	@$(KILL_CMD) $(BINARY) 2>/dev/null || true
-	@echo "Server stopped."
+	@echo Stopping server...
+	@$(KILL_CMD) $(BINARY) 2>nul || echo Process not found or already stopped.
+	@echo Server stopped.
 
 # Проверка статуса сервера
 status:
+ifeq ($(OS),Windows_NT)
+	@tasklist | findstr $(BINARY) >nul && echo Server is running. || echo Server is not running.
+else
 	@if $(FIND_PROCESS) $(BINARY) > /dev/null; then \
 		echo "Server is running"; \
 	else \
 		echo "Server is not running"; \
 	fi
-
-# Запуск через Docker (рекомендуется для тестирования)
-docker-run:
-	docker-compose up -d
-	@sleep 3
-	@echo "Server running on http://localhost:8085"
-	@echo "Test PPROF: http://localhost:8085/debug/pprof/"
+endif
 
 # Остальные команды остаются без изменений...
 swagger:
@@ -217,18 +230,18 @@ coverage-report:
 	@go tool cover -func=stringsx.out | $(FIND_CMD) "total:"
 	@go test -coverprofile=service.out ./internal/service/...
 	@go tool cover -func=service.out | $(FIND_CMD) "total:"
-	@rm -f mathx.out stringsx.out service.out 2>/dev/null || true
+	@rm -f mathx.out stringsx.out service.out 2>nul || true
 
 clean:
-	@rm -f $(BINARY) 2>/dev/null || true
-	@rm -f coverage.out 2>/dev/null || true
-	@rm -f mathx.out stringsx.out service.out 2>/dev/null || true
+	@rm -f $(BINARY) 2>nul || true
+	@rm -f coverage.out 2>nul || true
+	@rm -f mathx.out stringsx.out service.out 2>nul || true
 
 # Интеграционное тестирование
 integration-up:
 	docker-compose up -d postgres
 	@echo "Waiting for database to be ready..."
-	@sleep 5
+	@$(SLEEP_CMD) 5
 
 integration-down:
 	docker-compose down -v

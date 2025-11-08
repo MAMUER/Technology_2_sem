@@ -97,7 +97,7 @@ type createReq struct {
 }
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close() // закрыть тело запроса после чтения
+	defer r.Body.Close()
 
 	var req createReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Title == "" {
@@ -118,7 +118,7 @@ type updateReq struct {
 }
 
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close() // закрываем тело запроса
+	defer r.Body.Close()
 
 	id, bad := parseID(w, r)
 	if bad {
@@ -154,10 +154,8 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		httpError(w, http.StatusNotFound, err.Error())
 		return
 	}
-	w.WriteHeader(http.StatusNoContent) // 204 No Content - успешное удаление
+	w.WriteHeader(http.StatusNoContent)
 }
-
-// helpers
 
 func parseID(w http.ResponseWriter, r *http.Request) (int64, bool) {
 	raw := chi.URLParam(r, "id")

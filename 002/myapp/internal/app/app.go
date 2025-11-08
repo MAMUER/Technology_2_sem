@@ -51,7 +51,6 @@ func Run() {
 		utils.WriteErr(w, http.StatusBadRequest, "bad_request_example")
 	})
 
-	// Корневой маршрут
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		utils.LogRequest(r)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")

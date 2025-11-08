@@ -1,4 +1,3 @@
-// internal/repo/note_mem.go
 package repo
 
 import (

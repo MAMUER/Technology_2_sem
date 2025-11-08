@@ -16,8 +16,6 @@ func NewDBPool() (*pgxpool.Pool, error) {
 	if connString == "" {
 		connString = "postgres://teacher_app:secure_password_123@localhost:5434/notes?sslmode=disable"
 	}
-
-	// Парсим конфигурацию
 	cfg, err := pgxpool.ParseConfig(connString)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse connection string: %w", err)
@@ -28,9 +26,7 @@ func NewDBPool() (*pgxpool.Pool, error) {
 	cfg.MinConns = 5                      // Минимальное количество соединений
 	cfg.MaxConnLifetime = time.Hour       // Максимальное время жизни соединения
 	cfg.MaxConnIdleTime = 5 * time.Minute // Максимальное время простоя соединения
-	cfg.HealthCheckPeriod = time.Minute   // Период проверки здоровья
-
-	// Создаем пул
+	cfg.HealthCheckPeriod = time.Minute   // Период проверки состояния
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -38,8 +34,6 @@ func NewDBPool() (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to create connection pool: %w", err)
 	}
-
-	// Проверяем подключение
 	if err := pool.Ping(ctx); err != nil {
 		return nil, fmt.Errorf("unable to ping database: %w", err)
 	}

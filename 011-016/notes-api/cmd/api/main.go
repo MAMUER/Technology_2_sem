@@ -25,8 +25,7 @@ var (
 	sharedData  int
 )
 
-// Простая реализация репозитория для демонстрации
-type demoRepo struct{}
+type demoRepo struct{} // Простая реализация репозитория
 
 func (d demoRepo) ByEmail(email string) (userservice.UserRecord, error) {
 	// Демо данные
@@ -43,25 +42,16 @@ func (d demoRepo) ByEmail(email string) (userservice.UserRecord, error) {
 }
 
 func main() {
-	// Включаем профилирование блокировок и мьютексов
 	runtime.SetBlockProfileRate(1)
 	runtime.SetMutexProfileFraction(1)
 	log.Println("Block and mutex profiling enabled")
-
-	// Подключаемся к PostgreSQL
 	dbPool, err := config.NewDBPool()
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 	defer dbPool.Close()
-
-	// Создаем репозиторий PostgreSQL
 	noteRepo := repo.NewNoteRepoPostgres(dbPool)
-
-	// Создаем сервис заметок
 	noteService := service.NewNoteService(noteRepo)
-
-	// Создаем хендлер заметок
 	h := &handlers.Handler{Service: noteService}
 	r := httpx.NewRouter(h)
 
@@ -84,14 +74,11 @@ func main() {
 
 	// Демо блокировок
 	r.HandleFunc("/block-demo", func(w http.ResponseWriter, r *http.Request) {
-		// Блокировка каналом
 		ch := make(chan int)
 		go func() {
 			ch <- 42
 		}()
 		result := <-ch
-
-		// Конкуренция за мьютекс
 		var wg sync.WaitGroup
 		for range 50 {
 			wg.Go(func() {
@@ -104,8 +91,6 @@ func main() {
 
 		fmt.Fprintf(w, "Result: %d, Shared: %d\n", result, sharedData)
 	})
-
-	// 🔥 Эндпоинты из второго проекта
 
 	// Math Operations
 	r.HandleFunc("/math/sum/{a}/{b}", func(w http.ResponseWriter, r *http.Request) {

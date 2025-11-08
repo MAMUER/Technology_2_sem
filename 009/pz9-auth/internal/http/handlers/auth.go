@@ -37,8 +37,6 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "email_required_and_password_min_8")
 		return
 	}
-
-	// bcrypt hash
 	hash, err := bcrypt.GenerateFromPassword([]byte(in.Password), h.BcryptCost)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, "hash_failed")
@@ -89,14 +87,12 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// пока просто ok
 	writeJSON(w, http.StatusOK, authResp{
-		Status: "ok",
+		Status: "ok", // просто ok
 		User:   map[string]any{"id": u.ID, "email": u.Email},
 	})
 }
 
-// helpers
 func writeJSON(w http.ResponseWriter, code int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(code)

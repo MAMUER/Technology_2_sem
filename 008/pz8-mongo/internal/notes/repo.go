@@ -19,16 +19,12 @@ type Repo struct {
 
 func NewRepo(db *mongo.Database) (*Repo, error) {
 	col := db.Collection("notes")
-
-	// Текстовый индекс для title и content
 	textIndex := mongo.IndexModel{
 		Keys: bson.D{
 			{Key: "title", Value: "text"},
 			{Key: "content", Value: "text"},
 		},
 	}
-
-	// Уникальный индекс на title
 	uniqueIndex := mongo.IndexModel{
 		Keys:    bson.D{{Key: "title", Value: 1}},
 		Options: options.Index().SetUnique(true),
@@ -171,7 +167,6 @@ func (r *Repo) TextSearch(ctx context.Context, query string, limit, skip int64) 
 // TextSearchWithScore выполняет полнотекстовый поиск с релевантностью
 func (r *Repo) TextSearchWithScore(ctx context.Context, query string, limit, skip int64) ([]NoteWithScore, error) {
 	if query == "" {
-		// Если запрос пустой, возвращаем обычный список
 		notes, err := r.List(ctx, "", limit, skip)
 		if err != nil {
 			return nil, err
@@ -181,7 +176,7 @@ func (r *Repo) TextSearchWithScore(ctx context.Context, query string, limit, ski
 		for _, note := range notes {
 			result = append(result, NoteWithScore{
 				Note:  note,
-				Score: 1.0, // Базовая релевантность
+				Score: 1.0,
 			})
 		}
 		return result, nil
@@ -215,12 +210,9 @@ func (r *Repo) TextSearchWithScore(ctx context.Context, query string, limit, ski
 // GetStats возвращает статистику по заметкам
 func (r *Repo) GetStats(ctx context.Context) (StatsResponse, error) {
 	pipeline := mongo.Pipeline{
-		// Стадия 1: вычисляем длину контента для каждой заметки
 		{{Key: "$addFields", Value: bson.M{
 			"contentLength": bson.M{"$strLenCP": "$content"},
 		}}},
-
-		// Стадия 2: группируем и вычисляем статистику
 		{{Key: "$group", Value: bson.M{
 			"_id":              nil,
 			"totalNotes":       bson.M{"$sum": 1},
@@ -228,8 +220,6 @@ func (r *Repo) GetStats(ctx context.Context) (StatsResponse, error) {
 			"maxContentLength": bson.M{"$max": "$contentLength"},
 			"minContentLength": bson.M{"$min": "$contentLength"},
 		}}},
-
-		// Стадия 3: проекция для красивого вывода
 		{{Key: "$project", Value: bson.M{
 			"_id":              0,
 			"totalNotes":       1,
@@ -255,7 +245,6 @@ func (r *Repo) GetStats(ctx context.Context) (StatsResponse, error) {
 	}
 
 	if len(results) == 0 {
-		// Если нет заметок, возвращаем нулевую статистику
 		return StatsResponse{
 			TotalNotes:       0,
 			AvgContentLength: 0,
@@ -270,14 +259,11 @@ func (r *Repo) GetStats(ctx context.Context) (StatsResponse, error) {
 // GetStatsByDay возвращает статистику по дням (количество заметок в день)
 func (r *Repo) GetStatsByDay(ctx context.Context, days int) ([]DayStats, error) {
 	pipeline := mongo.Pipeline{
-		// Фильтруем по последним N дням
 		{{Key: "$match", Value: bson.M{
 			"createdAt": bson.M{
 				"$gte": time.Now().AddDate(0, 0, -days),
 			},
 		}}},
-
-		// Группируем по дню
 		{{Key: "$group", Value: bson.M{
 			"_id": bson.M{
 				"year":  bson.M{"$year": "$createdAt"},
@@ -287,11 +273,7 @@ func (r *Repo) GetStatsByDay(ctx context.Context, days int) ([]DayStats, error) 
 			"count": bson.M{"$sum": 1},
 			"date":  bson.M{"$first": "$createdAt"},
 		}}},
-
-		// Сортируем по дате
 		{{Key: "$sort", Value: bson.M{"date": 1}}},
-
-		// Проекция для удобного формата
 		{{Key: "$project", Value: bson.M{
 			"_id":   0,
 			"date":  bson.M{"$dateToString": bson.M{"format": "%Y-%m-%d", "date": "$date"}},

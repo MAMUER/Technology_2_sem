@@ -347,8 +347,6 @@ func TestTextSearch(t *testing.T) {
 			t.Fatalf("Failed to create note: %v", err)
 		}
 	}
-
-	// Даем время на создание индексов
 	time.Sleep(2 * time.Second)
 
 	// Тестируем поиск по слову "Go"

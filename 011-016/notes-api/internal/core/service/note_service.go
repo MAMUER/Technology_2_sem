@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// Определяем интерфейс репозитория в этом пакете
 type NoteRepository interface {
 	Create(n core.Note) (int64, error)
 	GetAll() ([]*core.Note, error)
@@ -53,14 +52,11 @@ func (s *NoteService) DeleteNote(id int64) error {
 
 // GetAllNotesWithPagination - keyset пагинация
 func (s *NoteService) GetAllNotesWithPagination(cursorTime time.Time, cursorID int64, limit int) ([]*core.Note, error) {
-	// Приводим к конкретному типу для доступа к методам пагинации
 	if repo, ok := s.repo.(interface {
 		GetAllWithPagination(cursorTime time.Time, cursorID int64, limit int) ([]*core.Note, error)
 	}); ok {
 		return repo.GetAllWithPagination(cursorTime, cursorID, limit)
 	}
-
-	// Fallback на обычный GetAll если репозиторий не поддерживает пагинацию
 	return s.repo.GetAll()
 }
 
@@ -71,8 +67,6 @@ func (s *NoteService) GetNotesByIDs(ids []int64) ([]*core.Note, error) {
 	}); ok {
 		return repo.GetByIDs(ids)
 	}
-
-	// Fallback - последовательные запросы (неэффективно)
 	var notes []*core.Note
 	for _, id := range ids {
 		note, err := s.repo.GetByID(id)

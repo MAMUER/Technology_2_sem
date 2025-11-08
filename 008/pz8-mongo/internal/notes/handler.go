@@ -42,8 +42,6 @@ func (h *Handler) textSearch(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := reqCtx(r)
 	defer cancel()
-
-	// Поиск с релевантностью
 	notes, err := h.repo.TextSearchWithScore(ctx, q, limit, skip)
 	if err != nil {
 		writeJSON(w, 500, map[string]string{"error": err.Error()})
@@ -138,7 +136,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query().Get("q")
-	searchType := r.URL.Query().Get("searchType") // "text" или "regex"
+	searchType := r.URL.Query().Get("searchType")
 	limit, _ := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 64)
 	skip, _ := strconv.ParseInt(r.URL.Query().Get("skip"), 10, 64)
 
@@ -156,17 +154,13 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if searchType == "text" && q != "" {
-		// Полнотекстовый поиск
 		items, err = h.repo.TextSearchWithScore(ctx, q, limit, skip)
 	} else {
-		// Старый regex поиск
 		notes, err := h.repo.List(ctx, q, limit, skip)
 		if err != nil {
 			writeJSON(w, 500, map[string]string{"error": err.Error()})
 			return
 		}
-
-		// Конвертируем в NoteWithScore для единообразия
 		var notesWithScore []NoteWithScore
 		for _, note := range notes {
 			notesWithScore = append(notesWithScore, NoteWithScore{

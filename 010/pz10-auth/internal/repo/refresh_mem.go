@@ -28,22 +28,12 @@ func (s *RefreshStore) Store(token string, exp time.Time) error {
 func (s *RefreshStore) IsRevoked(token string) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
-	// Проверка, отозван ли токен
 	if _, revoked := s.revoked[token]; revoked {
 		return true
 	}
-
-	// Проверка, существует ли токен
 	if exp, exists := s.tokens[token]; exists {
-		// Проверка, не истек ли срок
-		if time.Now().After(exp) {
-			return true
-		}
-		return false
+		return time.Now().After(exp)
 	}
-
-	// Токен не найден - считаем отозванным
 	return true
 }
 
@@ -60,15 +50,11 @@ func (s *RefreshStore) Cleanup() {
 	defer s.mu.Unlock()
 
 	now := time.Now()
-
-	// Удаляем истекшие токены
 	for token, exp := range s.tokens {
 		if now.After(exp) {
 			delete(s.tokens, token)
 		}
 	}
-
-	// Удаляем старые записи об отзыве (старше 7 дней)
 	for token, revokedAt := range s.revoked {
 		if now.Sub(revokedAt) > 7*24*time.Hour {
 			delete(s.revoked, token)

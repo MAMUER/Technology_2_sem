@@ -8,7 +8,6 @@ import (
 	"example.com/pz10-auth/internal/platform/jwt"
 )
 
-// AuthN middleware для аутентификации JWT токенов
 func AuthN(v jwt.Validator) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -27,8 +26,6 @@ func AuthN(v jwt.Validator) func(http.Handler) http.Handler {
 			}
 
 			fmt.Printf("JWT Validated: user %v, role %v\n", claims["sub"], claims["role"])
-
-			// Используем общую функцию WithClaims
 			ctx := WithClaims(r.Context(), claims)
 			newReq := r.WithContext(ctx)
 			next.ServeHTTP(w, newReq)

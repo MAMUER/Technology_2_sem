@@ -16,11 +16,9 @@ type Handler struct {
 	Service *service.NoteService
 }
 
-// Простой middleware для примера (можно удалить если не нужен)
+// Простой middleware
 func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Простая проверка аутентификации - всегда разрешаем
-		// В реальном приложении здесь была бы JWT проверка
 		next.ServeHTTP(w, r)
 	})
 }
@@ -198,15 +196,11 @@ func (h *Handler) PatchNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-
-	// Получаем текущую заметку
 	currentNote, err := h.Service.GetNoteByID(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-
-	// Обновляем только переданные поля
 	title := currentNote.Title
 	if req.Title != nil {
 		title = *req.Title
@@ -307,7 +301,6 @@ func (h *Handler) GetNotesBatch(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(notes)
 }
 
-// DTO для запросов
 type CreateNoteRequest struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`

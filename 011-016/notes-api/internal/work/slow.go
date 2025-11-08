@@ -1,6 +1,6 @@
 package work
 
-// Неоптимальный рекурсивный Фибоначчи — демонстрация CPU-нагрузки.
+// Неоптимальный рекурсивный Фибоначчи — демонстрация CPU-нагрузки
 func Fib(n int) int {
 	if n < 2 {
 		return n
@@ -8,7 +8,7 @@ func Fib(n int) int {
 	return Fib(n-1) + Fib(n-2)
 }
 
-// FibFast - оптимизированная итеративная версия
+// FibFast - оптимизированная версия
 func FibFast(n int) int {
 	if n < 2 {
 		return n

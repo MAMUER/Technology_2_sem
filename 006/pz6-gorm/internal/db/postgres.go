@@ -25,8 +25,6 @@ func Connect() *gorm.DB {
 	if err != nil {
 		log.Fatal("connect db:", err)
 	}
-
-	// Настроим пул соединений
 	sqlDB, err := db.DB()
 	if err != nil {
 		log.Fatal(err)

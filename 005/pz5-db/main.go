@@ -13,8 +13,6 @@ import (
 func main() {
 	// Загружаем переменные окружения из .env файла
 	_ = godotenv.Load()
-
-	// Получаем DSN из переменных окружения
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		log.Fatal("DATABASE_URL environment variable is required")
@@ -28,7 +26,6 @@ func main() {
 
 	repo := NewRepo(db)
 
-	// 1) Вставим пару задач
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -40,8 +37,6 @@ func main() {
 		}
 		log.Printf("Inserted task id=%d (%s)", id, title)
 	}
-
-	// 2) Прочитаем список задач
 	ctxList, cancelList := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancelList()
 
@@ -49,8 +44,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("ListTasks error: %v", err)
 	}
-
-	// 3) Напечатаем
 	fmt.Println("=== Tasks ===")
 	for _, t := range tasks {
 		fmt.Printf("#%d | %-24s | done=%-5v | %s\n",

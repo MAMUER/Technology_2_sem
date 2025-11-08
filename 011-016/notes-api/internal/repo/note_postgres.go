@@ -44,7 +44,6 @@ const (
 	deleteQuery = `
 		DELETE FROM notes WHERE id = $1`
 
-	// Keyset пагинация
 	getAllKeysetQuery = `
 		SELECT id, title, content, created_at 
 		FROM notes 
@@ -52,7 +51,6 @@ const (
 		ORDER BY created_at DESC, id DESC 
 		LIMIT $3`
 
-	// Батчинг для получения нескольких записей
 	getByIDsQuery = `
 		SELECT id, title, content, created_at 
 		FROM notes 

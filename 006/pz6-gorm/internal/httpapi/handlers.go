@@ -42,7 +42,7 @@ type createNoteReq struct {
 	Title   string   `json:"title"`
 	Content string   `json:"content"`
 	UserID  uint     `json:"userId"`
-	Tags    []string `json:"tags"` // имена тегов
+	Tags    []string `json:"tags"`
 }
 
 func (h *Handlers) CreateNote(w http.ResponseWriter, r *http.Request) {
@@ -51,8 +51,6 @@ func (h *Handlers) CreateNote(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, "title and userId are required")
 		return
 	}
-
-	// Находим/создаём теги
 	var tags []models.Tag
 	for _, name := range in.Tags {
 		if name == "" {
@@ -74,7 +72,6 @@ func (h *Handlers) CreateNote(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	// Вернём с автором и тегами
 	if err := h.db.Preload("User").Preload("Tags").First(&note, note.ID).Error; err != nil {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return
@@ -97,7 +94,6 @@ func (h *Handlers) GetNoteByID(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, note)
 }
 
-// helpers (единый JSON-ответ)
 type jsonErr struct {
 	Error string `json:"error"`
 }

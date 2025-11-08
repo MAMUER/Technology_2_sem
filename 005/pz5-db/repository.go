@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-// Task — модель для сканирования результатов SELECT
 type Task struct {
 	ID        int
 	Title     string

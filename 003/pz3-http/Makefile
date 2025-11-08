@@ -11,11 +11,22 @@ else
     TREE_CMD := tree
 endif
 
+# Пытаемся найти main пакет в типичных местах
+ifneq ("$(wildcard ./cmd/myapp/main.go)","")
+    MAIN_PACKAGE := ./cmd/myapp
+else ifneq ("$(wildcard ./cmd/server/main.go)","")
+    MAIN_PACKAGE := ./cmd/server
+else ifneq ("$(wildcard ./main.go)","")
+    MAIN_PACKAGE := .
+else
+    MAIN_PACKAGE := .
+endif
+
 run:
 	$(RUN_CMD)
 
 build:
-	go build -o $(BINARY) ./
+	go build -o $(BINARY) $(MAIN_PACKAGE)
 
 check:	
 	go vet ./...
@@ -27,7 +38,7 @@ tree:
 fast:
 	go vet ./...
 	go fmt ./...
-	go build -o $(BINARY) ./
+	go build -o $(BINARY) $(MAIN_PACKAGE)
 	$(RUN_CMD)
 
 # Создание .env файла с нужным портом

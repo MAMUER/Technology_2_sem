@@ -8,7 +8,6 @@ import (
 
 func TestClip(t *testing.T) {
 	t.Run("EmptyString", func(t *testing.T) {
-		// Пустая строка
 		result := Clip("", 5)
 		assert.Equal(t, "", result)
 
@@ -68,7 +67,7 @@ func TestClip(t *testing.T) {
 	})
 
 	t.Run("MaxLessThanLength", func(t *testing.T) {
-		// max < len(s) - обычное обрезание
+		// max < len(s)
 		result := Clip("hello world", 5)
 		assert.Equal(t, "hello", result)
 
@@ -95,7 +94,7 @@ func TestClip(t *testing.T) {
 	})
 }
 
-// Дополнительные тесты с табличным подходом
+// Дополнительные тесты
 func TestClip_TableDriven(t *testing.T) {
 	testCases := []struct {
 		name     string

@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Test double - stub репозиторий
 type stubRepo struct {
 	users map[string]UserRecord
 }
@@ -20,7 +19,7 @@ func (r stubRepo) ByEmail(email string) (UserRecord, error) {
 	return u, nil
 }
 
-// Вспомогательная функция для хеширования (заглушка)
+// Вспомогательная функция для хеширования
 func hash(password string) string {
 	return "hashed_" + password
 }
@@ -37,7 +36,7 @@ func TestService_FindIDByEmail(t *testing.T) {
 	service := New(repo)
 
 	t.Run("AdminFound", func(t *testing.T) {
-		// Кейс «найден» - админ
+		// «найден» - админ
 		email := "admin@example.com"
 		expectedID := int64(1)
 
@@ -48,7 +47,7 @@ func TestService_FindIDByEmail(t *testing.T) {
 	})
 
 	t.Run("UserFound", func(t *testing.T) {
-		// Кейс «найден» - обычный пользователь
+		// «найден» - обычный пользователь
 		email := "user@example.com"
 		expectedID := int64(2)
 
@@ -59,7 +58,7 @@ func TestService_FindIDByEmail(t *testing.T) {
 	})
 
 	t.Run("User2Found", func(t *testing.T) {
-		// Кейс «найден» - второй пользователь
+		// «найден» - второй пользователь
 		email := "user2@example.com"
 		expectedID := int64(3)
 
@@ -70,7 +69,7 @@ func TestService_FindIDByEmail(t *testing.T) {
 	})
 
 	t.Run("UserNotFound", func(t *testing.T) {
-		// Кейс «не найден»
+		// «не найден»
 		email := "nonexistent@example.com"
 
 		id, err := service.FindIDByEmail(email)
@@ -81,7 +80,7 @@ func TestService_FindIDByEmail(t *testing.T) {
 	})
 
 	t.Run("EmptyEmail", func(t *testing.T) {
-		// Кейс с пустым email
+		// пустой email
 		email := ""
 
 		id, err := service.FindIDByEmail(email)
@@ -92,7 +91,7 @@ func TestService_FindIDByEmail(t *testing.T) {
 	})
 }
 
-// Дополнительные тесты с табличным подходом
+// Дополнительные тесты
 func TestService_FindIDByEmail_TableDriven(t *testing.T) {
 	users := map[string]UserRecord{
 		"admin@example.com": {ID: 1, Email: "admin@example.com", Role: "admin", Hash: hash("secret123")},
