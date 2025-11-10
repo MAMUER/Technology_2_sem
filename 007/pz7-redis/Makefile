@@ -30,6 +30,32 @@ fast:
 	go build -o $(BINARY) ./cmd/server
 	$(RUN_CMD)
 
+# Docker команды
+docker-up:
+	docker-compose up -d --build
+
+docker-down:
+	docker-compose down
+
+docker-logs:
+	docker-compose logs -f
+
+docker-logs-app:
+	docker-compose logs app -f
+
+docker-logs-redis:
+	docker-compose logs redis -f
+
+docker-status:
+	docker-compose ps
+
+docker-stats:
+	docker stats
+
+docker-clean:
+	docker-compose down -v
+	docker system prune -f
+
 # SSH туннели
 tunnel:
 	ssh -L 6379:localhost:6379 root@193.233.175.221 -N -o ServerAliveInterval=30
@@ -39,8 +65,7 @@ tunnel-background:
 
 # Остановка туннелей
 tunnel-stop:
-	$(KILL_SSH)
-	$(KILL_CMD)
+	pkill -f "ssh -L 6379" || true
 
 # Проверка подключения к Redis
 check-redis:
@@ -52,17 +77,9 @@ check-redis-info:
 # Статус туннелей
 tunnel-status:
 	@echo === Active SSH Processes ===
-	@if [ "$(OS)" = "Windows_NT" ]; then \
-		tasklist | $(FIND_STR) ssh || echo No active SSH processes found; \
-	else \
-		ps aux | $(FIND_STR) ssh | $(FIND_STR) -v grep || echo No active SSH processes found; \
-	fi
+	@ps aux | grep "ssh -L 6379" | grep -v grep || echo No active SSH processes found
 	@echo === Listening Ports ===
-	@if [ "$(OS)" = "Windows_NT" ]; then \
-		$(NETSTAT) | $(FIND_STR) 6379 || echo Port 6379 is not listening; \
-	else \
-		$(NETSTAT) || echo Port 6379 is not listening; \
-	fi
+	@netstat -tln | grep 6379 || echo Port 6379 is not listening
 
 # Дополнительные команды
 clean:
@@ -81,6 +98,10 @@ redis-keys:
 redis-monitor:
 	redis-cli -p 6379 monitor
 
+# Redis в Docker
+redis-cli:
+	docker exec -it pz7-redis redis-cli
+
 help:
 	@echo "=== Доступные команды (pz7-redis) ==="
 	@echo "run           - Запустить сервер"
@@ -88,6 +109,17 @@ help:
 	@echo "fast          - Проверить, собрать и запустить"
 	@echo "check         - Проверить код (vet + fmt)"
 	@echo "tree          - Показать структуру проекта"
+	@echo ""
+	@echo "=== Docker команды ==="
+	@echo "docker-up     - Запустить Docker в фоне"
+	@echo "docker-down   - Остановить Docker"
+	@echo "docker-logs   - Показать логи всех сервисов"
+	@echo "docker-logs-app - Логи приложения"
+	@echo "docker-logs-redis - Логи Redis"
+	@echo "docker-status - Статус контейнеров"
+	@echo "docker-stats  - Статистика ресурсов"
+	@echo "docker-clean  - Очистить Docker"
+	@echo "redis-cli     - Подключиться к Redis в контейнере"
 	@echo ""
 	@echo "=== Redis туннели ==="
 	@echo "tunnel        - Запустить SSH туннель к Redis"
@@ -105,4 +137,6 @@ help:
 	@echo "clean         - Очистить бинарные файлы"
 	@echo "test          - Запустить тесты"
 
-.PHONY: run build check tree fast tunnel tunnel-background tunnel-stop tunnel-status clean test help check-redis check-redis-info redis-flush redis-keys redis-monitor
+.PHONY: run build check tree fast \
+docker-up docker-down docker-logs docker-logs-app docker-logs-redis docker-status docker-stats docker-clean tunnel \
+tunnel-background tunnel-stop tunnel-status clean test help check-redis check-redis-info redis-flush redis-keys redis-monitor redis-cli
