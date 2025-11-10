@@ -49,13 +49,6 @@ check-db-root:
 check-db:
 	psql postgres://teacher_app:secure_password_123@localhost:5433/pz6_gorm?sslmode=disable -c "SELECT version();"
 
-# Инструкция
-setup-teacher:
-	@echo === Установка для преподавателя ===
-	@echo 1. Запустите SSH тоннель: make tunnel
-	@echo 2. В другом окне: make run
-	@echo 3. Для остановки туннеля: make tunnel-stop
-
 # Статус туннелей
 tunnel-status:
 	@echo === Active SSH Processes ===
