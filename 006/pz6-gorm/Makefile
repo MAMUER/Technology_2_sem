@@ -71,6 +71,27 @@ clean:
 test:
 	go test ./...
 
+# Docker команды
+docker-up:
+	docker-compose up -d --build
+
+docker-down:
+	docker-compose down
+
+docker-logs:
+	docker-compose logs -f
+
+docker-status:
+	docker-compose ps
+
+docker-stats:
+	docker stats
+
+docker-clean:
+	docker-compose down -v
+	docker system prune -f
+
+# Обновляем help
 help:
 	@echo "=== Доступные команды ==="
 	@echo "run           - Запустить сервер"
@@ -78,6 +99,12 @@ help:
 	@echo "fast          - Проверить, собрать и запустить"
 	@echo "check         - Проверить код (vet + fmt)"
 	@echo "tree          - Показать структуру проекта"
+	@echo "docker-up     - Запустить Docker в фоне"
+	@echo "docker-down   - Остановить Docker"
+	@echo "docker-logs   - Показать логи Docker"
+	@echo "docker-status - Показать статус контейнеров"
+	@echo "docker-stats  - Показать статистику ресурсов"
+	@echo "docker-clean  - Очистить Docker (контейнеры, volumes)"
 	@echo "tunnel        - Запустить SSH туннель к БД"
 	@echo "tunnel-stop   - Остановить SSH туннели"
 	@echo "tunnel-status - Показать статус туннелей"
