@@ -32,7 +32,7 @@ fast:
 
 # Docker команды
 docker-up:
-	docker-compose up -d
+	docker-compose up -d --build
 
 docker-down:
 	docker-compose down
@@ -40,10 +40,21 @@ docker-down:
 docker-logs:
 	docker-compose logs -f
 
+docker-logs-app:
+	docker-compose logs app -f
+
+docker-logs-mongo:
+	docker-compose logs mongo -f
+
+docker-status:
+	docker-compose ps
+
+docker-stats:
+	docker stats
+
 docker-clean:
 	docker-compose down -v
-
-docker-restart: docker-down docker-up
+	docker system prune -f
 
 # Остановка туннелей
 tunnel-stop:
