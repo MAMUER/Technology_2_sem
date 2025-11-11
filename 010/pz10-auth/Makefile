@@ -133,6 +133,6 @@ help:
 	@echo "  user@example.com  / secret123 (role: user)"
 	@echo "  user2@example.com / secret123 (role: user)"
 
-.PHONY: run build check tree fast /
-docker-up docker-down docker-logs docker-logs-app docker-status docker-stats docker-clean docker-restart /
+.PHONY: run build check tree fast \
+docker-up docker-down docker-logs docker-logs-app docker-status docker-stats docker-clean docker-restart \
 monitor test-login-admin test-login-user test-login-user2 test-refresh test-protected test-health test-all clean test help
