@@ -39,9 +39,14 @@ func main() {
 
 	mux.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
+		if key == "" {
+			http.Error(w, "key required", http.StatusBadRequest)
+			return
+		}
 		val, err := c.Get(key)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotFound)
+			// Возвращаем 200 OK с сообщением, что ключ не найден
+			fmt.Fprintf(w, "redis: nil")
 			return
 		}
 		fmt.Fprintf(w, "VALUE: %s=%s", key, val)
@@ -49,12 +54,22 @@ func main() {
 
 	mux.HandleFunc("/ttl", func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
+		if key == "" {
+			http.Error(w, "key required", http.StatusBadRequest)
+			return
+		}
 		ttl, err := c.TTL(key)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		fmt.Fprintf(w, "TTL for %s: %v", key, ttl)
+	})
+
+	// Health check endpoint
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "OK")
 	})
 
 	log.Println("Listening on :8080")
