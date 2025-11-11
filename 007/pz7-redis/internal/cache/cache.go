@@ -1,4 +1,3 @@
-cat > internal/cache/cache.go << 'EOF'
 package cache
 
 import (
