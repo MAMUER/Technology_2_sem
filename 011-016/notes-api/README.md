@@ -131,7 +131,9 @@ make test-v
    
 #### Запуск тестов отдельных пакетов:
 make test-math
+
 make test-strings
+
 make test-service
 
 #### Бенчмарки:
