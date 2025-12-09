@@ -437,11 +437,9 @@ EXPLAIN/ANALYZE проблемных запросов
 
 ![фото24](./PR11-16/Screenshot_13(24).png)
 
-![фото25](./PR11-16/Screenshot_13(25).png)
-
 Test и новый запуск проекта
 
-![фото16](./PR11-16/Screenshot_(16).png)
+![фото16](./PR11-16/Screenshot_13(16).png)
 
 Тесты
 
