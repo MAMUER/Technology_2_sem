@@ -14,7 +14,7 @@
 
 ## Основные эндпоинты
 ### Создание заметки
-- POST http://193.233.175.221:8085/api/v1/notes
+- `POST http://193.233.175.221:8085/api/v1/notes`
   - `Headers` Key: Content-Type Value: application/json
   - `Authorization` Value: Bearer test-token-12345
   - `Body`: {"title": "Первая заметка", "content": "Это тест"}
