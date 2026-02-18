@@ -1,7 +1,11 @@
 # Диаграмма взаимодействия микросервисов
 
 ## Схема последовательности
+# Диаграмма взаимодействия микросервисов
 
+## Схема последовательности
+
+```mermaid
 sequenceDiagram
     participant C as Client
     participant T as Tasks Service (:8082)
