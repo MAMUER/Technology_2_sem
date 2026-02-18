@@ -1,142 +1,149 @@
-# Практическая работа №1
-# Николаенко Михаил ЭФМО-02-25
+# Практическое занятие №1
+# Разделение монолита на 2 микросервиса. Взаимодействие через HTTP
 
-## Описание проекта
+**Студент:** Николаенко Михаил ЭФМО-02-25
 
-Минимальный HTTP-сервис на Go с использованием net/http и внешней зависимостью для генерации UUID
+## 1. Описание границ сервисов
 
-## Требования
+### Auth Service
+Отвечает за аутентификацию и проверку доступа:
+- Выдача токенов по учетным данным (упрощенная модель)
+- Валидация токенов для других сервисов
+- Хранение информации о пользователях (в памяти)
 
-- Go версии 1.21 и выше
+### Tasks Service
+Управляет задачами пользователей:
+- CRUD операции с задачами
+- Хранение задач в памяти (map[id]Task)
+- Проверка доступа через Auth Service перед каждой операцией
+- Прокидывание request-id для трассировки запросов
 
-- Для работы с командой make в PowerShell необходимо установить менеджер пакетов Chocolatey
+4. Переменные окружения
+Auth Service
+Переменная	Значение по умолчанию	Описание
+AUTH_PORT	8081	Порт для запуска Auth сервиса
+Tasks Service
+Переменная	Значение по умолчанию	Описание
+TASKS_PORT	8082	Порт для запуска Tasks сервиса
+AUTH_BASE_URL	http://localhost:8081	Базовый URL Auth сервиса
+5. Инструкция по запуску
+Предварительные требования
+Go версии 1.21 или выше
 
-## Основные эндпоинты
-### Простой текстовый ответ
-- `GET http://localhost:8080/hello`
+Make (для удобства)
 
-### Информация о пользователе (UUID и имя)
-- `GET http://localhost:8080/user`
+Git
 
-### Проверка состояния сервиса
-- `GET http://localhost:8080/health`
+cd tech-ip-sem2
+Запуск Auth Service
+bash
+# Терминал 1
+cd services/auth
+export AUTH_PORT=8081
+go run ./cmd/auth
+Запуск Tasks Service
+bash
+# Терминал 2
+cd services/tasks
+export TASKS_PORT=8082
+export AUTH_BASE_URL=http://localhost:8081
+go run ./cmd/tasks
+Запуск с использованием Make (рекомендуется)
+bash
+# Запуск Auth в отдельном терминале
+make run-auth
 
-## Команды запуска и сборки
+# Запуск Tasks в отдельном терминале
+make run-tasks
+Быстрый запуск обоих сервисов
+bash
+# Терминал 1
+make fast-auth
 
-### Сборка приложения
+# Терминал 2
+make fast-tasks
+6. Тестирование через curl
+6.1. Получение токена
+bash
+curl -X POST http://localhost:8081/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -H "X-Request-ID: req-001" \
+  -d '{"username":"student","password":"student"}'
+6.2. Проверка токена напрямую
+bash
+curl -i http://localhost:8081/v1/auth/verify \
+  -H "Authorization: Bearer demo-token-for-student" \
+  -H "X-Request-ID: req-002"
+6.3. Создание задачи
+bash
+curl -i -X POST http://localhost:8082/v1/tasks \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer demo-token-for-student" \
+  -H "X-Request-ID: req-003" \
+  -d '{"title":"Do PZ17","description":"split services","due_date":"2026-01-10"}'
+6.4. Получение списка задач
+bash
+curl -i http://localhost:8082/v1/tasks \
+  -H "Authorization: Bearer demo-token-for-student" \
+  -H "X-Request-ID: req-004"
+6.5. Попытка без токена (должна вернуть 401)
+bash
+curl -i http://localhost:8082/v1/tasks \
+  -H "X-Request-ID: req-005"
+7. Скриншоты с подтверждением request-id
+Лог Auth Service с request-id
+https://./screenshots/auth_log.png
 
-make build
+Лог Tasks Service с request-id
+https://./screenshots/tasks_log.png
 
-### Запуск приложения (порт из .env или 8080 по умолчанию)
+Пример прокидывания request-id через сервисы
+https://./screenshots/request_id_propagation.png
 
-make run
-
-### Запуск на определенном порту
-
-make env PORT=####
-
-### Проверка кода и форматирование
-
-make check
-
-### Быстрая сборка и запуск
-
-make fast
-
-### Показать структуру проекта
-
-make tree
-
-### Помощь
-
-make help
-
-## Примеры запросов
-
-### Вывод "Hello, World!"
-
-http://localhost:8080/hello
-
-Ответ:
-
-{Hello, World!}
-
-### Вывод информации о пользователе
-
-http://localhost:8080/user
-
-Ответ:
-
-{"id": "c8b1f953-2e2a-4c44-b79c-e3ee3288d37f", "name": "Gopher"}
-
-
-### Проверка состояния сервиса
-
-http://localhost:8080/health
-
-Ответ:
-
-{"status": "ok",
-"time": "2025-09-16T19:00:00Z"}
-
-
-## Структура проекта
-```
-.
-├── cmd
-│   └── server
-│       └── main.go
+8. Структура проекта
+text
+tech-ip-sem2/
 ├── go.mod
 ├── go.sum
-├── helloapi.exe
 ├── Makefile
-├── PR1
-└── README.md   
-```
-## Примечания по конфигурации
-- Переменная окружения `APP_PORT` задаёт порт для запуска HTTP сервера.
-- По умолчанию сервер слушает на порту 8080.
-- Все JSON-ответы содержат правильные заголовки `Content-Type: application/json`.
-- Временная метка в `/health` возвращается в формате RFC3339.
-
-## Скриншоты работы проекта
-
-Проверка наличия ПО
-
-![фото1](./PR1/Screenshot_1.png)
-
-Смена языка консоли
-
-![фото10](./PR1/Screenshot_10.png)
-
-Переход в рабочую папку, инициализация модуля, подтягивание пакета для генерации UUID и запуск сервиса
-
-![фото2](./PR1/Screenshot_2.png)
-
-Проверка эндпоинта "Hello, World!"
-
-![фото3](./PR1/Screenshot_11.png)
-
-Проверка эндпоинта "Пользователь"
-
-![фото4](./PR1/Screenshot_12.png)
-
-Проверка эндпоинта "Состояние сервера"
-
-![фото8](./PR1/Screenshot_13.png)
-
-Проверки форматирования кода и базовая проверка
-
-![фото5](./PR1/Screenshot_5.png)
-
-Изменение порта и запуск сервера на новом порте
-
-![фото6](./PR1/Screenshot_6.png)
-
-Проверка эндпоинта "Hello, World!" на новом порте
-
-![фото7](./PR1/Screenshot_14.png)
-
-Структура проекта
-
-![фото9](./PR1/Screenshot_9.png)
+├── README.md
+├── docs/
+│   └── pz17_api.md
+├── services/
+│   ├── auth/
+│   │   ├── cmd/
+│   │   │   └── auth/
+│   │   │       └── main.go
+│   │   └── internal/
+│   │       ├── http/
+│   │       │   └── handlers.go
+│   │       └── service/
+│   │           └── auth.go
+│   └── tasks/
+│       ├── cmd/
+│       │   └── tasks/
+│       │       └── main.go
+│       └── internal/
+│           ├── client/
+│           │   └── authclient/
+│           │       └── client.go
+│           ├── http/
+│           │   └── handlers.go
+│           └── service/
+│               └── tasks.go
+└── shared/
+    ├── httpx/
+    │   └── client.go
+    └── middleware/
+        ├── logging.go
+        └── requestid.go
+9. Makefile команды
+Команда	Описание
+make run-auth	Запуск Auth сервиса
+make run-tasks	Запуск Tasks сервиса
+make build	Сборка обоих сервисов
+make check	Проверка кода (vet, fmt)
+make test	Тестирование API
+make curl-examples	Показать примеры curl
+make tree	Показать структуру проекта
+make help	Показать справку
