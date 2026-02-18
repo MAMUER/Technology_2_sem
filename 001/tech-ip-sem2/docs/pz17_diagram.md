@@ -2,7 +2,6 @@
 
 ## Схема последовательности
 
-```
 sequenceDiagram
     participant C as Client
     participant T as Tasks Service (:8082)
@@ -29,4 +28,3 @@ sequenceDiagram
     T->>A: GET /v1/auth/verify
     A-->>T: 401 Unauthorized
     T-->>C: 401 Unauthorized
-```
