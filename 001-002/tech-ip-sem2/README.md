@@ -147,3 +147,5 @@ tech-ip-sem2/
 
 ### Удаление задачи
 ![фото12](./PR1/Screenshot_12.png)
+
+### Verify пошёл через gRPC

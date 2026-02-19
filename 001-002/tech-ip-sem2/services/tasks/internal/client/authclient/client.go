@@ -3,6 +3,7 @@ package authclient
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	pb "tech-ip-sem2/proto/gen/go/auth"
@@ -20,6 +21,8 @@ type Client struct {
 }
 
 func NewClient(addr string, timeout time.Duration) (*Client, error) {
+	log.Printf("Connecting to auth gRPC server at %s", addr)
+
 	conn, err := grpc.Dial(addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
@@ -30,6 +33,7 @@ func NewClient(addr string, timeout time.Duration) (*Client, error) {
 	}
 
 	client := pb.NewAuthServiceClient(conn)
+	log.Printf("Successfully connected to auth gRPC server")
 
 	return &Client{
 		conn:       conn,
@@ -46,6 +50,8 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) VerifyToken(ctx context.Context, token string) (bool, string, error) {
+	log.Printf("Calling gRPC verify for token: %s...", token[:10]) // Логируем первые 10 символов токена
+
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
@@ -54,6 +60,8 @@ func (c *Client) VerifyToken(ctx context.Context, token string) (bool, string, e
 	})
 
 	if err != nil {
+		log.Printf("gRPC verify error: %v", err)
+
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {
 			case codes.DeadlineExceeded:
@@ -61,6 +69,7 @@ func (c *Client) VerifyToken(ctx context.Context, token string) (bool, string, e
 			case codes.Unavailable:
 				return false, "", fmt.Errorf("auth service unavailable")
 			case codes.Unauthenticated:
+				log.Printf("Token is invalid")
 				return false, "", nil
 			default:
 				return false, "", fmt.Errorf("auth service error: %v", st.Message())
@@ -69,5 +78,6 @@ func (c *Client) VerifyToken(ctx context.Context, token string) (bool, string, e
 		return false, "", fmt.Errorf("failed to verify token: %w", err)
 	}
 
+	log.Printf("gRPC verify success: valid=%v, subject=%s", resp.Valid, resp.Subject)
 	return resp.Valid, resp.Subject, nil
 }
