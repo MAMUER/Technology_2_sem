@@ -17,6 +17,11 @@ TASKS_PORT = 8082
 AUTH_BASE_URL = http://localhost:$(AUTH_PORT)
 
 # Basic commands
+mod:
+	go mod tidy
+	go mod verify
+	go mod download
+
 check:
 	go mod tidy
 	go vet ./...
