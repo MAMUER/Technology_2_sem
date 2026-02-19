@@ -9,11 +9,6 @@
 # Secrets
 passwords.txt
 
-# Docker
-docker.yml
-docker-compose.yml
-Dockerfile
-
 # Database
 *.sql
 
