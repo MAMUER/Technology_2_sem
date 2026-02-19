@@ -68,6 +68,19 @@ docker-down:
 docker-restart: docker-down docker-up
 	@echo Docker containers restarted
 
+docker-stop-auth:
+	@echo Stopping auth service container...
+	docker stop pz17-auth
+	@echo Auth service stopped
+
+docker-start-auth:
+	@echo Starting auth service container...
+	docker start pz17-auth
+	@echo Auth service started
+
+docker-restart-auth: docker-stop-auth docker-start-auth
+	@echo Auth service restarted
+
 docker-logs:
 	$(DOCKER_COMPOSE_CMD) logs -f
 
@@ -89,14 +102,6 @@ docker-auth-shell:
 
 docker-tasks-shell:
 	$(DOCKER_COMPOSE_CMD) exec tasks sh
-
-# Build and run everything with Docker
-docker-run: docker-build docker-up
-	@echo All services are running!
-	@echo Auth service:  http://$(SERVER_IP):8081
-	@echo Tasks service: http://$(SERVER_IP):8082
-	@echo Use 'make docker-logs' to see logs
-	@echo Use 'make docker-down' to stop all services
 
 # Generate gRPC code - исправлено для правильной структуры
 generate:
@@ -144,6 +149,9 @@ help:
 	@echo   make docker-clean     - Remove all containers and volumes
 	@echo   make docker-auth-shell - Open shell in auth container
 	@echo   make docker-tasks-shell - Open shell in tasks container
+	@echo   make docker-stop-auth   - Stop only auth service
+	@echo   make docker-start-auth  - Start only auth service
+	@echo   make docker-restart-auth - Restart only auth service
 	@echo.
 	@echo UTILS:
 	@echo   make check        - go mod tidy, vet and fmt

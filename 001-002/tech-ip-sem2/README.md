@@ -51,6 +51,14 @@ make help
 # Запустить в Docker
 make docker-run
 
+# Логи Docker
+make docker-logs
+
+# Логи Auth Docker
+make docker-logs-auth
+
+# Логи Tasks Docker
+make docker-logs-tasks
 
 ## Структура проекта
 ```
@@ -60,7 +68,7 @@ tech-ip-sem2/
 ├── Makefile
 ├── README.md
 ├── docker-compose.yml
-├── PR1-2
+├── PR1-2-2
 ├── proto/                          
 │   ├── auth.proto                   
 │   └── gen/                         
@@ -107,45 +115,46 @@ tech-ip-sem2/
 ## Скриншоты работы проекта
 
 ### Запуск докер контейнеров
-![фото1](./PR1/Screenshot_1.png)
+![фото1](./PR1-2/Screenshot_1.png)
 
 ### Получение токена доступа
 
 #### Удачное
-![фото2](./PR1/Screenshot_2.png)
+![фото2](./PR1-2/Screenshot_2.png)
 
 #### Ошибка авторизации
-![фото3](./PR1/Screenshot_3.png)
+![фото3](./PR1-2/Screenshot_3.png)
 
 #### Ошибка формата
-![фото4](./PR1/Screenshot_4.png)
+![фото4](./PR1-2/Screenshot_4.png)
 
 ### Проверка валидности токена
 
 #### Удачное
-![фото5](./PR1/Screenshot_5.png)
+![фото5](./PR1-2/Screenshot_5.png)
 
 #### Ошибка авторизации
-![фото6](./PR1/Screenshot_6.png)
+![фото6](./PR1-2/Screenshot_6.png)
 
 ### Создание новой задачи
-![фото7](./PR1/Screenshot_7.png)
+![фото7](./PR1-2/Screenshot_7.png)
 
 ### Получение списка всех задач
-![фото8](./PR1/Screenshot_8.png)
+![фото8](./PR1-2/Screenshot_8.png)
 
 ### Получение задачи по ID
 
 #### Удачное
-![фото9](./PR1/Screenshot_9.png)
+![фото9](./PR1-2/Screenshot_9.png)
 
 #### Не найдено задание
-![фото10](./PR1/Screenshot_10.png)
+![фото10](./PR1-2/Screenshot_10.png)
 
 ### Обновление задачи
-![фото11](./PR1/Screenshot_11.png)
+![фото11](./PR1-2/Screenshot_11.png)
 
 ### Удаление задачи
-![фото12](./PR1/Screenshot_12.png)
+![фото12](./PR1-2/Screenshot_12.png)
 
 ### Verify пошёл через gRPC
+![фото13](./PR1-2/Screenshot_13.png)
