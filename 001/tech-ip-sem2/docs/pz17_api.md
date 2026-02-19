@@ -12,26 +12,26 @@
   "username": "student",
   "password": "student"
 }
-
+```
 Ответ 200:
 ```json
 {
   "access_token": "demo-token-for-student",
   "token_type": "Bearer"
 }
-
+```
 Ответ 400:
 ```json
 {
   "error": "invalid request format"
 }
-
+```
 Ответ 401:
 ```json
 {
   "error": "invalid credentials"
 }
-
+```
 #### GET /v1/auth/verify
 - Проверка валидности токена
 - Заголовки:
@@ -44,7 +44,7 @@ X-Request-ID: <uuid> (опционально)
   "valid": true,
   "subject": "student"
 }
-
+```
 Ответ 401:
 ```json
 {
