@@ -51,7 +51,7 @@ X-Request-ID: <uuid> (опционально)
   "valid": false,
   "error": "unauthorized"
 }
-
+```
 ### Tasks Service (/v1/tasks)
 
 #### POST /v1/tasks
