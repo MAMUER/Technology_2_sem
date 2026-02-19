@@ -90,5 +90,5 @@ func (s *TasksService) Delete(id string) bool {
 }
 
 func generateID() string {
-	return "t_" + time.Now().Format("150405.000")[:8]
+	return "t" + time.Now().Format("20060102150405")
 }

@@ -6,7 +6,10 @@
 
 #### POST http://193.233.175.221:8081/v1/auth/login
 - Получение токена доступа
-- Запрос:
+- Headers:
+    - Content-Type: application/json
+    - X-Request-ID: test-123 (опционально, но рекомендуется)
+- Body (raw):
 ```json
 {
   "username": "student",
@@ -34,9 +37,9 @@
 ```
 #### GET http://193.233.175.221:8081/v1/auth/verify
 - Проверка валидности токена
-- Заголовки:
-Authorization: Bearer <token>
-X-Request-ID: <uuid> (опционально)
+- Headers:
+    - X-Request-ID: test-123 (опционально, но рекомендуется)
+- Authorization: Bearer Token demo-token-for-student
 
 Ответ 200:
 ```json
@@ -54,12 +57,13 @@ X-Request-ID: <uuid> (опционально)
 ```
 ### Tasks Service (/v1/tasks)
 
-#### POST http://193.233.175.221:8081/v1/tasks
+#### POST http://193.233.175.221:8082/v1/tasks
 - Создание новой задачи
-- Заголовки:
-Authorization: Bearer <token>
-X-Request-ID: <uuid> (рекомендуется)
-- Запрос:
+- Headers:
+    - Content-Type: application/json
+    - X-Request-ID: test-123 (опционально, но рекомендуется)
+- Authorization: Bearer Token demo-token-for-student
+- Body (raw):
 ```json
 {
   "title": "Do PZ17",
@@ -70,7 +74,7 @@ X-Request-ID: <uuid> (рекомендуется)
 Ответ 201:
 ```json
 {
-  "id": "t_001",
+  "id": "t_100236.9",
   "title": "Do PZ17",
   "description": "split services",
   "due_date": "2026-01-10",
@@ -81,39 +85,37 @@ X-Request-ID: <uuid> (рекомендуется)
 - 400: Неверный формат запроса
 - 401: Неавторизованный запрос (отсутствие или недействительный токен)
 
-#### GET http://193.233.175.221:8081/v1/tasks
+#### GET http://193.233.175.221:8082/v1/tasks
 - Получение списка всех задач
-- Заголовки:
-Authorization: Bearer <token>
-X-Request-ID: <uuid> (рекомендуется)
+- Headers:
+    - Content-Type: application/json
+    - X-Request-ID: test-123 (опционально, но рекомендуется)
+- Authorization: Bearer Token demo-token-for-student
 
 Ответ 200:
 ```json
 [
-  {
-    "id": "t_001",
-    "title": "Do PZ17",
-    "description": "split services",
-    "due_date": "2026-01-10",
-    "done": false
-  },
-  {
-    "id": "t_002",
-    "title": "Read lecture",
-    "description": "",
-    "due_date": "2025-12-01",
-    "done": true
-  }
+    {
+        "id": "t_100236.9",
+        "title": "Do PZ17",
+        "done": false
+    },
+    {
+        "id": "t_100447.8",
+        "title": "Do PZ18",
+        "done": false
+    }
 ]
 ```
 Ошибки:
 - 401: Неавторизованный запрос
 
-#### GET http://193.233.175.221:8081/v1/tasks/{id}
+#### GET http://193.233.175.221:8082/v1/tasks/{id}
 - Получение задачи по ID
-- Заголовки:
-Authorization: Bearer <token>
-X-Request-ID: <uuid> (рекомендуется)
+- Headers:
+    - Content-Type: application/json
+    - X-Request-ID: test-123 (опционально, но рекомендуется)
+- Authorization: Bearer Token demo-token-for-student
 
 Ответ 200:
 ```json
@@ -134,7 +136,7 @@ X-Request-ID: <uuid> (рекомендуется)
 Ошибки:
 - 401: Неавторизованный запрос
 
-#### PATCH http://193.233.175.221:8081/v1/tasks/{id}
+#### PATCH http://193.233.175.221:8082/v1/tasks/{id}
 - Обновление задачи
 - Заголовки:
 Authorization: Bearer <token>
@@ -161,7 +163,7 @@ X-Request-ID: <uuid> (рекомендуется)
 - 404: Задача не найдена
 - 401: Неавторизованный запрос
 
-#### DELETE http://193.233.175.221:8081/v1/tasks/{id}
+#### DELETE http://193.233.175.221:8082/v1/tasks/{id}
 - Удаление задачи
 - Заголовки:
 Authorization: Bearer <token>
