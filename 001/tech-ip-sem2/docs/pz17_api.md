@@ -175,9 +175,9 @@ X-Request-ID: <uuid> (рекомендуется)
 - 401: Неавторизованный запрос
 
 Общие коды ошибок для Tasks Service:
-- 400 Bad Request — неверный формат запроса
-- 401 Unauthorized — отсутствует или недействительный токен
-- 404 Not Found — задача не найдена
-- 500 Internal Server Error — внутренняя ошибка сервиса
-- 502 Bad Gateway — недоступен Auth сервис
-- 503 Service Unavailable — таймаут при обращении к Auth
+- 400 Bad Request неверный формат запроса
+- 401 Unauthorized отсутствует или недействительный токен
+- 404 Not Found задача не найдена
+- 500 Internal Server Error внутренняя ошибка сервиса
+- 502 Bad Gateway недоступен Auth сервис
+- 503 Service Unavailable таймаут при обращении к Auth
