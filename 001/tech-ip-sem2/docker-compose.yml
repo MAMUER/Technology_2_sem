@@ -48,3 +48,8 @@ services:
       start_period: 15s
     networks:
       - pz17-network
+
+# Определение сети
+networks:
+  pz17-network:
+    driver: bridge
