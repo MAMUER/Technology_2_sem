@@ -1,20 +1,21 @@
 ifeq ($(OS),Windows_NT)
     DETECTED_OS := Windows
     RUN_AUTH_CMD := cd services/auth && set AUTH_PORT=8081&& go run ./cmd/auth
-    RUN_TASKS_CMD := cd services/tasks && set TASKS_PORT=8082&& set AUTH_BASE_URL=http://localhost:8081&& go run ./cmd/tasks
+    RUN_TASKS_CMD := cd services/tasks && set TASKS_PORT=8082&& set AUTH_BASE_URL=http://193.233.175.221:8081&& go run ./cmd/tasks
     TREE_CMD := tree /f
     DOCKER_COMPOSE_CMD := docker compose
 else
     DETECTED_OS := Linux
     RUN_AUTH_CMD := cd services/auth && AUTH_PORT=8081 go run ./cmd/auth
-    RUN_TASKS_CMD := cd services/tasks && TASKS_PORT=8082 AUTH_BASE_URL=http://localhost:8081 go run ./cmd/tasks
+    RUN_TASKS_CMD := cd services/tasks && TASKS_PORT=8082 AUTH_BASE_URL=http://193.233.175.221:8081 go run ./cmd/tasks
     TREE_CMD := tree
     DOCKER_COMPOSE_CMD := docker compose
 endif
 
 AUTH_PORT = 8081
 TASKS_PORT = 8082
-AUTH_BASE_URL = http://localhost:$(AUTH_PORT)
+AUTH_BASE_URL = http://193.233.175.221:$(AUTH_PORT)
+SERVER_IP = 193.233.175.221
 
 # Basic commands
 check:
@@ -73,43 +74,11 @@ docker-tasks-shell:
 docker-run: docker-build docker-up
 	@echo ==================================================
 	@echo All services are running!
-	@echo Auth service:  http://localhost:8081
-	@echo Tasks service: http://localhost:8082
+	@echo Auth service:  http://$(SERVER_IP):8081
+	@echo Tasks service: http://$(SERVER_IP):8082
 	@echo ==================================================
 	@echo Use 'make docker-logs' to see logs
 	@echo Use 'make docker-down' to stop all services
-
-# Test API (works with both local and Docker runs)
-test:
-	@echo 1. Get token:
-	@curl -s -X POST http://localhost:$(AUTH_PORT)/v1/auth/login -H "Content-Type: application/json" -H "X-Request-ID: test-001" -d "{\"username\":\"student\",\"password\":\"student\"}"
-	@echo.
-	@echo 2. Verify token:
-	@curl -s -X GET http://localhost:$(AUTH_PORT)/v1/auth/verify -H "Authorization: Bearer demo-token-for-student" -H "X-Request-ID: test-002"
-	@echo.
-	@echo 3. Create task:
-	@curl -s -X POST http://localhost:$(TASKS_PORT)/v1/tasks -H "Content-Type: application/json" -H "Authorization: Bearer demo-token-for-student" -H "X-Request-ID: test-003" -d "{\"title\":\"Do PZ17\",\"description\":\"split services\",\"due_date\":\"2026-01-10\"}"
-	@echo.
-	@echo 4. List tasks:
-	@curl -s -X GET http://localhost:$(TASKS_PORT)/v1/tasks -H "Authorization: Bearer demo-token-for-student" -H "X-Request-ID: test-004"
-
-test-docker:
-	@echo Testing Docker services...
-	@echo 1. Check if auth service is healthy:
-	@curl -s -o /dev/null -w "Auth health: %%{http_code}\n" http://localhost:8081/v1/auth/verify -H "Authorization: Bearer demo-token-for-student"
-	@echo 2. Check if tasks service is healthy:
-	@curl -s -o /dev/null -w "Tasks health: %%{http_code}\n" http://localhost:8082/v1/tasks -H "Authorization: Bearer demo-token-for-student"
-
-# Examples
-curl-examples:
-	@echo 1. Get token:
-	@echo curl -X POST http://localhost:$(AUTH_PORT)/v1/auth/login -H "Content-Type: application/json" -H "X-Request-ID: req-001" -d "{\"username\":\"student\",\"password\":\"student\"}"
-	@echo.
-	@echo 2. Create task:
-	@echo curl -X POST http://localhost:$(TASKS_PORT)/v1/tasks -H "Content-Type: application/json" -H "Authorization: Bearer demo-token-for-student" -H "X-Request-ID: req-002" -d "{\"title\":\"Do PZ17\",\"description\":\"split services\",\"due_date\":\"2026-01-10\"}"
-	@echo.
-	@echo 3. List tasks:
-	@echo curl -X GET http://localhost:$(TASKS_PORT)/v1/tasks -H "Authorization: Bearer demo-token-for-student" -H "X-Request-ID: req-003"
 
 # Utils
 tree:
@@ -141,11 +110,6 @@ help:
 	@echo   make docker-clean     - Remove all containers and volumes
 	@echo   make docker-auth-shell - Open shell in auth container
 	@echo   make docker-tasks-shell - Open shell in tasks container
-	@echo.
-	@echo TESTING:
-	@echo   make test         - Test API (local)
-	@echo   make test-docker  - Test API (docker)
-	@echo   make curl-examples - Show curl examples
 	@echo.
 	@echo UTILS:
 	@echo   make check        - go mod tidy, vet and fmt

@@ -4,7 +4,7 @@
 
 ### Auth Service (/v1/auth)
 
-#### POST /v1/auth/login
+#### POST http://193.233.175.221:8081/v1/auth/login
 - Получение токена доступа
 - Запрос:
 ```json
@@ -32,7 +32,7 @@
   "error": "invalid credentials"
 }
 ```
-#### GET /v1/auth/verify
+#### GET http://193.233.175.221:8081/v1/auth/verify
 - Проверка валидности токена
 - Заголовки:
 Authorization: Bearer <token>
@@ -54,7 +54,7 @@ X-Request-ID: <uuid> (опционально)
 ```
 ### Tasks Service (/v1/tasks)
 
-#### POST /v1/tasks
+#### POST http://193.233.175.221:8081/v1/tasks
 - Создание новой задачи
 - Заголовки:
 Authorization: Bearer <token>
@@ -81,7 +81,7 @@ X-Request-ID: <uuid> (рекомендуется)
 - 400: Неверный формат запроса
 - 401: Неавторизованный запрос (отсутствие или недействительный токен)
 
-#### GET /v1/tasks
+#### GET http://193.233.175.221:8081/v1/tasks
 - Получение списка всех задач
 - Заголовки:
 Authorization: Bearer <token>
@@ -109,7 +109,7 @@ X-Request-ID: <uuid> (рекомендуется)
 Ошибки:
 - 401: Неавторизованный запрос
 
-#### GET /v1/tasks/{id}
+#### GET http://193.233.175.221:8081/v1/tasks/{id}
 - Получение задачи по ID
 - Заголовки:
 Authorization: Bearer <token>
@@ -134,7 +134,7 @@ X-Request-ID: <uuid> (рекомендуется)
 Ошибки:
 - 401: Неавторизованный запрос
 
-#### PATCH /v1/tasks/{id}
+#### PATCH http://193.233.175.221:8081/v1/tasks/{id}
 - Обновление задачи
 - Заголовки:
 Authorization: Bearer <token>
@@ -161,7 +161,7 @@ X-Request-ID: <uuid> (рекомендуется)
 - 404: Задача не найдена
 - 401: Неавторизованный запрос
 
-#### DELETE /v1/tasks/{id}
+#### DELETE http://193.233.175.221:8081/v1/tasks/{id}
 - Удаление задачи
 - Заголовки:
 Authorization: Bearer <token>

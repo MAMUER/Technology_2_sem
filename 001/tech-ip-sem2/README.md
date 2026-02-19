@@ -37,14 +37,6 @@ make fast-tasks
 
 make check
 
-### Тестирование API
-
-make test	
-
-### Показать примеры curl
-
-make curl-examples	
-
 ### Показать структуру проекта
 
 make tree
@@ -100,14 +92,18 @@ tech-ip-sem2/
 
 - `AUTH_PORT`: 8081 — порт для запуска Auth сервиса
 
-- `AUTH_BASE_URL`: http://localhost:8081 — базовый URL Auth сервиса
+- `AUTH_BASE_URL`: http://193.233.175.221:8081 — базовый URL Auth сервиса
 
 - `TASKS_PORT`: 8082 — порт для запуска Tasks сервиса
 
-- `TASKS_BASE_URL`: http://localhost:8082 — базовый URL Tasks сервиса
+- `TASKS_BASE_URL`: http://193.233.175.221:8082 — базовый URL Tasks сервиса
 
 ## Скриншоты работы проекта
 
-Проверка наличия ПО
+Запуск докер контейнеров
 
 ![фото1](./PR1/Screenshot_1.png)
+
+Запуск докер контейнеров
+
+![фото2](./PR1/Screenshot_2.png)
