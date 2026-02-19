@@ -3,13 +3,13 @@ ifeq ($(OS),Windows_NT)
     RUN_AUTH_CMD := cd services/auth && set AUTH_PORT=8081&& go run ./cmd/auth
     RUN_TASKS_CMD := cd services/tasks && set TASKS_PORT=8082&& set AUTH_BASE_URL=http://localhost:8081&& go run ./cmd/tasks
     TREE_CMD := tree /f
-    DOCKER_COMPOSE_CMD := docker-compose
+    DOCKER_COMPOSE_CMD := docker compose
 else
     DETECTED_OS := Linux
     RUN_AUTH_CMD := cd services/auth && AUTH_PORT=8081 go run ./cmd/auth
     RUN_TASKS_CMD := cd services/tasks && TASKS_PORT=8082 AUTH_BASE_URL=http://localhost:8081 go run ./cmd/tasks
     TREE_CMD := tree
-    DOCKER_COMPOSE_CMD := docker-compose
+    DOCKER_COMPOSE_CMD := docker compose
 endif
 
 AUTH_PORT = 8081
