@@ -16,7 +16,7 @@ import (
 	authhttp "tech-ip-sem2/services/auth/internal/http"
 	"tech-ip-sem2/services/auth/internal/service"
 	"tech-ip-sem2/shared/middleware"
-	
+
 	"google.golang.org/grpc"
 )
 
@@ -45,7 +45,7 @@ func main() {
 	httpHandlers := authhttp.NewHandlers(authService)
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("POST /v1/auth/login", httpHandlers.Login)
-	httpMux.HandleFunc("GET /v1/auth/verify", httpHandlers.Verify) 
+	httpMux.HandleFunc("GET /v1/auth/verify", httpHandlers.Verify)
 
 	httpHandler := middleware.RequestID(httpMux)
 	httpHandler = middleware.Logging(httpHandler)

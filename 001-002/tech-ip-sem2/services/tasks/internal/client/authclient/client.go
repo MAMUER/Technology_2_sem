@@ -6,7 +6,7 @@ import (
 	"time"
 
 	pb "tech-ip-sem2/proto/gen/go/auth"
-	
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -14,15 +14,15 @@ import (
 )
 
 type Client struct {
-	conn         *grpc.ClientConn
-	authClient   pb.AuthServiceClient
-	timeout      time.Duration
+	conn       *grpc.ClientConn
+	authClient pb.AuthServiceClient
+	timeout    time.Duration
 }
 
 func NewClient(addr string, timeout time.Duration) (*Client, error) {
 	conn, err := grpc.Dial(addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(), 
+		grpc.WithBlock(),
 		grpc.WithTimeout(5*time.Second),
 	)
 	if err != nil {
@@ -52,7 +52,7 @@ func (c *Client) VerifyToken(ctx context.Context, token string) (bool, string, e
 	resp, err := c.authClient.Verify(ctx, &pb.VerifyRequest{
 		Token: token,
 	})
-	
+
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			switch st.Code() {

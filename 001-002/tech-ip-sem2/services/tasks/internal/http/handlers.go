@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"time"
 
 	"tech-ip-sem2/services/tasks/internal/client/authclient"
 	"tech-ip-sem2/services/tasks/internal/models"
@@ -50,7 +49,7 @@ func (h *Handlers) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		// Вызываем gRPC клиент
 		valid, subject, err := h.authClient.VerifyToken(r.Context(), token)
-		
+
 		if err != nil {
 			// Проверяем тип ошибки
 			errMsg := err.Error()

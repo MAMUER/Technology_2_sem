@@ -2,11 +2,11 @@ package grpc
 
 import (
 	"context"
-	"errors"
 
 	pb "tech-ip-sem2/proto/gen/go/auth"
 	"tech-ip-sem2/services/auth/internal/service"
-	
+
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
