@@ -120,11 +120,11 @@
 Ответ 200:
 ```json
 {
-  "id": "t_001",
-  "title": "Do PZ17",
-  "description": "split services",
-  "due_date": "2026-01-10",
-  "done": false
+    "id": "t20260219102056",
+    "title": "Do PZ17",
+    "description": "split services",
+    "due_date": "2026-01-10",
+    "done": false
 }
 ```
 Ответ 404:
@@ -138,10 +138,11 @@
 
 #### PATCH http://193.233.175.221:8082/v1/tasks/{id}
 - Обновление задачи
-- Заголовки:
-Authorization: Bearer <token>
-X-Request-ID: <uuid> (рекомендуется)
--Запрос:
+- Headers:
+    - Content-Type: application/json
+    - X-Request-ID: test-123 (опционально, но рекомендуется)
+- Authorization: Bearer Token demo-token-for-student
+- Body (raw):
 ```json
 {
   "title": "Do PZ17 (updated)",
@@ -151,11 +152,11 @@ X-Request-ID: <uuid> (рекомендуется)
 Ответ 200:
 ```json
 {
-  "id": "t_001",
-  "title": "Do PZ17 (updated)",
-  "description": "split services",
-  "due_date": "2026-01-10",
-  "done": true
+    "id": "t20260219102056",
+    "title": "Do PZ17 (updated)",
+    "description": "split services",
+    "due_date": "2026-01-10",
+    "done": true
 }
 ```
 Ошибки:
@@ -165,9 +166,10 @@ X-Request-ID: <uuid> (рекомендуется)
 
 #### DELETE http://193.233.175.221:8082/v1/tasks/{id}
 - Удаление задачи
-- Заголовки:
-Authorization: Bearer <token>
-X-Request-ID: <uuid> (рекомендуется)
+- Headers:
+    - Content-Type: application/json
+    - X-Request-ID: test-123 (опционально, но рекомендуется)
+- Authorization: Bearer Token demo-token-for-student
 
 Ответ:
 - 204: Успешное удаление, тела ответа нет
@@ -176,7 +178,7 @@ X-Request-ID: <uuid> (рекомендуется)
 - 404: Задача не найдена
 - 401: Неавторизованный запрос
 
-Общие коды ошибок для Tasks Service:
+#### Общие коды ошибок для Tasks Service
 - 400 Bad Request неверный формат запроса
 - 401 Unauthorized отсутствует или недействительный токен
 - 404 Not Found задача не найдена
