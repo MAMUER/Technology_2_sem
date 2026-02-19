@@ -1,156 +1,199 @@
-3. Спецификация API
-3.1. Auth Service (порт 8081)
-POST /v1/auth/login
-Получение токена доступа
+# Примеры запросов
 
-Request:
+## API Endpoints
 
-json
+### Auth Service (/v1/auth)
+
+#### POST /v1/auth/login
+- Получение токена доступа
+- Запрос:
+```json
 {
-    "username": "student",
-    "password": "student"
+  "username": "student",
+  "password": "student"
 }
-Response 200:
 
-json
+Ответ 200:
+```json
 {
-    "access_token": "demo-token-for-student",
-    "token_type": "Bearer"
+  "access_token": "demo-token-for-student",
+  "token_type": "Bearer"
 }
-Response 400:
 
-json
+Ответ 400:
+```json
 {
-    "error": "invalid request format"
+  "error": "invalid request format"
 }
-Response 401:
 
-json
+Ответ 401:
+```json
 {
-    "error": "invalid credentials"
+  "error": "invalid credentials"
 }
-GET /v1/auth/verify
-Проверка валидности токена
 
-Headers:
-
+#### GET /v1/auth/verify
+- Проверка валидности токена
+- Заголовки:
 Authorization: Bearer <token>
-
 X-Request-ID: <uuid> (опционально)
 
-Response 200:
-
-json
+Ответ 200:
+```json
 {
-    "valid": true,
-    "subject": "student"
+  "valid": true,
+  "subject": "student"
 }
-Response 401:
 
-json
+Ответ 401:
+```json
 {
-    "valid": false,
-    "error": "unauthorized"
+  "valid": false,
+  "error": "unauthorized"
 }
-3.2. Tasks Service (порт 8082)
-Все запросы требуют заголовок:
 
+### Tasks Service (/v1/tasks)
+
+#### POST /v1/tasks
+- Создание новой задачи
+- Заголовки:
 Authorization: Bearer <token>
+X-Request-ID: <uuid> (рекомендуется)
+- Запрос:
+```json
+{
+  "title": "Do PZ17",
+  "description": "split services",
+  "due_date": "2026-01-10"
+}
 
+Ответ 201:
+```json
+{
+  "id": "t_001",
+  "title": "Do PZ17",
+  "description": "split services",
+  "due_date": "2026-01-10",
+  "done": false
+}
+
+Ошибки:
+
+400: Неверный формат запроса
+
+401: Неавторизованный запрос (отсутствие или недействительный токен)
+
+#### GET /v1/tasks
+- Получение списка всех задач
+- Заголовки:
+Authorization: Bearer <token>
 X-Request-ID: <uuid> (рекомендуется)
 
-POST /v1/tasks
-Создание новой задачи
-
-Request:
-
-json
-{
-    "title": "Do PZ17",
-    "description": "split services",
-    "due_date": "2026-01-10"
-}
-Response 201:
-
-json
-{
-    "id": "t_001",
-    "title": "Do PZ17",
-    "description": "split services",
-    "due_date": "2026-01-10",
-    "done": false
-}
-GET /v1/tasks
-Получение списка всех задач
-
-Response 200:
-
-json
+Ответ 200:
+```json
 [
-    {
-        "id": "t_001",
-        "title": "Do PZ17",
-        "done": false
-    },
-    {
-        "id": "t_002",
-        "title": "Read lecture",
-        "done": true
-    }
-]
-GET /v1/tasks/{id}
-Получение задачи по ID
-
-Response 200:
-
-json
-{
+  {
     "id": "t_001",
     "title": "Do PZ17",
     "description": "split services",
     "due_date": "2026-01-10",
     "done": false
-}
-Response 404:
-
-json
-{
-    "error": "task not found"
-}
-PATCH /v1/tasks/{id}
-Обновление задачи
-
-Request:
-
-json
-{
-    "title": "Do PZ17 (updated)",
+  },
+  {
+    "id": "t_002",
+    "title": "Read lecture",
+    "description": "",
+    "due_date": "2025-12-01",
     "done": true
-}
-Response 200:
+  }
+]
 
-json
+Ошибки:
+
+401: Неавторизованный запрос
+
+#### GET /v1/tasks/{id}
+- Получение задачи по ID
+- Заголовки:
+Authorization: Bearer <token>
+X-Request-ID: <uuid> (рекомендуется)
+
+Ответ 200:
+```json
 {
-    "id": "t_001",
-    "title": "Do PZ17 (updated)",
-    "description": "split services",
-    "due_date": "2026-01-10",
-    "done": true
+  "id": "t_001",
+  "title": "Do PZ17",
+  "description": "split services",
+  "due_date": "2026-01-10",
+  "done": false
 }
-DELETE /v1/tasks/{id}
-Удаление задачи
 
-Response 204 (без тела)
+Ответ 404:
+```json
+{
+  "error": "task not found"
+}
 
-Коды ошибок для Tasks Service:
-400 Bad Request - неверный формат запроса
+Ошибки:
 
-401 Unauthorized - токен невалиден или отсутствует
+401: Неавторизованный запрос
 
-404 Not Found - задача не найдена
+#### PATCH /v1/tasks/{id}
+- Обновление задачи
+- Заголовки:
+Authorization: Bearer <token>
+X-Request-ID: <uuid> (рекомендуется)
+-Запрос:
+```json
+{
+  "title": "Do PZ17 (updated)",
+  "done": true
+}
 
-500 Internal Server Error - внутренняя ошибка сервиса
+Ответ 200:
+```json
+{
+  "id": "t_001",
+  "title": "Do PZ17 (updated)",
+  "description": "split services",
+  "due_date": "2026-01-10",
+  "done": true
+}
 
-502 Bad Gateway - Auth service недоступен
+Ошибки:
 
-503 Service Unavailable - таймаут при обращении к Auth
+400: Неверный формат запроса
+
+404: Задача не найдена
+
+401: Неавторизованный запрос
+
+#### DELETE /v1/tasks/{id}
+- Удаление задачи
+- Заголовки:
+Authorization: Bearer <token>
+X-Request-ID: <uuid> (рекомендуется)
+
+Ответ:
+
+204: Успешное удаление, тела ответа нет
+
+Ошибки:
+
+404: Задача не найдена
+
+401: Неавторизованный запрос
+
+Общие коды ошибок для Tasks Service:
+
+400 Bad Request — неверный формат запроса
+
+401 Unauthorized — отсутствует или недействительный токен
+
+404 Not Found — задача не найдена
+
+500 Internal Server Error — внутренняя ошибка сервиса
+
+502 Bad Gateway — недоступен Auth сервис
+
+503 Service Unavailable — таймаут при обращении к Auth

@@ -28,7 +28,6 @@ type errorResponse struct {
 	Error string `json:"error"`
 }
 
-// AuthMiddleware проверяет токен через Auth service
 func (h *Handlers) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
@@ -39,7 +38,6 @@ func (h *Handlers) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// Проверка формата Bearer token
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 			w.Header().Set("Content-Type", "application/json")
@@ -51,13 +49,11 @@ func (h *Handlers) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		token := parts[1]
 		requestID := r.Header.Get("X-Request-ID")
 
-		// Создаем контекст с таймаутом для запроса к Auth service
 		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 		defer cancel()
 
 		valid, subject, err := h.authClient.VerifyToken(ctx, token, requestID)
 		if err != nil {
-			// Проверяем тип ошибки
 			if ctx.Err() == context.DeadlineExceeded {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusServiceUnavailable)
@@ -77,7 +73,6 @@ func (h *Handlers) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// Добавляем информацию о пользователе в контекст
 		ctx = context.WithValue(r.Context(), "subject", subject)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
@@ -115,7 +110,6 @@ func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) ListTasks(w http.ResponseWriter, r *http.Request) {
 	tasks := h.tasksService.GetAll()
 
-	// Упрощенный ответ для списка (без description и due_date)
 	type listItem struct {
 		ID    string `json:"id"`
 		Title string `json:"title"`

@@ -13,6 +13,5 @@ func Load() Config {
 	if port == "" {
 		port = "8081"
 	}
-	// ВОЗВРАЩАЕМ ПРОСТО ПОРТ
 	return Config{Port: port}
 }

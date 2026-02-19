@@ -5,7 +5,7 @@ import (
 )
 
 type Config struct {
-	Port        string // БЕЗ двоеточия!
+	Port        string 
 	AuthBaseURL string
 }
 
@@ -20,7 +20,6 @@ func Load() Config {
 		authBaseURL = "http://localhost:8081"
 	}
 
-	// ВОЗВРАЩАЕМ ПРОСТО ПОРТ, БЕЗ ДВОЕТОЧИЯ
 	return Config{
 		Port:        port,
 		AuthBaseURL: authBaseURL,

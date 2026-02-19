@@ -19,10 +19,8 @@ func RequestID(next http.Handler) http.Handler {
 			requestID = uuid.New().String()
 		}
 
-		// Добавляем в контекст
 		ctx := context.WithValue(r.Context(), RequestIDKey, requestID)
 
-		// Добавляем в заголовок ответа
 		w.Header().Set("X-Request-ID", requestID)
 
 		next.ServeHTTP(w, r.WithContext(ctx))

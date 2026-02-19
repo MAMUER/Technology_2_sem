@@ -22,7 +22,7 @@ func (s *TasksService) Create(task models.Task) models.Task {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Генерация ID (в реальном проекте лучше использовать UUID)
+	// Генерация ID (Просто заглушка)
 	id := generateID()
 	task.ID = id
 	task.Done = false
@@ -89,7 +89,6 @@ func (s *TasksService) Delete(id string) bool {
 	return true
 }
 
-// Вспомогательная функция для генерации ID
 func generateID() string {
 	return "t_" + time.Now().Format("150405.000")[:8]
 }

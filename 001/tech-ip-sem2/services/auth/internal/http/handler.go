@@ -66,7 +66,7 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// В реальном проекте здесь должна быть генерация JWT
+	// Просто заглушка
 	token := "demo-token-for-" + req.Username
 
 	w.Header().Set("Content-Type", "application/json")

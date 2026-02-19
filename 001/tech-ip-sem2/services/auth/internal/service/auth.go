@@ -6,7 +6,7 @@ import (
 
 type User struct {
 	Username string
-	Password string // В реальном проекте должен быть хэш
+	Password string // Просто заглушка
 }
 
 type AuthService struct {
@@ -15,11 +15,10 @@ type AuthService struct {
 }
 
 func NewAuthService() *AuthService {
-	// Инициализация с тестовыми пользователями
 	users := map[string]User{
 		"student": {
 			Username: "student",
-			Password: "student", // В реальном проекте должен быть хэш
+			Password: "student", // Просто заглушка
 		},
 		"admin": {
 			Username: "admin",
@@ -41,13 +40,12 @@ func (s *AuthService) ValidateCredentials(username, password string) bool {
 		return false
 	}
 
-	// В реальном проекте здесь должно быть сравнение хэшей
+	// Просто заглушка
 	return user.Password == password
 }
 
 func (s *AuthService) ValidateToken(token string) (bool, string) {
-	// Упрощенная проверка токена
-	// В реальном проекте здесь должна быть проверка JWT
+	// Просто заглушка
 	if token == "demo-token-for-student" {
 		return true, "student"
 	}
