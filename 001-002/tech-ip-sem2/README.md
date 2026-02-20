@@ -174,3 +174,6 @@ tech-ip-sem2/
 
 #### Ошибка после остановки Auth
 ![фото15](./PR1-2/Screenshot_15.png)
+
+#### Ошибка таймаут Auth
+![фото16](./PR1-2/Screenshot_16.png)
