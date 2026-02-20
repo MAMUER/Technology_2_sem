@@ -48,17 +48,26 @@ make tree
 ### Показать справку
 make help
 
-# Запустить в Docker
-make docker-run
+# Запустить/остановить/перезапустить в Docker
+make docker-up
 
-# Логи Docker
+make docker-down
+
+make docker-restart
+
+# Логи общие/Auth/Tasks Docker
 make docker-logs
 
-# Логи Auth Docker
 make docker-logs-auth
 
-# Логи Tasks Docker
 make docker-logs-tasks
+
+# Остановить/запустить/перезапустить Auth в Docker
+make docker-stop-auth
+
+make docker-start-auth 
+
+make docker-restart-auth
 
 ## Структура проекта
 ```
