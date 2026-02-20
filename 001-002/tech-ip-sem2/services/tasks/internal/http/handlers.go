@@ -120,18 +120,23 @@ func (h *Handlers) ListTasks(w http.ResponseWriter, r *http.Request) {
 		Done  bool   `json:"done"`
 	}
 
-	response := make([]listItem, len(tasks))
-	for i, task := range tasks {
-		response[i] = listItem{
+	// ИСПРАВЛЕНИЕ: создаем срез с длиной 0 и емкостью len(tasks)
+	response := make([]listItem, 0, len(tasks))
+	for _, task := range tasks {
+		response = append(response, listItem{
 			ID:    task.ID,
 			Title: task.Title,
 			Done:  task.Done,
-		}
+		})
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		// Логируем ошибку, но не отправляем повторно статус (уже отправлен 200)
+		// В реальном приложении здесь должен быть логгер
+	}
 }
 
 func (h *Handlers) GetTask(w http.ResponseWriter, r *http.Request) {
