@@ -94,7 +94,6 @@ func (h *Handlers) Verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверка формата Bearer token
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 		w.Header().Set("Content-Type", "application/json")

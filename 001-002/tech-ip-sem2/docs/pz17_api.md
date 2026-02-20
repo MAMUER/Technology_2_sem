@@ -201,6 +201,6 @@
 
 ### Ошибки gRPC
 - 401 Unauthenticated       невалидный токен
-- 503 DeadlineExceeded      таймаут вызова
+- 503 DeadlineExceeded      сервис завис
 - 502 Unavailable           Auth сервис недоступен
 - 500 Internal              внутренняя ошибка

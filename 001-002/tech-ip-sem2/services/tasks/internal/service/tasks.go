@@ -22,7 +22,6 @@ func (s *TasksService) Create(task models.Task) models.Task {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Генерация ID (Просто заглушка)
 	id := generateID()
 	task.ID = id
 	task.Done = false

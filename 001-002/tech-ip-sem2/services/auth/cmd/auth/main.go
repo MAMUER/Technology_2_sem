@@ -30,7 +30,6 @@ func main() {
 		log.Fatalf("Invalid HTTP port: %v", err)
 	}
 
-	// gRPC порт
 	grpcPortStr := os.Getenv("AUTH_GRPC_PORT")
 	if grpcPortStr == "" {
 		grpcPortStr = "50051"

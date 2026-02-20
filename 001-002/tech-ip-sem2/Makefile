@@ -4,7 +4,6 @@ ifeq ($(OS),Windows_NT)
     RUN_TASKS_CMD := cd services/tasks && set TASKS_PORT=8082&& set AUTH_GRPC_ADDR=193.233.175.221:50051&& go run ./cmd/tasks
     TREE_CMD := tree /f
     DOCKER_COMPOSE_CMD := docker compose
-    # Для Windows нужно использовать отдельные команды или экранирование
     PROTO_CMD := protoc --proto_path=proto --go_out=proto/gen/go --go_opt=paths=source_relative --go-grpc_out=proto/gen/go --go-grpc_opt=paths=source_relative proto/auth.proto
 else
     DETECTED_OS := Linux
@@ -103,7 +102,7 @@ docker-auth-shell:
 docker-tasks-shell:
 	$(DOCKER_COMPOSE_CMD) exec tasks sh
 
-# Generate gRPC code - исправлено для правильной структуры
+# Generate gRPC
 generate:
 	@echo "Generating gRPC code..."
 ifeq ($(OS),Windows_NT)

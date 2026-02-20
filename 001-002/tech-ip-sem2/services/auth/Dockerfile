@@ -1,6 +1,5 @@
 FROM golang:1.25-alpine AS builder
 
-# Устанавливаем protoc и плагины
 RUN apk add --no-cache protobuf protobuf-dev
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -10,7 +9,6 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Копируем proto файлы и генерируем код
 COPY proto ./proto
 RUN mkdir -p proto/gen/go
 RUN protoc --proto_path=proto \

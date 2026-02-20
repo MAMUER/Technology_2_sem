@@ -7,7 +7,7 @@ services:
     container_name: pz17-auth
     ports:
       - "8081:8081"
-      - "50051:50051"  # gRPC порт
+      - "50051:50051" 
     environment:
       - AUTH_PORT=8081
       - AUTH_GRPC_PORT=50051
@@ -33,7 +33,7 @@ services:
       - "8082:8082"
     environment:
       - TASKS_PORT=8082
-      - AUTH_GRPC_ADDR=auth:50051  # Используем gRPC вместо HTTP
+      - AUTH_GRPC_ADDR=auth:50051 
     depends_on:
       auth:
         condition: service_healthy

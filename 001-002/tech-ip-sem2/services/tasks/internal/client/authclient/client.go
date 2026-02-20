@@ -50,7 +50,7 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) VerifyToken(ctx context.Context, token string) (bool, string, error) {
-	log.Printf("Calling gRPC verify for token: %s...", token[:10]) // Логируем первые 10 символов токена
+	log.Printf("Calling gRPC verify for token: %s...", token[:10])
 
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()

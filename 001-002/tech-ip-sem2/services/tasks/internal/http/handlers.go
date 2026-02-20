@@ -47,11 +47,9 @@ func (h *Handlers) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		token := parts[1]
 
-		// Вызываем gRPC клиент
 		valid, subject, err := h.authClient.VerifyToken(r.Context(), token)
 
 		if err != nil {
-			// Проверяем тип ошибки
 			errMsg := err.Error()
 			switch {
 			case strings.Contains(errMsg, "timeout"):

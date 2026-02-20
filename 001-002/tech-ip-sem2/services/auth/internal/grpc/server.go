@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"context"
+	"log"
+	"time"
 
 	pb "tech-ip-sem2/proto/gen/go/auth"
 	"tech-ip-sem2/services/auth/internal/service"
@@ -23,6 +25,13 @@ func NewAuthServer(authService *service.AuthService) *AuthServer {
 }
 
 func (s *AuthServer) Verify(ctx context.Context, req *pb.VerifyRequest) (*pb.VerifyResponse, error) {
+	log.Printf("Verify called with token: %s", req.Token)
+	
+	// ИСКУССТВЕННАЯ ЗАДЕРЖКА 4 СЕКУНДЫ
+	log.Printf("  Starting 4 second delay...")
+	time.Sleep(4 * time.Second)
+	log.Printf(" Delay finished, processing request")
+	
 	if req.Token == "" {
 		return nil, status.Error(codes.Unauthenticated, "token is required")
 	}
@@ -32,6 +41,7 @@ func (s *AuthServer) Verify(ctx context.Context, req *pb.VerifyRequest) (*pb.Ver
 		return nil, status.Error(codes.Unauthenticated, "invalid token")
 	}
 
+	log.Printf("Verify success: valid=true, subject=%s", subject)
 	return &pb.VerifyResponse{
 		Valid:   true,
 		Subject: subject,
