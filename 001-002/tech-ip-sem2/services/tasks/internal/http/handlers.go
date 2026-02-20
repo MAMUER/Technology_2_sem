@@ -132,7 +132,7 @@ func (h *Handlers) ListTasks(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	
+
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		// Логируем ошибку, но не отправляем повторно статус (уже отправлен 200)
 		// В реальном приложении здесь должен быть логгер
