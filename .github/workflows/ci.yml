@@ -299,37 +299,53 @@ jobs:
       - name: Collect all test results
         id: collect_results
         run: |
-          # Создаем временный файл на GitHub Runner
           TEMP_SUMMARY=$(mktemp)
           
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             cd /opt/techip
             
+            # Генерируем нагрузку для счетчиков
+            echo "Generating test load for statistics..."
+            for i in {1..15}; do
+              curl -s http://localhost:8080/v1/tasks \
+                -H "Authorization: Bearer demo-token-for-student" > /dev/null
+              sleep 0.5
+            done
+            sleep 5
+            
+            # Считаем запросы по репликам (используем pz26 для тестового стенда)
+            TASKS1=$(docker logs pz26-tasks-1 --tail 300 2>/dev/null | grep "request completed" | wc -l | tr -d ' ')
+            TASKS2=$(docker logs pz26-tasks-2 --tail 300 2>/dev/null | grep "request completed" | wc -l | tr -d ' ')
+            TASKS3=$(docker logs pz26-tasks-3 --tail 300 2>/dev/null | grep "request completed" | wc -l | tr -d ' ')
+            
+            # Fallback если нет "request completed"
+            if [ "$TASKS1" = "0" ] && [ "$TASKS2" = "0" ] && [ "$TASKS3" = "0" ]; then
+              TASKS1=$(docker logs pz26-tasks-1 --tail 300 2>/dev/null | grep "gRPC verify success" | wc -l | tr -d ' ')
+              TASKS2=$(docker logs pz26-tasks-2 --tail 300 2>/dev/null | grep "gRPC verify success" | wc -l | tr -d ' ')
+              TASKS3=$(docker logs pz26-tasks-3 --tail 300 2>/dev/null | grep "gRPC verify success" | wc -l | tr -d ' ')
+            fi
+            
+            # Проверяем PostgreSQL для тестового стенда
+            POSTGRES_STATUS=$(docker exec pz26-postgres pg_isready -U appuser -d tasksdb 2>/dev/null)
+            if echo "$POSTGRES_STATUS" | grep -q "accepting connections"; then 
+              POSTGRES_STATUS="Healthy"
+            else
+              POSTGRES_STATUS="Not ready"
+            fi
+            
+            # Проверяем Redis (может быть pz20-redis или pz26-redis)
+            REDIS_STATUS="Not running"
+            if docker ps | grep -q pz20-redis; then
+              REDIS_STATUS=$(docker exec pz20-redis redis-cli ping 2>/dev/null)
+            elif docker ps | grep -q pz26-redis; then
+              REDIS_STATUS=$(docker exec pz26-redis redis-cli ping 2>/dev/null)
+            fi
+            if [ "$REDIS_STATUS" = "PONG" ]; then REDIS_STATUS="Running"; else REDIS_STATUS="Not running"; fi
+            
             # Проверяем контейнеры
             CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "pz20|pz26" | head -10 | paste -sd '\n' -)
             
-            # Считаем запросы по репликам
-            TASKS1=$(docker logs pz26-tasks-1 --tail 100 2>/dev/null | grep "request completed" | wc -l | tr -d ' ')
-            TASKS2=$(docker logs pz26-tasks-2 --tail 100 2>/dev/null | grep "request completed" | wc -l | tr -d ' ')
-            TASKS3=$(docker logs pz26-tasks-3 --tail 100 2>/dev/null | grep "request completed" | wc -l | tr -d ' ')
-            
-            # Проверяем Redis
-            REDIS_STATUS=$(docker exec pz20-redis redis-cli ping 2>/dev/null)
-            if [ "$REDIS_STATUS" = "PONG" ]; then REDIS_STATUS="Running"; else REDIS_STATUS="Not running"; fi
-            
-            # Проверяем PostgreSQL
-            POSTGRES_STATUS=$(docker exec pz20-postgres pg_isready -U appuser -d tasksdb 2>/dev/null | grep -o "accepting connections")
-            if [ "$POSTGRES_STATUS" = "accepting connections" ]; then POSTGRES_STATUS="Healthy"; else POSTGRES_STATUS="Not ready"; fi
-            
-            # Проверяем Prometheus
-            PROMETHEUS_STATUS=$(curl -s http://localhost:9090/-/healthy 2>/dev/null)
-            if [ "$PROMETHEUS_STATUS" = "Prometheus Server is Healthy." ]; then PROMETHEUS_STATUS="Healthy"; else PROMETHEUS_STATUS="Not running"; fi
-            
-            # Проверяем Grafana
-            GRAFANA_STATUS=$(curl -s http://localhost:3000/api/health 2>/dev/null | grep -o "ok")
-            if [ "$GRAFANA_STATUS" = "ok" ]; then GRAFANA_STATUS="Healthy"; else GRAFANA_STATUS="Not running"; fi
-            
-            # Формируем итоговый отчет (без спецсимволов)
+            # Формируем итоговый отчет
             echo "========== ВСЕ ПРАКТИЧЕСКИЕ РАБОТЫ 1-10 =========="
             echo ""
             echo "ПЗ 1-3 (Логирование):"
@@ -338,13 +354,13 @@ jobs:
             echo "  • Структурированные логи: OK"
             echo ""
             echo "ПЗ 4 (Метрики):"
-            echo "  • Prometheus: $PROMETHEUS_STATUS"
-            echo "  • Grafana: $GRAFANA_STATUS"
+            echo "  • Prometheus: $(curl -s http://localhost:9090/-/healthy 2>/dev/null | grep -q "Prometheus" && echo "Healthy" || echo "Not running")"
+            echo "  • Grafana: $(curl -s http://localhost:3000/api/health 2>/dev/null | grep -q "ok" && echo "Healthy" || echo "Not running")"
             echo "  • Метрики /metrics: OK"
             echo ""
             echo "ПЗ 5 (HTTPS/PostgreSQL):"
             echo "  • PostgreSQL: $POSTGRES_STATUS"
-            echo "  • Nginx HTTPS (8443): OK"
+            echo "  • Nginx HTTPS (8443): $(curl -k -s -o /dev/null -w "%{http_code}" https://localhost:8443/health 2>/dev/null | grep -q "200" && echo "OK" || echo "Not working")"
             echo "  • SQL-инъекции защищены: OK"
             echo ""
             echo "ПЗ 6 (CSRF/XSS):"
@@ -382,7 +398,6 @@ jobs:
             echo "================================================"
           ' > $TEMP_SUMMARY
           
-          # Читаем файл и передаем в output
           SUMMARY_CONTENT=$(cat $TEMP_SUMMARY)
           echo "summary<<EOF" >> $GITHUB_OUTPUT
           echo "$SUMMARY_CONTENT" >> $GITHUB_OUTPUT
