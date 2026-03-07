@@ -287,6 +287,38 @@ jobs:
           # Очищаем
           rm -f $TEMP_FILE
 
+      - name: Debug load balancing
+        if: always()
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            echo "=== DEBUG INFO ==="
+            
+            # Проверяем что контейнеры запущены
+            echo "1. Tasks replicas status:"
+            docker ps | grep pz26-tasks
+            
+            # Проверяем логи nginx
+            echo "2. Nginx logs:"
+            docker logs pz26-nginx --tail 20
+            
+            # Проверяем доступность изнутри
+            echo "3. Direct access to tasks_1:"
+            docker exec pz26-nginx curl -s -I http://tasks_1:8082/v1/tasks \
+              -H "Authorization: Bearer demo-token-for-student" | grep -i "X-Instance-ID" || echo "No header"
+            
+            echo "4. Direct access to tasks_2:"
+            docker exec pz26-nginx curl -s -I http://tasks_2:8082/v1/tasks \
+              -H "Authorization: Bearer demo-token-for-student" | grep -i "X-Instance-ID" || echo "No header"
+            
+            echo "5. Direct access to tasks_3:"
+            docker exec pz26-nginx curl -s -I http://tasks_3:8082/v1/tasks \
+              -H "Authorization: Bearer demo-token-for-student" | grep -i "X-Instance-ID" || echo "No header"
+            
+            echo "6. Through load balancer from inside:"
+            docker exec pz26-nginx curl -s -I http://localhost:8080/v1/tasks \
+              -H "Authorization: Bearer demo-token-for-student" | grep -i "X-Instance-ID" || echo "No header"
+          '
+
   notify:
     name: Send Notification
     runs-on: ubuntu-latest
