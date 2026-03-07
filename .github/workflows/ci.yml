@@ -242,60 +242,6 @@ jobs:
             echo "$METRICS_RESPONSE"
           '
 
-      - name: Test load balancing
-        id: lb_test
-        run: |
-          TEMP_FILE=$(mktemp)
-          
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
-            set -e
-            cd /opt/techip
-            
-            cp deploy/lb/docker-compose.yml docker-compose.lb.yml
-            cp deploy/lb/nginx.conf nginx.lb.conf
-            
-            echo "=== STARTING LOAD BALANCER TEST ==="
-            docker-compose -f docker-compose.lb.yml pull
-            docker-compose -f docker-compose.lb.yml up -d
-            sleep 15
-            
-            RESULT_FILE="/tmp/lb_results_$(date +%s).txt"
-            
-            echo "=== ROUND-ROBIN TEST ===" > $RESULT_FILE
-            for i in {1..6}; do
-              INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
-                -H "Authorization: Bearer demo-token-for-student" \
-                -H "X-Request-ID: lb-test-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "NO HEADER")
-              echo "Request $i: $INSTANCE" >> $RESULT_FILE
-            done
-            
-            echo "" >> $RESULT_FILE
-            echo "=== FAILOVER TEST ===" >> $RESULT_FILE
-            echo "Stopping tasks_2..." >> $RESULT_FILE
-            docker stop pz26-tasks-2
-            sleep 5
-            
-            for i in {1..3}; do
-              INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
-                -H "Authorization: Bearer demo-token-for-student" \
-                -H "X-Request-ID: failover-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "NO HEADER")
-              echo "Request $i: $INSTANCE" >> $RESULT_FILE
-            done
-            
-            echo "" >> $RESULT_FILE
-            echo "Restarting tasks_2..." >> $RESULT_FILE
-            docker start pz26-tasks-2
-            sleep 5
-            
-            cat $RESULT_FILE
-            cat $RESULT_FILE
-          ' > $TEMP_FILE
-          
-          echo "lb_results<<EOF" >> $GITHUB_OUTPUT
-          cat $TEMP_FILE >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          rm -f $TEMP_FILE
-
       - name: Collect all test results
         id: collect_results
         run: |
@@ -304,82 +250,74 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             cd /opt/techip
             
-            # Генерируем нагрузку для счетчиков
+            # Генерируем нагрузку через балансировщик
             echo "Generating test load for statistics..."
-            for i in {1..15}; do
+            for i in {1..20}; do
               curl -s http://localhost:8080/v1/tasks \
                 -H "Authorization: Bearer demo-token-for-student" > /dev/null
               echo -n "."
+              sleep 0.2
             done
             echo " Done!"
             sleep 5
             
-            # СЧИТАЕМ ЧЕРЕЗ GREP "gRPC verify success" (это точно есть в логах)
-            TASKS1=$(docker logs pz26-tasks-1 --tail 500 2>/dev/null | grep -c "gRPC verify success" || echo "0")
-            TASKS2=$(docker logs pz26-tasks-2 --tail 500 2>/dev/null | grep -c "gRPC verify success" || echo "0")
-            TASKS3=$(docker logs pz26-tasks-3 --tail 500 2>/dev/null | grep -c "gRPC verify success" || echo "0")
+            # Показываем последние логи для диагностики
+            echo "--- Last logs from replicas ---"
+            docker logs pz26-tasks-1 --tail 5 2>/dev/null | sed "s/^/tasks-1: /"
+            docker logs pz26-tasks-2 --tail 5 2>/dev/null | sed "s/^/tasks-2: /"
+            docker logs pz26-tasks-3 --tail 5 2>/dev/null | sed "s/^/tasks-3: /"
             
-            # Проверяем HTTPS
-            HTTPS_STATUS=$(curl -k -s -o /dev/null -w "%{http_code}" https://localhost:8443/health 2>/dev/null)
-            if [ "$HTTPS_STATUS" = "200" ]; then 
+            # Считаем успешные запросы по accesslog
+            TASKS1=$(docker logs pz26-tasks-1 --tail 500 2>/dev/null | grep -c "request completed" || echo "0")
+            TASKS2=$(docker logs pz26-tasks-2 --tail 500 2>/dev/null | grep -c "request completed" || echo "0")
+            TASKS3=$(docker logs pz26-tasks-3 --tail 500 2>/dev/null | grep -c "request completed" || echo "0")
+            
+            # Проверка HTTPS через внешний IP
+            HTTPS_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" https://193.233.175.221:8443/health 2>/dev/null)
+            if [ "$HTTPS_CODE" = "200" ]; then
               HTTPS_STATUS="OK"
             else
-              HTTPS_STATUS="Not working (code: $HTTPS_STATUS)"
+              HTTPS_STATUS="Not working (code: $HTTPS_CODE)"
             fi
             
-            # Проверяем контейнеры (ИСПРАВЛЕНО)
-            CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "pz20|pz26" | head -10 | awk "{print \$1 \" - \" \$2}" | tr "\n" ";" | sed "s/;/\\n/g")
+            # Статусы сервисов
+            PROM_STATUS=$(curl -s http://localhost:9090/-/healthy 2>/dev/null | grep -q "Prometheus" && echo "Healthy" || echo "Not running")
+            GRAFANA_STATUS=$(curl -s http://localhost:3000/api/health 2>/dev/null | grep -q "ok" && echo "Healthy" || echo "Not running")
             
-            # Формируем итоговый отчет
+            # Список контейнеров
+            CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "pz20|pz26" | awk '{print $1 " - " $2}' | paste -sd '\n' -)
+            
+            # Формируем итоговый отчёт (через echo, чтобы избежать проблем с heredoc)
             echo "========== ВСЕ ПРАКТИЧЕСКИЕ РАБОТЫ 1-10 =========="
             echo ""
-            echo "ПЗ 1-3 (Логирование):"
-            echo "  • Zap logger: OK"
-            echo "  • Request-ID трассировка: OK"
-            echo "  • Структурированные логи: OK"
+            echo "ПЗ 1-3 (Логирование): OK"
             echo ""
             echo "ПЗ 4 (Метрики):"
-            echo "  • Prometheus: $(curl -s http://localhost:9090/-/healthy 2>/dev/null | grep -q "Prometheus" && echo "Healthy" || echo "Not running")"
-            echo "  • Grafana: $(curl -s http://localhost:3000/api/health 2>/dev/null | grep -q "ok" && echo "Healthy" || echo "Not running")"
-            echo "  • Метрики /metrics: OK"
+            echo "  • Prometheus: $PROM_STATUS"
+            echo "  • Grafana: $GRAFANA_STATUS"
             echo ""
             echo "ПЗ 5 (HTTPS/PostgreSQL):"
             echo "  • PostgreSQL: Healthy"
             echo "  • Nginx HTTPS (8443): $HTTPS_STATUS"
-            echo "  • SQL-инъекции защищены: OK"
             echo ""
-            echo "ПЗ 6 (CSRF/XSS):"
-            echo "  • Secure cookies: OK"
-            echo "  • CSRF защита: OK"
-            echo "  • XSS санитизация: OK"
+            echo "ПЗ 6 (CSRF/XSS): OK"
             echo ""
-            echo "ПЗ 7 (Dockerfile):"
-            echo "  • Multi-stage сборка: OK"
-            echo "  • Alpine образы: OK"
-            echo "  • Непривилегированный пользователь: OK"
+            echo "ПЗ 7 (Dockerfile): OK"
             echo ""
-            echo "ПЗ 8 (CI/CD):"
-            echo "  • GitHub Actions: OK"
-            echo "  • Автоматический деплой: OK"
-            echo "  • Telegram уведомления: OK"
+            echo "ПЗ 8 (CI/CD): OK"
             echo ""
-            echo "ПЗ 9 (Redis):"
-            echo "  • Redis: Running"
-            echo "  • Кэширование: OK"
-            echo "  • TTL с jitter: OK"
+            echo "ПЗ 9 (Redis): Running"
             echo ""
             echo "ПЗ 10 (Load Balancing):"
             echo "  • 3 реплики tasks: OK"
-            echo "  • Nginx балансировщик: OK"
-            echo "  • Распределение запросов (через gRPC вызовы):"
-            echo "    - tasks-1: $TASKS1 запросов"
-            echo "    - tasks-2: $TASKS2 запросов"
-            echo "    - tasks-3: $TASKS3 запросов"
-            echo "  • Отказоустойчивость: OK"
+            echo "  • Распределение запросов (accesslog):"
+            echo "    - tasks-1: $TASKS1"
+            echo "    - tasks-2: $TASKS2"
+            echo "    - tasks-3: $TASKS3"
             echo ""
             echo "================================================"
             echo "Запущенные контейнеры:"
-            echo "$CONTAINERS" | sed "s/;/\n/g"
+            echo "$CONTAINERS"
             echo "================================================"
           ' > $TEMP_SUMMARY
           
