@@ -45,8 +45,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Invalid gRPC port", zap.Error(err))
 	}
-
-	// Инициализируем сервисы
+	
 	authService := service.NewAuthService(log)
 	sessionService := service.NewSessionService(log)
 
