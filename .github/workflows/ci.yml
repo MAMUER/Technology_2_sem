@@ -261,16 +261,17 @@ jobs:
             echo " Done!"
             sleep 5
             
-            # Показываем последние логи для диагностики
-            echo "--- Last logs from replicas ---"
-            docker logs pz26-tasks-1 --tail 5 2>/dev/null | sed "s/^/tasks-1: /"
-            docker logs pz26-tasks-2 --tail 5 2>/dev/null | sed "s/^/tasks-2: /"
-            docker logs pz26-tasks-3 --tail 5 2>/dev/null | sed "s/^/tasks-3: /"
+            # Показываем последние логи реплик для диагностики
+            echo "--- Last 10 logs from replicas ---"
+            for repl in 1 2 3; do
+              echo "=== tasks-$repl ==="
+              docker logs pz26-tasks-$repl --tail 10 2>/dev/null || echo "No logs"
+            done
             
-            # Считаем успешные запросы по логам (и request completed, и gRPC verify success)
-            TASKS1=$(docker logs pz26-tasks-1 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success" | wc -l | tr -d ' ')
-            TASKS2=$(docker logs pz26-tasks-2 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success" | wc -l | tr -d ' ')
-            TASKS3=$(docker logs pz26-tasks-3 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success" | wc -l | tr -d ' ')
+            # Считаем успешные запросы по логам (используем универсальные ключевые слова)
+            TASKS1=$(docker logs pz26-tasks-1 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated" | wc -l | tr -d ' ')
+            TASKS2=$(docker logs pz26-tasks-2 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated" | wc -l | tr -d ' ')
+            TASKS3=$(docker logs pz26-tasks-3 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated" | wc -l | tr -d ' ')
             
             # Проверка HTTPS через внешний IP
             HTTPS_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" https://193.233.175.221:8443/health 2>/dev/null)
@@ -284,8 +285,8 @@ jobs:
             PROM_STATUS=$(curl -s http://localhost:9090/-/healthy 2>/dev/null | grep -q "Prometheus" && echo "Healthy" || echo "Not running")
             GRAFANA_STATUS=$(curl -s http://localhost:3000/api/health 2>/dev/null | grep -q "ok" && echo "Healthy" || echo "Not running")
             
-            # Список контейнеров (упрощённо, без awk, чтобы избежать ошибок)
-            CONTAINERS=$(docker ps --format "{{.Names}} ({{.Status}})" | grep -E "pz20|pz26" | paste -sd ', ')
+            # Список всех контейнеров проекта
+            CONTAINERS=$(docker ps --format "{{.Names}} ({{.Status}})" | grep -E "pz20|pz26" | sort | paste -sd ', ')
             
             # Формируем итоговый отчёт
             echo "========== ВСЕ ПРАКТИЧЕСКИЕ РАБОТЫ 1-10 =========="
@@ -310,7 +311,7 @@ jobs:
             echo ""
             echo "ПЗ 10 (Load Balancing):"
             echo "  • 3 реплики tasks: OK"
-            echo "  • Распределение запросов (accesslog):"
+            echo "  • Распределение запросов (по логам):"
             echo "    - tasks-1: $TASKS1"
             echo "    - tasks-2: $TASKS2"
             echo "    - tasks-3: $TASKS3"
@@ -352,8 +353,7 @@ jobs:
             
             API Tests: Passed
             
-            Load Balancing Test Results:
-            ${{ needs.deploy.outputs.lb_results }}
+            Load Balancing Test: completed (see summary below)
             
             Summary of all practices 1-10:
             ${{ needs.deploy.outputs.summary }}
