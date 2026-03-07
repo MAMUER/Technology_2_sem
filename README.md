@@ -687,47 +687,47 @@ C:.
 #### Создание задачи
 ![фото36](./PR1-16/Screenshot_36.png)
 #### Поиск
-[фото37](./PR1-16/Screenshot_37.png)
+![фото37](./PR1-16/Screenshot_37.png)
 #### Поиск с SQL-инъекцией
-[фото38](./PR1-16/Screenshot_38.png)
+![фото38](./PR1-16/Screenshot_38.png)
 #### Поиск с SQL-инъекцией (не работает)
-[фото39](./PR1-16/Screenshot_39.png)
+![фото39](./PR1-16/Screenshot_39.png)
 ### CSRF
 #### Login
-[фото40](./PR1-16/Screenshot_40.png)
+![фото40](./PR1-16/Screenshot_40.png)
 #### Cookies
-[фото41](./PR1-16/Screenshot_41.png)
+![фото41](./PR1-16/Screenshot_41.png)
 #### Отсутствие CSRF
-[фото42](./PR1-16/Screenshot_42.png)
+![фото42](./PR1-16/Screenshot_42.png)
 #### Создание задачи с CSRF
-[фото43](./PR1-16/Screenshot_43.png)
+![фото43](./PR1-16/Screenshot_43.png)
 #### Проверка работы защиты
-[фото44](./PR1-16/Screenshot_44.png)
+![фото44](./PR1-16/Screenshot_44.png)
 #### Проверка сетевого взаимодействия
-[фото45](./PR1-16/Screenshot_45.png)
+![фото45](./PR1-16/Screenshot_45.png)
 
-[фото46](./PR1-16/Screenshot_46.png)
+![фото46](./PR1-16/Screenshot_46.png)
 
-[фото47](./PR1-16/Screenshot_47.png)
+![фото47](./PR1-16/Screenshot_47.png)
 
-[фото48](./PR1-16/Screenshot_48.png)
+![фото48](./PR1-16/Screenshot_48.png)
 ### Успешный прогон Actions
-[фото49](./PR1-16/Screenshot_49.png)
+![фото49](./PR1-16/Screenshot_49.png)
 ### Переменные Actions на GitHub
-[фото50](./PR1-16/Screenshot_50.png)
+![фото50](./PR1-16/Screenshot_50.png)
 ### Телеграм бот с уведомлением о состоянии jobs
-[фото51](./PR1-16/Screenshot_51.png)
+![фото51](./PR1-16/Screenshot_51.png)
 ### Ключи кэша (Redis)
-[фото52](./PR1-16/Screenshot_52.png)
+![фото52](./PR1-16/Screenshot_52.png)
 ### Логи с hit/miss
-[фото53](./PR1-16/Screenshot_53.png)
+![фото53](./PR1-16/Screenshot_53.png)
 ### Сравнение времени запросов (hit vs miss)
-[фото54](./PR1-16/Screenshot_54.png)
+![фото54](./PR1-16/Screenshot_54.png)
 ### TTL ключа
-[фото55](./PR1-16/Screenshot_55.png)
+![фото55](./PR1-16/Screenshot_55.png)
 ### Проверка деградации (остановка Redis)
-[фото56](./PR1-16/Screenshot_56.png)
+![фото56](./PR1-16/Screenshot_56.png)
 ### Конфигурация Redis в docker-compose
-[фото57](./PR1-16/Screenshot_57.png)
+![фото57](./PR1-16/Screenshot_57.png)
 ### Переменные окружения
-[фото58](./PR1-16/Screenshot_58.png)
+![фото58](./PR1-16/Screenshot_58.png)
