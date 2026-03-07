@@ -45,11 +45,10 @@ func main() {
 	if err != nil {
 		log.Fatal("Invalid gRPC port", zap.Error(err))
 	}
-	
+
 	authService := service.NewAuthService(log)
 	sessionService := service.NewSessionService(log)
 
-	// Запускаем периодическую очистку истекших сессий
 	go func() {
 		ticker := time.NewTicker(1 * time.Hour)
 		defer ticker.Stop()
