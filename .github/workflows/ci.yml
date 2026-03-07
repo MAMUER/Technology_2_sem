@@ -327,8 +327,8 @@ jobs:
               HTTPS_STATUS="Not working (code: $HTTPS_STATUS)"
             fi
             
-            # Проверяем контейнеры
-            CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "pz20|pz26" | head -10 | sed 's/   */ /g' | tr '\n' ';' | sed 's/;/\\n/g')
+            # Проверяем контейнеры (ИСПРАВЛЕНО)
+            CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "pz20|pz26" | head -10 | awk "{print \$1 \" - \" \$2}" | tr "\n" ";" | sed "s/;/\\n/g")
             
             # Формируем итоговый отчет
             echo "========== ВСЕ ПРАКТИЧЕСКИЕ РАБОТЫ 1-10 =========="
@@ -379,7 +379,7 @@ jobs:
             echo ""
             echo "================================================"
             echo "Запущенные контейнеры:"
-            echo "$CONTAINERS"
+            echo "$CONTAINERS" | sed "s/;/\n/g"
             echo "================================================"
           ' > $TEMP_SUMMARY
           
