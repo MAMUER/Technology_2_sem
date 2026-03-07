@@ -250,19 +250,38 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             cd /opt/techip
             
+            echo "=== DIAGNOSTICS START ==="
+            
+            # Проверяем, что контейнеры реплик запущены
+            echo "1. Tasks replicas status:"
+            docker ps --filter "name=pz26-tasks" --format "table {{.Names}}\t{{.Status}}"
+            
+            # Проверяем доступность реплик из контейнера nginx
+            echo "2. Connectivity from nginx to replicas:"
+            for repl in tasks_1 tasks_2 tasks_3; do
+              echo -n "   $repl: "
+              docker exec pz26-nginx curl -s -o /dev/null -w "%{http_code}" http://$repl:8082/health || echo "failed"
+            done
+            
+            # Проверяем логи nginx до нагрузки
+            echo "3. Nginx logs before load:"
+            docker logs pz26-nginx --tail 10 2>&1 || echo "No logs"
+            
             # Генерируем нагрузку через балансировщик
-            echo "Generating test load for statistics..."
+            echo "4. Generating test load through load balancer..."
             for i in {1..20}; do
-              curl -s http://localhost:8080/v1/tasks \
-                -H "Authorization: Bearer demo-token-for-student" > /dev/null
-              echo -n "."
+              curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/v1/tasks \
+                -H "Authorization: Bearer demo-token-for-student" && echo -n "." || echo -n "F"
               sleep 0.2
             done
             echo " Done!"
-            sleep 5
             
-            # Показываем последние логи реплик для диагностики
-            echo "--- Last 10 logs from replicas ---"
+            # Проверяем логи nginx после нагрузки
+            echo "5. Nginx logs after load (should show requests):"
+            docker logs pz26-nginx --tail 20 2>&1 || echo "No logs"
+            
+            # Проверяем логи реплик после нагрузки
+            echo "6. Last logs from replicas after load:"
             for repl in 1 2 3; do
               echo "=== tasks-$repl ==="
               docker logs pz26-tasks-$repl --tail 10 2>/dev/null || echo "No logs"
@@ -287,6 +306,8 @@ jobs:
             
             # Список всех контейнеров проекта
             CONTAINERS=$(docker ps --format "{{.Names}} ({{.Status}})" | grep -E "pz20|pz26" | sort | paste -sd ', ')
+            
+            echo "=== DIAGNOSTICS END ==="
             
             # Формируем итоговый отчёт
             echo "========== ВСЕ ПРАКТИЧЕСКИЕ РАБОТЫ 1-10 =========="
