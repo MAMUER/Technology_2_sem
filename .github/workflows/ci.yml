@@ -1,0 +1,214 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+    
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: '1.25'
+  REGISTRY: ghcr.io
+
+jobs:
+  test:
+    name: Test and Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      
+      - name: List directory structure
+        run: |
+          pwd
+          ls -la
+          ls -la services/ || echo "services dir not found"
+          ls -la services/auth/ || echo "auth dir not found"
+          ls -la services/auth/cmd/ || echo "cmd dir not found"
+      
+      - name: Install dependencies
+        run: go mod download
+      
+      - name: Run vet
+        run: go vet ./...
+      
+      - name: Run tests
+        run: go test -v ./...
+
+  build:
+    name: Build Binaries
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      
+      - name: Create bin directory
+        run: mkdir -p bin
+      
+      - name: Build Auth Service
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Building Auth Service..."
+          go build -o bin/auth-service ./services/auth/cmd/auth
+      
+      - name: Build Tasks Service
+        run: |
+          echo "Building Tasks Service..."
+          go build -o bin/tasks-service ./services/tasks/cmd/tasks
+      
+      - name: List built binaries
+        run: ls -la bin/
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: bin/
+          retention-days: 7
+
+  docker:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Prepare repository name
+        id: repo-name
+        run: |
+          REPO="${{ github.repository }}"
+          REPO_LOWER=$(echo $REPO | tr '[:upper:]' '[:lower:]')
+          echo "repo_lower=$REPO_LOWER" >> $GITHUB_OUTPUT
+          echo "Repository in lowercase: $REPO_LOWER"
+      
+      - uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata for Auth
+        id: meta-auth
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.repo-name.outputs.repo_lower }}/auth
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Auth image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/auth/Dockerfile
+          push: true
+          tags: ${{ steps.meta-auth.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Extract metadata for Tasks
+        id: meta-tasks
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.repo-name.outputs.repo_lower }}/tasks
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Tasks image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/tasks/Dockerfile
+          push: true
+          tags: ${{ steps.meta-tasks.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Add host to known_hosts
+        run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Prepare server
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            mkdir -p /opt/techip
+            mkdir -p /opt/techip/certs
+          '
+      
+      - name: Copy configuration files
+        run: |
+          scp docker-compose.prod.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/docker-compose.yml
+          scp deploy/tls/nginx.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/nginx.conf
+          scp deploy/monitoring/prometheus.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/prometheus.yml
+          scp deploy/tls/init.sql ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/init.sql
+      
+      - name: Copy certificates
+        run: |
+          scp deploy/tls/certs/cert.pem ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/certs/ 2>/dev/null || true
+      
+      - name: Deploy
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            cd /opt/techip
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker-compose pull
+            docker-compose up -d
+            docker image prune -f
+          '
+
+  notify:
+    name: Send Notification
+    runs-on: ubuntu-latest
+    needs: [test, build, docker, deploy]
+    if: always() && github.event_name == 'push'
+    steps:
+      - name: Send Telegram notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            CI/CD Pipeline completed!
+            
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            
+            Test: ${{ needs.test.result }}
+            Build: ${{ needs.build.result }}
+            Docker: ${{ needs.docker.result }}
+            Deploy: ${{ needs.deploy.result }}

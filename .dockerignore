@@ -1,0 +1,48 @@
+# Зависимости
+vendor/
+*.log
+*.pid
+*.lock
+
+# Временные файлы
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Локальные конфиги
+.env
+.env.local
+.env.*.local
+
+# Докер файлы
+.dockerignore
+Dockerfile
+docker-compose*.yml
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Результаты сборки
+dist/
+build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out

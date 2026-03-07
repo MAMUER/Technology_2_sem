@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'tasks-service'
+    static_configs:
+      - targets: ['tasks:8082']  # В Docker сети
+    metrics_path: /metrics
+    scrape_interval: 5s
+    scrape_timeout: 3s
+
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth:8081']    # В Docker сети
+    metrics_path: /metrics
+    scrape_interval: 5s
+    scrape_timeout: 3s
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

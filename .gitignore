@@ -1,0 +1,39 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Secrets
+secrets/
+passwords.txt
+*.secret
+
+# Docker
+*.pid
+*.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+/logs/
+
+# Database
+*.db
+*.sqlite
+
+# TLS certificates
+deploy/tls/certs/
+*.pem
+*.crt
+*.key
+
+# Cookies
+cookies.txt
+*.cookies

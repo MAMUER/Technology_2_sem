@@ -1,0 +1,65 @@
+{
+  "dashboard": {
+    "title": "Tasks Service Dashboard",
+    "timezone": "browser",
+    "panels": [
+      {
+        "title": "RPS (Requests per second)",
+        "type": "graph",
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{service=\"tasks\"}[1m])",
+            "legendFormat": "{{method}} {{route}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "title": "Error Rate (4xx/5xx)",
+        "type": "graph",
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{service=\"tasks\", status=~\"4..\"}[1m]))",
+            "legendFormat": "4xx errors"
+          },
+          {
+            "expr": "sum(rate(http_requests_total{service=\"tasks\", status=~\"5..\"}[1m]))",
+            "legendFormat": "5xx errors"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "title": "Request Duration p95",
+        "type": "graph",
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service=\"tasks\"}[5m])) by (le, method))",
+            "legendFormat": "p95 - {{method}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "title": "In-Flight Requests",
+        "type": "graph",
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "http_requests_in_flight{service=\"tasks\"}",
+            "legendFormat": "current"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      }
+    ],
+    "refresh": "5s",
+    "time": {
+      "from": "now-5m",
+      "to": "now"
+    }
+  }
+}
