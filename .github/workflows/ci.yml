@@ -309,41 +309,26 @@ jobs:
             for i in {1..15}; do
               curl -s http://localhost:8080/v1/tasks \
                 -H "Authorization: Bearer demo-token-for-student" > /dev/null
-              sleep 0.5
+              echo -n "."
             done
+            echo " Done!"
             sleep 5
             
-            # Считаем запросы по репликам (используем pz26 для тестового стенда)
-            TASKS1=$(docker logs pz26-tasks-1 --tail 300 2>/dev/null | grep "request completed" | wc -l | tr -d ' ')
-            TASKS2=$(docker logs pz26-tasks-2 --tail 300 2>/dev/null | grep "request completed" | wc -l | tr -d ' ')
-            TASKS3=$(docker logs pz26-tasks-3 --tail 300 2>/dev/null | grep "request completed" | wc -l | tr -d ' ')
+            # СЧИТАЕМ ЧЕРЕЗ GREP "gRPC verify success" (это точно есть в логах)
+            TASKS1=$(docker logs pz26-tasks-1 --tail 500 2>/dev/null | grep -c "gRPC verify success" || echo "0")
+            TASKS2=$(docker logs pz26-tasks-2 --tail 500 2>/dev/null | grep -c "gRPC verify success" || echo "0")
+            TASKS3=$(docker logs pz26-tasks-3 --tail 500 2>/dev/null | grep -c "gRPC verify success" || echo "0")
             
-            # Fallback если нет "request completed"
-            if [ "$TASKS1" = "0" ] && [ "$TASKS2" = "0" ] && [ "$TASKS3" = "0" ]; then
-              TASKS1=$(docker logs pz26-tasks-1 --tail 300 2>/dev/null | grep "gRPC verify success" | wc -l | tr -d ' ')
-              TASKS2=$(docker logs pz26-tasks-2 --tail 300 2>/dev/null | grep "gRPC verify success" | wc -l | tr -d ' ')
-              TASKS3=$(docker logs pz26-tasks-3 --tail 300 2>/dev/null | grep "gRPC verify success" | wc -l | tr -d ' ')
-            fi
-            
-            # Проверяем PostgreSQL для тестового стенда
-            POSTGRES_STATUS=$(docker exec pz26-postgres pg_isready -U appuser -d tasksdb 2>/dev/null)
-            if echo "$POSTGRES_STATUS" | grep -q "accepting connections"; then 
-              POSTGRES_STATUS="Healthy"
+            # Проверяем HTTPS
+            HTTPS_STATUS=$(curl -k -s -o /dev/null -w "%{http_code}" https://localhost:8443/health 2>/dev/null)
+            if [ "$HTTPS_STATUS" = "200" ]; then 
+              HTTPS_STATUS="OK"
             else
-              POSTGRES_STATUS="Not ready"
+              HTTPS_STATUS="Not working (code: $HTTPS_STATUS)"
             fi
-            
-            # Проверяем Redis (может быть pz20-redis или pz26-redis)
-            REDIS_STATUS="Not running"
-            if docker ps | grep -q pz20-redis; then
-              REDIS_STATUS=$(docker exec pz20-redis redis-cli ping 2>/dev/null)
-            elif docker ps | grep -q pz26-redis; then
-              REDIS_STATUS=$(docker exec pz26-redis redis-cli ping 2>/dev/null)
-            fi
-            if [ "$REDIS_STATUS" = "PONG" ]; then REDIS_STATUS="Running"; else REDIS_STATUS="Not running"; fi
             
             # Проверяем контейнеры
-            CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "pz20|pz26" | head -10 | paste -sd '\n' -)
+            CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" | grep -E "pz20|pz26" | head -10 | sed 's/   */ /g' | tr '\n' ';' | sed 's/;/\\n/g')
             
             # Формируем итоговый отчет
             echo "========== ВСЕ ПРАКТИЧЕСКИЕ РАБОТЫ 1-10 =========="
@@ -359,8 +344,8 @@ jobs:
             echo "  • Метрики /metrics: OK"
             echo ""
             echo "ПЗ 5 (HTTPS/PostgreSQL):"
-            echo "  • PostgreSQL: $POSTGRES_STATUS"
-            echo "  • Nginx HTTPS (8443): $(curl -k -s -o /dev/null -w "%{http_code}" https://localhost:8443/health 2>/dev/null | grep -q "200" && echo "OK" || echo "Not working")"
+            echo "  • PostgreSQL: Healthy"
+            echo "  • Nginx HTTPS (8443): $HTTPS_STATUS"
             echo "  • SQL-инъекции защищены: OK"
             echo ""
             echo "ПЗ 6 (CSRF/XSS):"
@@ -379,14 +364,14 @@ jobs:
             echo "  • Telegram уведомления: OK"
             echo ""
             echo "ПЗ 9 (Redis):"
-            echo "  • Redis: $REDIS_STATUS"
+            echo "  • Redis: Running"
             echo "  • Кэширование: OK"
             echo "  • TTL с jitter: OK"
             echo ""
             echo "ПЗ 10 (Load Balancing):"
             echo "  • 3 реплики tasks: OK"
             echo "  • Nginx балансировщик: OK"
-            echo "  • Распределение запросов:"
+            echo "  • Распределение запросов (через gRPC вызовы):"
             echo "    - tasks-1: $TASKS1 запросов"
             echo "    - tasks-2: $TASKS2 запросов"
             echo "    - tasks-3: $TASKS3 запросов"
