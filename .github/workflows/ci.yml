@@ -158,7 +158,25 @@ jobs:
       - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      
+
+      - name: Create .env file from environment variables
+        run: |
+          cat > .env << EOF
+          POSTGRES_USER=${{ vars.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ vars.POSTGRES_DB }}
+          GRAFANA_ADMIN_USER=${{ vars.GRAFANA_ADMIN_USER }}
+          GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          AUTH_PORT=8081
+          AUTH_GRPC_PORT=50051
+          TASKS_PORT=8082
+          AUTH_GRPC_ADDR=auth:50051
+          DB_HOST=postgres
+          DB_PORT=5432
+          DB_NAME=${{ vars.POSTGRES_DB }}
+          DB_SSLMODE=disable
+          EOF
+          
       - name: Add host to known_hosts
         run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
       
