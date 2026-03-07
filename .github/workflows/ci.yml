@@ -234,16 +234,14 @@ jobs:
             cp deploy/lb/docker-compose.yml docker-compose.lb.yml
             cp deploy/lb/nginx.conf nginx.lb.conf
             
-            # Запускаем тестовый стенд
+            # Запускаем тестовый стенд (используем готовые образы)
             echo "=== STARTING LOAD BALANCER TEST ==="
+            docker-compose -f docker-compose.lb.yml pull
             docker-compose -f docker-compose.lb.yml up -d
             sleep 15
             
             # Собираем результаты
-            RESULT=""
-            
-            # Проверка 1: Round-robin распределение
-            echo "=== ROUND-ROBIN TEST ===" >> lb_results.txt
+            echo "=== ROUND-ROBIN TEST ===" > lb_results.txt
             for i in {1..6}; do
               INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
                 -H "Authorization: Bearer demo-token-for-student" \
@@ -251,7 +249,6 @@ jobs:
               echo "Request $i: $INSTANCE" >> lb_results.txt
             done
             
-            # Проверка 2: Отказоустойчивость
             echo "" >> lb_results.txt
             echo "=== FAILOVER TEST ===" >> lb_results.txt
             echo "Stopping tasks_2..." >> lb_results.txt
@@ -265,12 +262,12 @@ jobs:
               echo "Request $i: $INSTANCE" >> lb_results.txt
             done
             
-            # Восстанавливаем
+            echo "" >> lb_results.txt
             echo "Restarting tasks_2..." >> lb_results.txt
             docker start pz26-tasks-2
             sleep 5
             
-            # Читаем результаты
+            # Выводим результаты
             cat lb_results.txt
             
             # Передаем в output

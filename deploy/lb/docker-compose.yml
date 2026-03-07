@@ -1,7 +1,4 @@
-version: '3.8'
-
 services:
-  # PostgreSQL база данных (общая для всех реплик)
   postgres:
     image: postgres:15-alpine
     container_name: pz26-postgres
@@ -13,7 +10,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - pz26-network
     healthcheck:
@@ -23,30 +19,18 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # Auth сервис (один экземпляр)
   auth:
-    build:
-      context: ../..
-      dockerfile: services/auth/Dockerfile
+    image: ghcr.io/mamuer/technology_2_sem/auth:latest
     container_name: pz26-auth
     environment:
       - AUTH_PORT=8081
       - AUTH_GRPC_PORT=50051
     networks:
       - pz26-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/v1/auth/verify", "--header=Authorization: Bearer demo-token-for-student"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
     restart: unless-stopped
 
-  # Реплика 1 tasks сервиса
   tasks_1:
-    build:
-      context: ../..
-      dockerfile: services/tasks/Dockerfile
+    image: ghcr.io/mamuer/technology_2_sem/tasks:latest
     container_name: pz26-tasks-1
     environment:
       - TASKS_PORT=8082
@@ -61,17 +45,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      auth:
-        condition: service_healthy
     networks:
       - pz26-network
     restart: unless-stopped
 
-  # Реплика 2 tasks сервиса
   tasks_2:
-    build:
-      context: ../..
-      dockerfile: services/tasks/Dockerfile
+    image: ghcr.io/mamuer/technology_2_sem/tasks:latest
     container_name: pz26-tasks-2
     environment:
       - TASKS_PORT=8082
@@ -86,17 +65,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      auth:
-        condition: service_healthy
     networks:
       - pz26-network
     restart: unless-stopped
 
-  # Реплика 3 tasks сервиса
   tasks_3:
-    build:
-      context: ../..
-      dockerfile: services/tasks/Dockerfile
+    image: ghcr.io/mamuer/technology_2_sem/tasks:latest
     container_name: pz26-tasks-3
     environment:
       - TASKS_PORT=8082
@@ -111,13 +85,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      auth:
-        condition: service_healthy
     networks:
       - pz26-network
     restart: unless-stopped
 
-  # NGINX как load balancer
   nginx:
     image: nginx:alpine
     container_name: pz26-nginx
