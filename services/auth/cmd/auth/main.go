@@ -64,11 +64,10 @@ func main() {
 	httpMux.HandleFunc("GET /v1/auth/verify", httpHandlers.Verify)
 	httpMux.HandleFunc("GET /v1/auth/csrf", httpHandlers.GetCSRFToken)
 
-	// Метрики
 	httpMux.Handle("GET /metrics", metrics.Handler())
 
 	handler := middleware.RequestID(httpMux)
-	handler = middleware.SecurityHeaders(handler) // Добавляем заголовки безопасности
+	handler = middleware.SecurityHeaders(handler)
 	handler = middleware.DebugRequestID(log)(handler)
 	handler = middleware.Metrics(metrics)(handler)
 	handler = middleware.AccessLog(log)(handler)
