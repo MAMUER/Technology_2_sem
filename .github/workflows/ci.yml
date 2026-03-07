@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: CI/CD Pipeline
 
 on:
@@ -6,6 +7,10 @@ on:
   pull_request:
     branches: [main, master]
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
