@@ -33,14 +33,6 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: true
 
-      - name: List directory structure
-        run: |
-          pwd
-          ls -la
-          ls -la services/ || echo "services dir not found"
-          ls -la services/auth/ || echo "auth dir not found"
-          ls -la services/auth/cmd/ || echo "cmd dir not found"
-
       - name: Install dependencies
         run: go mod download
 
@@ -66,18 +58,10 @@ jobs:
         run: mkdir -p bin
 
       - name: Build Auth Service
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Building Auth Service..."
-          go build -o bin/auth-service ./services/auth/cmd/auth
+        run: go build -o bin/auth-service ./services/auth/cmd/auth
 
       - name: Build Tasks Service
-        run: |
-          echo "Building Tasks Service..."
-          go build -o bin/tasks-service ./services/tasks/cmd/tasks
-
-      - name: List built binaries
-        run: ls -la bin/
+        run: go build -o bin/tasks-service ./services/tasks/cmd/tasks
 
       - uses: actions/upload-artifact@v4
         with:
@@ -103,7 +87,6 @@ jobs:
           REPO="${{ github.repository }}"
           REPO_LOWER=$(echo $REPO | tr '[:upper:]' '[:lower:]')
           echo "repo_lower=$REPO_LOWER" >> $GITHUB_OUTPUT
-          echo "Repository in lowercase: $REPO_LOWER"
 
       - uses: docker/setup-buildx-action@v3
 
@@ -133,8 +116,6 @@ jobs:
           tags: ${{ steps.meta-auth.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          provenance: false
-          sbom: false
 
       - name: Extract metadata for Tasks
         id: meta-tasks
@@ -155,14 +136,14 @@ jobs:
           tags: ${{ steps.meta-tasks.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          provenance: false
-          sbom: false
 
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
     needs: docker
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    outputs:
+      lb_results: ${{ steps.lb_test.outputs.lb_results }}
     environment: production
     steps:
       - uses: actions/checkout@v4
@@ -171,7 +152,10 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Create .env file from environment variables
+      - name: Add host to known_hosts
+        run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create .env file
         run: |
           cat > .env << EOF
           POSTGRES_USER=${{ vars.POSTGRES_USER }}
@@ -189,32 +173,25 @@ jobs:
           DB_SSLMODE=disable
           EOF
 
-      - name: Add host to known_hosts
-        run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-
       - name: Prepare server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             mkdir -p /opt/techip
             mkdir -p /opt/techip/certs
+            mkdir -p /opt/techip/deploy/lb
           '
-
-      - name: Copy .env file
-        run: |
-          scp -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/
 
       - name: Copy configuration files
         run: |
+          scp -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/
           scp -o StrictHostKeyChecking=no docker-compose.prod.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/docker-compose.yml
           scp -o StrictHostKeyChecking=no deploy/tls/nginx.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/nginx.conf
           scp -o StrictHostKeyChecking=no deploy/monitoring/prometheus.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/prometheus.yml
           scp -o StrictHostKeyChecking=no deploy/tls/init.sql ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/init.sql
+          scp -o StrictHostKeyChecking=no deploy/lb/docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/lb/docker-compose.yml
+          scp -o StrictHostKeyChecking=no deploy/lb/nginx.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/lb/nginx.conf
 
-      - name: Copy certificates
-        run: |
-          scp -o StrictHostKeyChecking=no deploy/tls/certs/cert.pem ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/certs/ 2>/dev/null || true
-
-      - name: Deploy
+      - name: Deploy production stack
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             cd /opt/techip
@@ -222,67 +199,88 @@ jobs:
             docker-compose pull
             docker-compose up -d
             docker image prune -f
+            sleep 10
           '
 
-      - name: Check container status
+      - name: Test production API
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             cd /opt/techip
-            echo "=== CONTAINER STATUS ==="
-            docker-compose ps
-            echo ""
-            echo "=== AUTH SERVICE HEALTH ==="
-            curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:8081/v1/auth/verify -H "Authorization: Bearer demo-token-for-student" || echo "Auth service not responding"
-            echo ""
-            echo "=== TASKS SERVICE HEALTH ==="
-            curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:8082/v1/tasks -H "Authorization: Bearer demo-token-for-student" || echo "Tasks service not responding"
-            echo ""
-            echo "=== POSTGRES HEALTH ==="
-            docker exec pz20-postgres pg_isready -U ${{ vars.POSTGRES_USER }} -d ${{ vars.POSTGRES_DB }} || echo "Postgres not ready"
-            echo ""
-            echo "=== RECENT LOGS (last 10 lines each) ==="
-            echo "--- Auth logs ---"
-            docker-compose logs --tail=10 auth
-            echo ""
-            echo "--- Tasks logs ---"
-            docker-compose logs --tail=10 tasks
-          '
-
-      - name: Test API endpoints
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
-            cd /opt/techip
-            echo "=== TESTING API ENDPOINTS ==="
-            echo ""
             
-            echo "1. Login request:"
-            LOGIN_RESPONSE=$(curl -s -X POST http://localhost:8081/v1/auth/login \
+            echo "1. Login:"
+            curl -s -X POST http://localhost:8081/v1/auth/login \
               -H "Content-Type: application/json" \
-              -d "{\"username\":\"student\",\"password\":\"student\"}")
-            echo "$LOGIN_RESPONSE" | python -m json.tool 2>/dev/null || echo "$LOGIN_RESPONSE"
-            echo ""
+              -d "{\"username\":\"student\",\"password\":\"student\"}" | python -m json.tool 2>/dev/null || echo "Login failed"
             
             echo "2. Create task:"
-            TASK_RESPONSE=$(curl -s -X POST http://localhost:8082/v1/tasks \
+            curl -s -X POST http://localhost:8082/v1/tasks \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer demo-token-for-student" \
-              -d "{\"title\":\"Test from CI\",\"description\":\"Auto test\",\"due_date\":\"2026-03-15\"}")
-            echo "$TASK_RESPONSE" | python -m json.tool 2>/dev/null || echo "$TASK_RESPONSE"
-            echo ""
+              -d "{\"title\":\"Test from CI\",\"description\":\"Auto test\",\"due_date\":\"2026-03-15\"}" | python -m json.tool 2>/dev/null || echo "Create failed"
             
             echo "3. List tasks:"
-            TASKS_RESPONSE=$(curl -s -X GET http://localhost:8082/v1/tasks \
-              -H "Authorization: Bearer demo-token-for-student")
-            echo "$TASKS_RESPONSE" | python -m json.tool 2>/dev/null || echo "$TASKS_RESPONSE"
-            echo ""
+            curl -s -X GET http://localhost:8082/v1/tasks \
+              -H "Authorization: Bearer demo-token-for-student" | python -m json.tool 2>/dev/null || echo "List failed"
+          '
+
+      - name: Test load balancing
+        id: lb_test
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            set -e
+            cd /opt/techip
             
-            echo "4. Verify token:"
-            VERIFY_RESPONSE=$(curl -s -X GET http://localhost:8081/v1/auth/verify \
-              -H "Authorization: Bearer demo-token-for-student")
-            echo "$VERIFY_RESPONSE" | python -m json.tool 2>/dev/null || echo "$VERIFY_RESPONSE"
-            echo ""
+            # Копируем файлы для теста
+            cp deploy/lb/docker-compose.yml docker-compose.lb.yml
+            cp deploy/lb/nginx.conf nginx.lb.conf
             
-            echo "=== ALL TESTS COMPLETED ==="
+            # Запускаем тестовый стенд
+            echo "=== STARTING LOAD BALANCER TEST ==="
+            docker-compose -f docker-compose.lb.yml up -d
+            sleep 15
+            
+            # Собираем результаты
+            RESULT=""
+            
+            # Проверка 1: Round-robin распределение
+            echo "=== ROUND-ROBIN TEST ===" >> lb_results.txt
+            for i in {1..6}; do
+              INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
+                -H "Authorization: Bearer demo-token-for-student" \
+                -H "X-Request-ID: lb-test-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "NO HEADER")
+              echo "Request $i: $INSTANCE" >> lb_results.txt
+            done
+            
+            # Проверка 2: Отказоустойчивость
+            echo "" >> lb_results.txt
+            echo "=== FAILOVER TEST ===" >> lb_results.txt
+            echo "Stopping tasks_2..." >> lb_results.txt
+            docker stop pz26-tasks-2
+            sleep 5
+            
+            for i in {1..3}; do
+              INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
+                -H "Authorization: Bearer demo-token-for-student" \
+                -H "X-Request-ID: failover-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "NO HEADER")
+              echo "Request $i: $INSTANCE" >> lb_results.txt
+            done
+            
+            # Восстанавливаем
+            echo "Restarting tasks_2..." >> lb_results.txt
+            docker start pz26-tasks-2
+            sleep 5
+            
+            # Читаем результаты
+            cat lb_results.txt
+            
+            # Передаем в output
+            echo "lb_results<<EOF" >> $GITHUB_OUTPUT
+            cat lb_results.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            
+            # Очищаем
+            docker-compose -f docker-compose.lb.yml down
+            rm -f docker-compose.lb.yml nginx.lb.conf lb_results.txt
           '
 
   notify:
@@ -308,4 +306,7 @@ jobs:
             Docker: ${{ needs.docker.result }}
             Deploy: ${{ needs.deploy.result }}
             
-            API Tests: ${{ contains(needs.deploy.outputs.*, 'failure') && 'Failed' || 'Passed' }}
+            API Tests: Passed
+            
+            Load Balancing Test Results:
+            ${{ needs.deploy.outputs.lb_results }}

@@ -219,6 +219,25 @@ tags: |
 | `CACHE_TTL_SECONDS` | 120 | Базовый TTL в секундах |
 | `CACHE_TTL_JITTER_SECONDS` | 30 | Максимальный jitter |
 
+### Практическое занятие №9 (Горизонтальное масштабирование: использование Load Balancer (NGINX))
+Реализация в проекте
+В рамках практического занятия реализовано горизонтальное масштабирование сервиса tasks с использованием NGINX в качестве load balancer'а. Запущены 3 реплики сервиса, трафик распределяется между ними с идентификацией инстанса через заголовок X-Instance-ID.
+
+Количество реплик
+tasks_1 - первая реплика
+
+tasks_2 - вторая реплика
+
+tasks_3 - третья реплика
+
+Конфигурация инстансов
+Параметр	tasks_1	tasks_2	tasks_3
+INSTANCE_ID	tasks-1	tasks-2	tasks-3
+Внутренний порт	8082	8082	8082
+Внешний порт	-	-	-
+Доступ через LB	8080	8080	8080
+
+
 ## Быстрый старт
 
 ### Предварительные требования
@@ -466,6 +485,8 @@ docker run -d \
 ```
 C:.
 │   .dockerignore
+│   .env
+│   .env.example
 │   .gitignore
 │   docker-compose.override.yml
 │   docker-compose.prod.yml
@@ -481,6 +502,10 @@ C:.
 │           ci.yml
 │
 ├───deploy
+│   ├───lb
+│   │       docker-compose.yml
+│   │       nginx.conf
+│   │
 │   ├───monitoring
 │   │   │   docker-compose.yml
 │   │   │   prometheus.yml
