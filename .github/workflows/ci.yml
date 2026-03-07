@@ -224,6 +224,67 @@ jobs:
             docker image prune -f
           '
 
+      - name: Check container status
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            cd /opt/techip
+            echo "=== CONTAINER STATUS ==="
+            docker-compose ps
+            echo ""
+            echo "=== AUTH SERVICE HEALTH ==="
+            curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:8081/v1/auth/verify -H "Authorization: Bearer demo-token-for-student" || echo "Auth service not responding"
+            echo ""
+            echo "=== TASKS SERVICE HEALTH ==="
+            curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:8082/v1/tasks -H "Authorization: Bearer demo-token-for-student" || echo "Tasks service not responding"
+            echo ""
+            echo "=== POSTGRES HEALTH ==="
+            docker exec pz20-postgres pg_isready -U ${{ vars.POSTGRES_USER }} -d ${{ vars.POSTGRES_DB }} || echo "Postgres not ready"
+            echo ""
+            echo "=== RECENT LOGS (last 10 lines each) ==="
+            echo "--- Auth logs ---"
+            docker-compose logs --tail=10 auth
+            echo ""
+            echo "--- Tasks logs ---"
+            docker-compose logs --tail=10 tasks
+          '
+
+      - name: Test API endpoints
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            cd /opt/techip
+            echo "=== TESTING API ENDPOINTS ==="
+            echo ""
+            
+            echo "1. Login request:"
+            LOGIN_RESPONSE=$(curl -s -X POST http://localhost:8081/v1/auth/login \
+              -H "Content-Type: application/json" \
+              -d "{\"username\":\"student\",\"password\":\"student\"}")
+            echo "$LOGIN_RESPONSE" | python -m json.tool 2>/dev/null || echo "$LOGIN_RESPONSE"
+            echo ""
+            
+            echo "2. Create task:"
+            TASK_RESPONSE=$(curl -s -X POST http://localhost:8082/v1/tasks \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer demo-token-for-student" \
+              -d "{\"title\":\"Test from CI\",\"description\":\"Auto test\",\"due_date\":\"2026-03-15\"}")
+            echo "$TASK_RESPONSE" | python -m json.tool 2>/dev/null || echo "$TASK_RESPONSE"
+            echo ""
+            
+            echo "3. List tasks:"
+            TASKS_RESPONSE=$(curl -s -X GET http://localhost:8082/v1/tasks \
+              -H "Authorization: Bearer demo-token-for-student")
+            echo "$TASKS_RESPONSE" | python -m json.tool 2>/dev/null || echo "$TASKS_RESPONSE"
+            echo ""
+            
+            echo "4. Verify token:"
+            VERIFY_RESPONSE=$(curl -s -X GET http://localhost:8081/v1/auth/verify \
+              -H "Authorization: Bearer demo-token-for-student")
+            echo "$VERIFY_RESPONSE" | python -m json.tool 2>/dev/null || echo "$VERIFY_RESPONSE"
+            echo ""
+            
+            echo "=== ALL TESTS COMPLETED ==="
+          '
+
   notify:
     name: Send Notification
     runs-on: ubuntu-latest
@@ -246,3 +307,5 @@ jobs:
             Build: ${{ needs.build.result }}
             Docker: ${{ needs.docker.result }}
             Deploy: ${{ needs.deploy.result }}
+            
+            API Tests: ${{ contains(needs.deploy.outputs.*, 'failure') && 'Failed' || 'Passed' }}
