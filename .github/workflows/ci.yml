@@ -226,6 +226,9 @@ jobs:
       - name: Test load balancing
         id: lb_test
         run: |
+          # Создаем временный файл для результатов
+          TEMP_FILE=$(mktemp)
+          
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             set -e
             cd /opt/techip
@@ -234,24 +237,26 @@ jobs:
             cp deploy/lb/docker-compose.yml docker-compose.lb.yml
             cp deploy/lb/nginx.conf nginx.lb.conf
             
-            # Запускаем тестовый стенд (используем готовые образы)
+            # Запускаем тестовый стенд
             echo "=== STARTING LOAD BALANCER TEST ==="
             docker-compose -f docker-compose.lb.yml pull
             docker-compose -f docker-compose.lb.yml up -d
             sleep 15
             
-            # Собираем результаты
-            echo "=== ROUND-ROBIN TEST ===" > lb_results.txt
+            # Создаем файл с результатами
+            RESULT_FILE="/tmp/lb_results_$(date +%s).txt"
+            
+            echo "=== ROUND-ROBIN TEST ===" > $RESULT_FILE
             for i in {1..6}; do
               INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
                 -H "Authorization: Bearer demo-token-for-student" \
                 -H "X-Request-ID: lb-test-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "NO HEADER")
-              echo "Request $i: $INSTANCE" >> lb_results.txt
+              echo "Request $i: $INSTANCE" >> $RESULT_FILE
             done
             
-            echo "" >> lb_results.txt
-            echo "=== FAILOVER TEST ===" >> lb_results.txt
-            echo "Stopping tasks_2..." >> lb_results.txt
+            echo "" >> $RESULT_FILE
+            echo "=== FAILOVER TEST ===" >> $RESULT_FILE
+            echo "Stopping tasks_2..." >> $RESULT_FILE
             docker stop pz26-tasks-2
             sleep 5
             
@@ -259,26 +264,28 @@ jobs:
               INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
                 -H "Authorization: Bearer demo-token-for-student" \
                 -H "X-Request-ID: failover-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "NO HEADER")
-              echo "Request $i: $INSTANCE" >> lb_results.txt
+              echo "Request $i: $INSTANCE" >> $RESULT_FILE
             done
             
-            echo "" >> lb_results.txt
-            echo "Restarting tasks_2..." >> lb_results.txt
+            echo "" >> $RESULT_FILE
+            echo "Restarting tasks_2..." >> $RESULT_FILE
             docker start pz26-tasks-2
             sleep 5
             
             # Выводим результаты
-            cat lb_results.txt
+            cat $RESULT_FILE
             
-            # Передаем в output
-            echo "lb_results<<EOF" >> $GITHUB_OUTPUT
-            cat lb_results.txt >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-            
-            # Очищаем
-            docker-compose -f docker-compose.lb.yml down
-            rm -f docker-compose.lb.yml nginx.lb.conf lb_results.txt
-          '
+            # Копируем результаты обратно
+            cat $RESULT_FILE
+          ' > $TEMP_FILE
+          
+          # Сохраняем результаты в output
+          echo "lb_results<<EOF" >> $GITHUB_OUTPUT
+          cat $TEMP_FILE >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Очищаем
+          rm -f $TEMP_FILE
 
   notify:
     name: Send Notification
