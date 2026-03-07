@@ -323,31 +323,40 @@ jobs:
             echo "1. LB stack status:"
             docker-compose -f docker-compose.lb.yml ps 2>/dev/null || echo "LB stack not running"
             
-            # Проверяем доступность реплик из nginx (если он есть)
+            # Проверяем доступность реплик из nginx
             if docker ps | grep -q pz26-nginx; then
               echo "2. Connectivity from nginx to replicas:"
               for repl in tasks_1 tasks_2 tasks_3; do
                 echo -n "   $repl: "
                 docker exec pz26-nginx curl -s -o /dev/null -w "%{http_code}" http://$repl:8082/health 2>/dev/null || echo "failed"
               done
+              echo ""
             fi
             
-            # Генерируем нагрузку через балансировщик (если он работает)
-            echo "3. Generating test load through load balancer (if available)..."
-            for i in {1..20}; do
+            # Генерируем нагрузку через балансировщик
+            echo "3. Generating test load through load balancer..."
+            for i in {1..30}; do
               curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/v1/tasks \
                 -H "Authorization: Bearer demo-token-for-student" && echo -n "." || echo -n "F"
               sleep 0.2
             done
             echo " Done!"
+            sleep 3
             
-            # Считаем запросы по логам реплик
-            TASKS1=$(docker logs pz26-tasks-1 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated" | wc -l | tr -d ' ')
-            TASKS2=$(docker logs pz26-tasks-2 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated" | wc -l | tr -d ' ')
-            TASKS3=$(docker logs pz26-tasks-3 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated" | wc -l | tr -d ' ')
+            # Выводим последние логи реплик для отладки
+            echo "4. Last 5 logs from each replica:"
+            for repl in 1 2 3; do
+              echo "=== tasks-$repl ==="
+              docker logs pz26-tasks-$repl --tail 5 2>/dev/null || echo "No logs"
+            done
             
-            # Проверка HTTPS через внешний IP
-            HTTPS_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" https://193.233.175.221:8443/health 2>/dev/null)
+            # Считаем запросы по логам (расширенный поиск)
+            TASKS1=$(docker logs pz26-tasks-1 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated|method=|path=" | wc -l | tr -d ' ')
+            TASKS2=$(docker logs pz26-tasks-2 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated|method=|path=" | wc -l | tr -d ' ')
+            TASKS3=$(docker logs pz26-tasks-3 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated|method=|path=" | wc -l | tr -d ' ')
+            
+            # Проверка HTTPS через внутренний адрес (локальный)
+            HTTPS_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" https://localhost:8443/health 2>/dev/null)
             if [ "$HTTPS_CODE" = "200" ]; then
               HTTPS_STATUS="OK"
             else
