@@ -23,6 +23,19 @@ func main() {
 	log := logger.New("tasks")
 	defer log.Sync()
 
+	// Читаем ID инстанса для отладки балансировки
+	instanceID := os.Getenv("INSTANCE_ID")
+	if instanceID == "" {
+		instanceID = "unknown"
+	}
+
+	// Добавляем instance ID в логгер через WithField (если есть такой метод)
+	// Или создаем новый логгер с полем
+	log.Info("Tasks service starting",
+		zap.String("instance", instanceID),
+		zap.String("version", "1.0.0"),
+	)
+
 	// Метрики
 	metrics := metrics.New("tasks")
 
@@ -146,6 +159,7 @@ func main() {
 		zap.String("auth_grpc_addr", authGRPCAddr),
 		zap.Bool("database_enabled", taskRepo != nil),
 		zap.Bool("cache_enabled", redisCache.IsEnabled()),
+		zap.String("instance", instanceID),
 	)
 
 	if err := http.ListenAndServe(addr, handler); err != nil {

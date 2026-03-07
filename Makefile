@@ -360,6 +360,125 @@ p25-clear-cache:
 	docker exec pz20-redis redis-cli FLUSHALL
 	@echo "Cache cleared"
 
+# Practice 10 - Load Balancing
+LB_DIR = deploy/lb
+
+lb-up:
+	@echo "Starting load balancing demo with 3 replicas..."
+	cd $(LB_DIR) && docker-compose up -d --build
+	@echo ""
+	@echo "=== LOAD BALANCER READY ==="
+	@echo "Load Balancer: http://localhost:8080"
+	@echo "Replicas: tasks_1, tasks_2, tasks_3"
+	@echo ""
+	@echo "Test commands:"
+	@echo "  make lb-test-roundrobin  - Test round-robin distribution"
+	@echo "  make lb-test-health      - Check health of all replicas"
+	@echo "  make lb-test-failover    - Test failover (stop one replica)"
+
+lb-down:
+	@echo "Stopping load balancing demo..."
+	cd $(LB_DIR) && docker-compose down
+
+lb-logs:
+	cd $(LB_DIR) && docker-compose logs -f
+
+lb-ps:
+	cd $(LB_DIR) && docker-compose ps
+
+lb-restart:
+	cd $(LB_DIR) && docker-compose restart
+
+lb-clean:
+	cd $(LB_DIR) && docker-compose down -v
+
+# Test round-robin distribution (10 requests)
+lb-test-roundrobin:
+	@echo "Testing round-robin distribution (10 requests)..."
+	@for i in {1..10}; do \
+		echo "Request $$i: "; \
+		curl -s -I http://localhost:8080/v1/tasks \
+			-H "Authorization: Bearer demo-token-for-student" \
+			-H "X-Request-ID: lb-test-$$i" | grep -i "X-Instance-ID"; \
+	done
+
+# Test with JSON response
+lb-test-roundrobin-json:
+	@echo "Testing round-robin distribution with JSON output..."
+	@for i in {1..10}; do \
+		INSTANCE=$$(curl -s -D - http://localhost:8080/v1/tasks \
+			-H "Authorization: Bearer demo-token-for-student" \
+			-H "X-Request-ID: lb-test-$$i" | grep -i "X-Instance-ID" | tr -d '\r'); \
+		echo "Request $$i: $$INSTANCE"; \
+	done
+
+# Check health of all replicas
+lb-test-health:
+	@echo "Checking health of all replicas..."
+	@echo "--- tasks_1 ---"
+	@docker exec pz26-tasks-1 curl -s http://localhost:8082/health | jq .
+	@echo ""
+	@echo "--- tasks_2 ---"
+	@docker exec pz26-tasks-2 curl -s http://localhost:8082/health | jq .
+	@echo ""
+	@echo "--- tasks_3 ---"
+	@docker exec pz26-tasks-3 curl -s http://localhost:8082/health | jq .
+
+# Test failover (stop one replica)
+lb-test-failover:
+	@echo "=== TESTING FAILOVER ==="
+	@echo "Initial state - all 3 replicas running:"
+	@make lb-test-roundrobin | head -3
+	@echo ""
+	@echo "Stopping tasks_2..."
+	@docker stop pz26-tasks-2
+	@sleep 2
+	@echo ""
+	@echo "After stopping tasks_2 - requests should go only to tasks_1 and tasks_3:"
+	@make lb-test-roundrobin | head -5
+	@echo ""
+	@echo "Restarting tasks_2..."
+	@docker start pz26-tasks-2
+	@sleep 2
+	@echo ""
+	@echo "After restart - all 3 replicas back:"
+	@make lb-test-roundrobin | head -3
+
+# Test with different HTTP methods
+lb-test-methods:
+	@echo "Testing different HTTP methods through load balancer..."
+	@echo ""
+	@echo "GET /health:"
+	curl -s http://localhost:8080/health | jq .
+	@echo ""
+	@echo "GET /v1/tasks (list):"
+	curl -s -X GET http://localhost:8080/v1/tasks \
+		-H "Authorization: Bearer demo-token-for-student" \
+		-H "X-Request-ID: lb-method-1" | jq .
+	@echo ""
+	@echo "POST /v1/tasks (create):"
+	curl -s -X POST http://localhost:8080/v1/tasks \
+		-H "Content-Type: application/json" \
+		-H "Authorization: Bearer demo-token-for-student" \
+		-H "X-Request-ID: lb-method-2" \
+		-d '{"title":"LB Test","description":"Through load balancer","due_date":"2026-03-15"}' | jq .
+
+# Test search through load balancer
+lb-test-search:
+	@echo "Testing search through load balancer..."
+	curl -s "http://localhost:8080/v1/tasks/search?q=Test" \
+		-H "Authorization: Bearer demo-token-for-student" \
+		-H "X-Request-ID: lb-search" | jq .
+
+# Test metrics through load balancer
+lb-test-metrics:
+	@echo "Getting metrics through load balancer..."
+	curl -s http://localhost:8080/metrics | grep -E "http_requests_total|http_request_duration" | head -10
+
+# Clean up and restart everything
+lb-reset: lb-clean lb-up
+	@echo "Load balancer demo reset complete"
+
 # Utils
 tree:
 	@$(TREE_CMD)

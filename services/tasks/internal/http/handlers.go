@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os" // Добавлен импорт os
 	"strings"
+	"time" // Добавлен импорт time
 
 	"go.uber.org/zap"
 	"tech-ip-sem2/services/tasks/internal/client/authclient"
@@ -32,15 +34,23 @@ type errorResponse struct {
 	Error string `json:"error"`
 }
 
+// Модифицируем AuthMiddleware для добавления заголовка с ID инстанса
 func (h *Handlers) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestID := middleware.GetRequestID(r.Context())
 		log := h.log.WithRequestID(requestID)
 
+		// Добавляем заголовок с ID инстанса (для отладки балансировки)
+		instanceID := os.Getenv("INSTANCE_ID")
+		if instanceID == "" {
+			instanceID = "unknown"
+		}
+		w.Header().Set("X-Instance-ID", instanceID)
+
 		var subject string
 		var authenticated bool
 
-		// Способ 1: Аутентификация через Bearer token
+		// Аутентификация через Bearer token
 		authHeader := r.Header.Get("Authorization")
 		if authHeader != "" {
 			parts := strings.Split(authHeader, " ")
@@ -51,26 +61,29 @@ func (h *Handlers) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 				if err == nil && valid {
 					subject = subj
 					authenticated = true
-					log.Info("token authenticated", zap.String("subject", subject))
+					log.Info("token authenticated",
+						zap.String("subject", subject),
+						zap.String("instance", instanceID))
 				} else if err != nil {
 					log.Error("token verification failed", zap.Error(err))
 				}
 			}
 		}
 
-		// Способ 2: Аутентификация через session cookie
+		// Аутентификация через session cookie
 		if !authenticated {
 			sessionCookie, err := r.Cookie("session_id")
 			if err == nil && sessionCookie.Value != "" {
-				// Считаем валидной любую непустую session cookie
-				subject = "student" // Заглушка
+				subject = "student"
 				authenticated = true
-				log.Info("cookie authenticated", zap.String("subject", subject))
+				log.Info("cookie authenticated",
+					zap.String("subject", subject),
+					zap.String("instance", instanceID))
 			}
 		}
 
 		if !authenticated {
-			log.Warn("authentication failed")
+			log.Warn("authentication failed", zap.String("instance", instanceID))
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(errorResponse{Error: "unauthorized"})
@@ -354,10 +367,17 @@ func (h *Handlers) SearchTasks(w http.ResponseWriter, r *http.Request) {
 
 // Health check
 func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
+	instanceID := os.Getenv("INSTANCE_ID")
+	if instanceID == "" {
+		instanceID = "unknown"
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"status":  "ok",
-		"service": "tasks",
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":    "ok",
+		"service":   "tasks",
+		"instance":  instanceID,
+		"timestamp": time.Now().Unix(),
 	})
 }
