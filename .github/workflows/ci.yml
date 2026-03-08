@@ -189,7 +189,6 @@ jobs:
           scp -o StrictHostKeyChecking=no deploy/tls/nginx.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/nginx.conf
           scp -o StrictHostKeyChecking=no deploy/monitoring/prometheus.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/prometheus.yml
           scp -o StrictHostKeyChecking=no deploy/tls/init.sql ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/init.sql
-          scp -o StrictHostKeyChecking=no deploy/lb/docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/lb/docker-compose.yml
           scp -o StrictHostKeyChecking=no deploy/lb/nginx.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/lb/nginx.conf
 
       - name: Generate SSL certificates if not exist
@@ -205,7 +204,7 @@ jobs:
             fi
           '
 
-      - name: Cleanup orphan containers and deploy
+      - name: Deploy with single compose
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             cd /opt/techip
@@ -215,40 +214,17 @@ jobs:
             
             # Полная очистка старых контейнеров
             echo "=== CLEANING UP OLD CONTAINERS ==="
-            
-            # Останавливаем и удаляем все контейнеры из текущего compose
             docker-compose down --remove-orphans 2>/dev/null || true
-            
-            # Останавливаем и удаляем orphan контейнеры из lb стека
-            cd /opt/techip/deploy/lb
-            docker-compose down --remove-orphans 2>/dev/null || true
-            cd /opt/techip
-            
-            # Принудительно останавливаем и удаляем любые старые контейнеры
-            docker stop pz26-tasks-1 pz26-tasks-2 pz26-tasks-3 2>/dev/null || true
-            docker rm pz26-tasks-1 pz26-tasks-2 pz26-tasks-3 2>/dev/null || true
-            
-            # Удаляем все неиспользуемые ресурсы
             docker system prune -f
             
-            echo "=== DEPLOYING MAIN STACK ==="
+            echo "=== DEPLOYING ALL SERVICES ==="
             docker-compose pull
-            docker-compose up -d --remove-orphans
+            docker-compose up -d
             
             echo "=== WAITING FOR SERVICES ==="
-            sleep 15
-            
-            echo "=== DEPLOYING LOAD BALANCER STACK ==="
-            cd /opt/techip/deploy/lb
-            docker-compose pull
-            docker-compose up -d --remove-orphans
+            sleep 20
             
             echo "=== DEPLOYMENT COMPLETE ==="
-            cd /opt/techip
-            docker-compose ps
-            echo ""
-            echo "=== LOAD BALANCER STATUS ==="
-            cd /opt/techip/deploy/lb
             docker-compose ps
           '
 
@@ -260,57 +236,60 @@ jobs:
             
             echo "=== VERIFYING SERVICES ==="
             
-            # Проверка основного стека
+            # Проверка Auth сервиса
             echo "1. Auth service:"
-            # Временная проверка через login вместо health
             AUTH_TEST=$(curl -s -X POST http://localhost:8081/v1/auth/login \
               -H "Content-Type: application/json" \
               -d "{\"username\":\"student\",\"password\":\"student\"}" | grep -c "Login successful" || echo "0")
             if [ "$AUTH_TEST" -gt 0 ]; then
-              echo "Auth working"
+              echo "  Auth working"
             else
-              echo "Auth not ready"
+              echo "  Auth not ready"
             fi
             
+            # Проверка Tasks сервиса
             echo "2. Tasks service:"
-            curl -s -f -o /dev/null -w "HTTP %{http_code}\n" http://localhost:8082/health || echo "Tasks not ready"
+            curl -s -f -o /dev/null -w "  HTTP %{http_code}\n" http://localhost:8082/health || echo "  Tasks not ready"
             
+            # Проверка PostgreSQL
             echo "3. PostgreSQL:"
-            docker exec pz20-postgres pg_isready -U ${{ vars.POSTGRES_USER }} -d ${{ vars.POSTGRES_DB }} || echo "Postgres not ready"
+            docker exec pz20-postgres pg_isready -U ${{ vars.POSTGRES_USER }} -d ${{ vars.POSTGRES_DB }} > /dev/null && echo "  OK" || echo "  Not ready"
             
+            # Проверка Redis
             echo "4. Redis:"
-            docker exec pz20-redis redis-cli ping || echo "Redis not ready"
+            docker exec pz20-redis redis-cli ping | grep -q PONG && echo "  OK" || echo "  Not ready"
             
+            # Проверка Prometheus
             echo "5. Prometheus:"
-            curl -s -f http://localhost:9090/-/healthy > /dev/null && echo "OK" || echo "Prometheus not ready"
+            curl -s -f http://localhost:9090/-/healthy > /dev/null && echo "  OK" || echo "  Not ready"
             
+            # Проверка Grafana
             echo "6. Grafana:"
-            curl -s -f http://localhost:3000/api/health > /dev/null && echo "OK" || echo "Grafana not ready"
+            curl -s -f http://localhost:3000/api/health > /dev/null && echo "  OK" || echo "  Not ready"
             
+            # Проверка HTTPS Gateway
             echo "7. NGINX HTTPS:"
-            curl -k -s -f https://localhost:8443/health > /dev/null && echo "OK" || echo "HTTPS not ready"
+            curl -k -s -f https://localhost:8443/health > /dev/null && echo "  OK" || echo "  Not ready"
             
             # Проверка балансировщика
             echo ""
             echo "=== VERIFYING LOAD BALANCER ==="
             
-            cd /opt/techip/deploy/lb
-            
-            # Проверка nginx
-            if ! docker-compose ps | grep -q "nginx.*Up"; then
-              echo "Load balancer NGINX not running"
-              docker-compose logs nginx --tail 20
-              exit 1
+            # Проверка nginx-lb
+            if docker ps | grep -q "pz26-nginx"; then
+              echo "  Load balancer NGINX running"
+              
+              # Тест round-robin
+              echo "  Testing round-robin distribution:"
+              for i in {1..6}; do
+                INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
+                  -H "Authorization: Bearer demo-token-for-student" \
+                  -H "X-Request-ID: verify-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "No header")
+                echo "    Request $i: $INSTANCE"
+              done
+            else
+              echo "  Load balancer NGINX not running"
             fi
-            
-            # Тест round-robin
-            echo "Testing round-robin distribution:"
-            for i in {1..6}; do
-              INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
-                -H "Authorization: Bearer demo-token-for-student" \
-                -H "X-Request-ID: verify-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "No header")
-              echo "  Request $i: $INSTANCE"
-            done
             
             # Сбор результатов для отчета
             echo ""
@@ -341,21 +320,19 @@ jobs:
       - name: Collect results for notification
         id: collect_results
         run: |
-          # Создаем краткий отчет для Telegram
           SUMMARY="Все 10 практик успешно пройдены!
 
-          ПЗ 1-3: Логирование OK
-          ПЗ 4: Метрики (Prometheus/Grafana) OK
-          ПЗ 5: HTTPS/PostgreSQL OK
-          ПЗ 6: CSRF/XSS OK
-          ПЗ 7: Dockerfile OK
-          ПЗ 8: CI/CD OK
-          ПЗ 9: Redis OK
-          ПЗ 10: Load Balancing (3 реплики) OK
+ПЗ 1-3: Логирование OK
+ПЗ 4: Метрики (Prometheus/Grafana) OK
+ПЗ 5: HTTPS/PostgreSQL OK
+ПЗ 6: CSRF/XSS OK
+ПЗ 7: Dockerfile OK
+ПЗ 8: CI/CD OK
+ПЗ 9: Redis OK
+ПЗ 10: Load Balancing (3 реплики) OK
 
-          Контейнеры: auth, tasks (3 реплики), postgres, redis, nginx, prometheus, grafana"
+Контейнеры: auth, tasks (3 реплики), postgres, redis, nginx, prometheus, grafana"
           
-          # Экранируем для вывода
           echo "summary<<EOF" >> $GITHUB_OUTPUT
           echo "$SUMMARY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT

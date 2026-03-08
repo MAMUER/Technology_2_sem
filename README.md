@@ -504,7 +504,6 @@ C:.
 │   .gitignore
 │   docker-compose.override.yml
 │   docker-compose.prod.yml
-│   docker-compose.yml
 │   go.mod
 │   go.sum
 │   Makefile
@@ -517,11 +516,9 @@ C:.
 │
 ├───deploy
 │   ├───lb
-│   │       docker-compose.yml
 │   │       nginx.conf
 │   │
 │   ├───monitoring
-│   │   │   docker-compose.yml
 │   │   │   prometheus.yml
 │   │   │
 │   │   └───grafana
@@ -534,8 +531,6 @@ C:.
 │   │                   prometheus.yml
 │   │
 │   ├───redis
-│   │       docker-compose.yml
-│   │
 │   └───tls
 │       │   docker-compose.yml
 │       │   generate-cert.sh
