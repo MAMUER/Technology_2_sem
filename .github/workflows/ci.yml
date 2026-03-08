@@ -54,6 +54,8 @@ jobs:
         run: go build -o bin/auth-service ./services/auth/cmd/auth
       - name: Build Tasks Service
         run: go build -o bin/tasks-service ./services/tasks/cmd/tasks
+      - name: Build GraphQL Service
+        run: go build -o bin/graphql-service ./services/graphql/cmd/graphql
       - uses: actions/upload-artifact@v4
         with:
           name: binaries
@@ -84,6 +86,8 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
+      
+      # Auth Service
       - name: Extract metadata for Auth
         id: meta-auth
         uses: docker/metadata-action@v5
@@ -102,6 +106,8 @@ jobs:
           tags: ${{ steps.meta-auth.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      
+      # Tasks Service
       - name: Extract metadata for Tasks
         id: meta-tasks
         uses: docker/metadata-action@v5
@@ -118,6 +124,26 @@ jobs:
           file: services/tasks/Dockerfile
           push: true
           tags: ${{ steps.meta-tasks.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      # GraphQL Service
+      - name: Extract metadata for GraphQL
+        id: meta-graphql
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.repo-name.outputs.repo_lower }}/graphql
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build and push GraphQL image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/graphql/Dockerfile
+          push: true
+          tags: ${{ steps.meta-graphql.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -166,7 +192,7 @@ jobs:
             mkdir -p /opt/techip/deploy/tls/certs
           '
 
-      - name: Copy configuration files (ПОТОМ копируем)
+      - name: Copy configuration files
         run: |
           scp -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/
           scp -o StrictHostKeyChecking=no docker-compose.prod.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/docker-compose.yml
@@ -177,6 +203,7 @@ jobs:
           scp -o StrictHostKeyChecking=no deploy/monitoring/grafana/provisioning/dashboards/dashboard.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/grafana/provisioning/dashboards/
           scp -o StrictHostKeyChecking=no deploy/monitoring/grafana/provisioning/dashboards/tasks-dashboard.json ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/grafana/provisioning/dashboards/
           scp -o StrictHostKeyChecking=no deploy/monitoring/grafana/provisioning/datasources/prometheus.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/grafana/provisioning/datasources/
+      
       - name: Generate SSL certificates if not exist
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
@@ -188,6 +215,7 @@ jobs:
                 -subj "/CN=193.233.175.221"
             fi
           '
+      
       - name: Deploy
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
@@ -198,10 +226,11 @@ jobs:
             docker-compose up -d
             docker system prune -f
           '
+      
       - name: Collect results for notification
         id: collect_results
         run: |
-          SUMMARY="Все 10 практик успешно пройдены!
+          SUMMARY="Все 11 практик успешно пройдены!
 
           ПЗ 1-3: Логирование OK
           ПЗ 4: Метрики (Prometheus/Grafana) OK
@@ -211,8 +240,9 @@ jobs:
           ПЗ 8: CI/CD OK
           ПЗ 9: Redis OK
           ПЗ 10: Load Balancing (3 реплики) OK
+          ПЗ 11: GraphQL API OK
 
-          Контейнеры: auth, tasks (3 реплики), postgres, redis, nginx, prometheus, grafana"
+          Контейнеры: auth, tasks (3 реплики), graphql, postgres, redis, nginx (2 шт), prometheus, grafana"
           
           echo "summary<<EOF" >> $GITHUB_OUTPUT
           echo "$SUMMARY" >> $GITHUB_OUTPUT
