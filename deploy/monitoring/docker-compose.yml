@@ -1,23 +1,23 @@
 services:
   prometheus:
-  image: prom/prometheus:latest
-  container_name: pz20-prometheus
-  ports:
+    image: prom/prometheus:latest
+    container_name: pz20-prometheus
+    ports:
     - "9090:9090"
-  volumes:
+    volumes:
     - ./deploy/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     - prometheus-data:/prometheus
-  command:
+    command:
     - '--config.file=/etc/prometheus/prometheus.yml'
     - '--storage.tsdb.path=/prometheus'
     - '--storage.tsdb.retention.time=30d'
     - '--web.enable-lifecycle'
     - '--storage.tsdb.no-lockfile'
-  networks:
+    networks:
     - pz20-network
-  restart: unless-stopped
-  user: "root" 
-  depends_on:
+    restart: unless-stopped
+    user: "root" 
+    depends_on:
     - tasks
     - auth
 
