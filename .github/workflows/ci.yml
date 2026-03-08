@@ -332,7 +332,7 @@ jobs:
             echo "ПЗ 10 (Load Balancing): 3 реплики tasks, nginx балансировщик работает"
             echo ""
             echo "Запущенные контейнеры:"
-            docker ps --format "{{.Names}}" | grep -E "pz20|pz26" | sort | tr '\n' ' '
+            docker ps --format "{{.Names}}" | grep -E "pz20|pz26" | sort | paste -sd ',' -
             echo ""
             echo ""
             echo "Распределение запросов: tasks-1: $TASKS1, tasks-2: $TASKS2, tasks-3: $TASKS3"
