@@ -65,7 +65,7 @@ func main() {
 	httpMux.HandleFunc("GET /v1/auth/csrf", httpHandlers.GetCSRFToken)
 
 	httpMux.Handle("GET /metrics", metrics.Handler())
-
+	httpMux.HandleFunc("GET /health", httpHandlers.Health)
 	handler := middleware.RequestID(httpMux)
 	handler = middleware.SecurityHeaders(handler)
 	handler = middleware.DebugRequestID(log)(handler)

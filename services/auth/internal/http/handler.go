@@ -243,9 +243,12 @@ func (h *Handlers) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
+// Health check
+func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(map[string]string{
+        "status": "ok",
+        "service": "auth",
+    })
 }
