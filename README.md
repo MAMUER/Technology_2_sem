@@ -252,38 +252,154 @@ tags: |
 | Redis | 1 | Кэширование (занятие №9) |
 | PostgreSQL | 1 | Хранение данных |
 
-### Практическое занятие №11 (Создание GraphQL API с использованием gqlgen. Запросы и мутации)
-1. Реализация GraphQL сервиса
-В рамках практического занятия создан отдельный GraphQL сервис, который работает с той же базой данных, что и REST API tasks. Сервис предоставляет GraphQL интерфейс для управления задачами с полной поддержкой запросов и мутаций.
+## GraphQL API (Практическое занятие №11)
+### GraphQL Service
+- **Порт**: 8090
+- **Endpoint**: `/query`
+- **Playground**: `http://193.233.175.221:8090/` (для разработки)
+- **Технологии**: gqlgen, GraphQL, PostgreSQL
 
+### Схема GraphQL
 
-## Быстрый старт
-### Предварительные требования
-```bash
-# Установите Go 1.25+
-go version
+```graphql
+type Task {
+  id: ID!
+  title: String!
+  description: String
+  due_date: String
+  done: Boolean!
+  created_at: String
+  updated_at: String
+}
 
-# Установите Docker
-docker --version
+input CreateTaskInput {
+  title: String!
+  description: String
+  due_date: String
+}
 
-# Установите make (для Windows через Chocolatey)
-choco install make
+input UpdateTaskInput {
+  title: String
+  description: String
+  due_date: String
+  done: Boolean
+}
 
-# 1. Клонировать репозиторий
-git clone <repository-url>
-cd tech-ip-sem2
+type Query {
+  tasks: [Task!]!
+  task(id: ID!): Task
+}
 
-# 2. Сгенерировать SSL сертификаты
-make gen-cert
-
-# 3. Запустить проект
-make docker-reset
-
-# 4. Проверить статус
-make docker-ps
+type Mutation {
+  createTask(input: CreateTaskInput!): Task!
+  updateTask(id: ID!, input: UpdateTaskInput!): Task!
+  deleteTask(id: ID!): Boolean!
+}
 ```
+#### Примеры запросов
+##### Получить все задачи
+```graphql
+query {
+  tasks {
+    id
+    title
+    done
+  }
+}
+```
+##### Получить задачу по ID
+```graphql
+query GetTask($id: ID!) {
+  task(id: $id) {
+    id
+    title
+    description
+    done
+  }
+}
+```
+##### Создать задачу
+```graphql
+mutation CreateTask($input: CreateTaskInput!) {
+  createTask(input: $input) {
+    id
+    title
+    done
+  }
+}
+```
+##### Обновить задачу
+```graphql
+mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {
+  updateTask(id: $id, input: $input) {
+    id
+    title
+    done
+  }
+}
+```
+##### Удалить задачу
+```graphql
+mutation DeleteTask($id: ID!) {
+  deleteTask(id: $id)
+}
+```
+## Практическое занятие №12 - Сравнение REST и GraphQL
+### Выбранный UI-сценарий
+#### Экран списка задач
+- Нужны поля: id, title, done
+#### Экран деталей задачи
+- Нужны поля: id, title, description, done
+#### Действия
+- Создать задачу
+- Отметить задачу выполненной (обновить)
+
+### Реализация через REST
+#### Получить список задач
+Размер ответа: ~180 байт (с 2 задачами)
+#### Получить детали задачи
+Размер ответа: ~220 байт
+
+### Реализация через GraphQL
+#### Получить список задач (только нужные поля)
+Размер ответа: ~160 байт (с 2 задачами) - на 12% меньше REST
+#### Получить детали задачи (только нужные поля)
+Размер ответа: ~120 байт - на 45% меньше REST
+
+#### Основные отличия
+| Критерий | REST | GraphQL |
+| :--- | :--- | :--- |
+| Количество запросов для сценария | 2 (список + детали) | 1 (можно получить всё в одном запросе) |
+| Объём данных (список, 2 задачи) | 180 байт | 160 байт |
+| Объём данных (детали) | 220 байт | 120 байт |
+| Over-fetching | Есть (получаем лишние поля) | Нет (только запрошенные поля) |
+| Under-fetching | Нет | Нет |
+| Обработка ошибок | HTTP статусы (200, 400, 401, 404, 500) | HTTP 200 + поле errors |
+| Кэширование | Простое (по URL) | Сложное (один endpoint) |
+| Документация | Swagger/OpenAPI (встроенная) | GraphQL Schema (самодокументируемая) |
+| Версионирование | Через URL (/v1/, /v2/) | Эволюция схемы |
+
+### Итоговый вывод
+#### Когда выбирать REST
+- Простые API - CRUD операции над ресурсами
+- Кэширование критично - CDN, браузерное кэширование
+- Стандартизация - чёткие HTTP статусы и методы
+- Микросервисы - простота интеграции
+- Публичные API - широкая поддержка инструментов
+#### Когда выбирать GraphQL:
+- Сложные клиенты - мобильные приложения с ограниченным трафиком
+- Агрегация данных - нужно объединять данные из нескольких источников
+- Быстрая эволюция - клиенты сами выбирают нужные поля
+- Over-fetching проблема - нужно минимизировать передаваемые данные
+- Разные клиенты - веб, мобильные, десктоп с разными потребностями
 
 ## Команды запуска и сборки
+- make graphql-run        # Запустить локально
+- make graphql-build      # Собрать Docker образ
+- make graphql-up         # Запустить в Docker
+- make graphql-logs       # Посмотреть логи
+- make graphql-test-query # Протестировать запрос
+- make graphql-test-create # Протестировать создание
 ### Основные команды
 - make check Проверка кода и форматирования
 - make tree Показать структуру проекта
@@ -812,3 +928,15 @@ C:.
 ![фото60](./PR1-16/Screenshot_60.png)
 ### Уведомление о контейнирах
 ![фото61](./PR1-16/Screenshot_61.png)
+### Доступ к GraphQL Playground
+![фото62](./PR1-16/Screenshot_62.png)
+### GraphQL Playground с запросом tasks
+![фото63](./PR1-16/Screenshot_63.png)
+### GraphQL Playground с мутацией createTask
+![фото64](./PR1-16/Screenshot_64.png)
+### GraphQL Playground с запросом task(id)
+![фото65](./PR1-16/Screenshot_65.png)
+### GraphQL Playground с мутацией updateTask
+![фото66](./PR1-16/Screenshot_66.png)
+### GraphQL Playground с мутацией deleteTask
+![фото67](./PR1-16/Screenshot_67.png)

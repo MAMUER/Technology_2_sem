@@ -2,6 +2,7 @@
 ## Переменные окружения
 | Переменная | Значение по умолчанию | Описание |
 |------------|----------------------|----------|
+| `GRAPHQL_PORT` | 8090 | Порт сервера |
 | `AUTH_PORT` | 8081 | Порт HTTP сервера Auth |
 | `AUTH_BASE_URL` | http://193.233.175.221:8081 | Базовый URL Auth сервиса |
 | `AUTH_GRPC_PORT` | 50051 | Порт gRPC сервера Auth |
@@ -417,3 +418,168 @@ HTTPS Gateway is working!
 ```
 Ошибки:
 - 401: Unauthorized - отсутствует или невалидная сессия
+
+## GraphQL API
+### POST http://193.233.175.221:8090/query
+- Headers:
+    - Content-Type: application/json
+
+
+### Playground http://193.233.175.221:8090/
+#### Task
+| Поле | Тип | Описание |
+|------|-----|----------|
+| id | ID! | Уникальный идентификатор |
+| title | String! | Название задачи |
+| description | String | Описание задачи |
+| due_date | String | Дата выполнения |
+| done | Boolean! | Статус выполнения |
+| created_at | String | Дата создания |
+| updated_at | String | Дата обновления |
+
+#### CreateTaskInput
+| Поле | Тип | Обязательное | Описание |
+|------|-----|--------------|----------|
+| title | String! | Да | Название задачи |
+| description | String | Нет | Описание задачи |
+| due_date | String | Нет | Дата выполнения |
+
+#### UpdateTaskInput
+| Поле | Тип | Описание |
+|------|-----|----------|
+| title | String | Новое название |
+| description | String | Новое описание |
+| due_date | String | Новая дата |
+| done | Boolean | Новый статус |
+
+### Запросы (Queries)
+#### Получить все задачи
+```graphql
+query {
+  tasks {
+    id
+    title
+    description
+    due_date
+    done
+    created_at
+    updated_at
+  }
+}
+```
+Ответ:
+```json
+{
+  "data": {
+    "tasks": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "title": "GraphQL Task",
+        "description": "Created via GraphQL",
+        "due_date": "2026-03-15",
+        "done": false,
+        "created_at": "2026-03-08T12:00:00Z",
+        "updated_at": "2026-03-08T12:00:00Z"
+      }
+    ]
+  }
+}
+```
+#### Получить задачу по ID
+```graphql
+query GetTask($id: ID!) {
+  task(id: $id) {
+    id
+    title
+    description
+    done
+  }
+}
+```
+Variables:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+#### Создать задачу
+```graphql
+mutation CreateTask($input: CreateTaskInput!) {
+  createTask(input: $input) {
+    id
+    title
+    description
+    done
+    created_at
+  }
+}
+```
+Variables:
+```json
+{
+  "input": {
+    "title": "New Task",
+    "description": "Task description",
+    "due_date": "2026-03-15"
+  }
+}
+```
+Ответ:
+```json
+{
+  "data": {
+    "createTask": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "New Task",
+      "description": "Task description",
+      "done": false,
+      "created_at": "2026-03-08T12:00:00Z"
+    }
+  }
+}
+```
+#### Обновить задачу
+```graphql
+mutation UpdateTask($id: ID!, $input: UpdateTaskInput!) {
+  updateTask(id: $id, input: $input) {
+    id
+    title
+    done
+    updated_at
+  }
+}
+```
+Variables:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "input": {
+    "done": true,
+    "title": "Updated Task"
+  }
+}
+```
+#### Удалить задачу
+```graphql
+mutation DeleteTask($id: ID!) {
+  deleteTask(id: $id)
+}
+```
+Variables:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+Ответ:
+```json
+{
+  "data": {
+    "deleteTask": true
+  }
+}
+```
+Ошибки:
+- 200: Успешный запрос
+- 400: Неверный синтаксис GraphQL
+- 500: Внутренняя ошибка сервера
