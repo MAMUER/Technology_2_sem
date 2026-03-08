@@ -477,6 +477,42 @@ lb-test-metrics:
 lb-reset: lb-clean lb-up
 	@echo "Load balancer demo reset complete"
 
+# Practice 11 - GraphQL
+GRAPHQL_DIR = services/graphql
+
+gql-init:
+	@echo "Initializing GraphQL service..."
+	cd $(GRAPHQL_DIR) && go mod tidy
+	cd $(GRAPHQL_DIR) && go run github.com/99designs/gqlgen init
+
+gql-generate:
+	@echo "Generating GraphQL code..."
+	cd $(GRAPHQL_DIR) && go run github.com/99designs/gqlgen generate
+
+gql-run:
+	@echo "Running GraphQL service..."
+	cd $(GRAPHQL_DIR) && go run ./cmd/graphql
+
+gql-build:
+	@echo "Building GraphQL service..."
+	cd $(GRAPHQL_DIR) && go build -o bin/graphql-service ./cmd/graphql
+
+gql-docker-build:
+	@echo "Building GraphQL Docker image..."
+	docker build -f $(GRAPHQL_DIR)/Dockerfile -t techip-graphql:latest .
+
+gql-test:
+	@echo "Testing GraphQL queries..."
+	@curl -s -X POST http://localhost:8090/query \
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ tasks { id title done } }"}' | jq .
+
+gql-test-create:
+	@echo "Testing GraphQL mutation (create)..."
+	@curl -s -X POST http://localhost:8090/query \
+		-H "Content-Type: application/json" \
+		-d '{"query": "mutation { createTask(input: {title: \"GraphQL Test\"}) { id title done } }"}' | jq .
+
 # Utils
 tree:
 	@$(TREE_CMD)

@@ -272,6 +272,28 @@ services:
       prometheus:
         condition: service_started
 
+graphql:
+  image: ghcr.io/mamuer/technology_2_sem/graphql:latest
+  container_name: pz27-graphql
+  ports:
+    - "8090:8090"
+  environment:
+    - GRAPHQL_PORT=8090
+    - DB_HOST=postgres
+    - DB_PORT=5432
+    - DB_USER=${POSTGRES_USER}
+    - DB_PASSWORD=${POSTGRES_PASSWORD}
+    - DB_NAME=${POSTGRES_DB}
+    - DB_SSLMODE=disable
+  env_file:
+    - .env
+  networks:
+    - pz20-network
+  depends_on:
+    postgres:
+      condition: service_healthy
+  restart: unless-stopped
+
 networks:
   pz20-network:
     driver: bridge

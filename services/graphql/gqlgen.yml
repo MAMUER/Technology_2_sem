@@ -1,0 +1,33 @@
+# Схема GraphQL
+schema:
+  - graph/schema.graphqls
+
+# Директория для сгенерированного кода
+exec:
+  filename: graph/generated/generated.go
+  package: generated
+
+# Конфигурация модели
+model:
+  filename: graph/model/models_gen.go
+  package: model
+
+# Резолверы
+resolver:
+  layout: follow-schema
+  dir: graph/resolvers
+  package: resolvers
+  filename_template: "{name}.resolvers.go"
+
+# УБИРАЕМ autobind полностью (или закомментируем)
+# autobind:
+#   - "tech-ip-sem2/services/graphql/internal/models"
+
+# Настройки для скаляров
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
