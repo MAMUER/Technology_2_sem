@@ -153,7 +153,7 @@ jobs:
           DB_NAME=${{ vars.POSTGRES_DB }}
           DB_SSLMODE=disable
           EOF
-      - name: Prepare server directories (СНАЧАЛА создаем папки)
+      - name: Prepare server directories
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             mkdir -p /opt/techip
