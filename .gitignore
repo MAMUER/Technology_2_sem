@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 !.env.template
+*.exe
 
 # Secrets
 secrets/

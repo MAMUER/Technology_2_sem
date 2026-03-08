@@ -523,6 +523,7 @@ C:.
 │   │       nginx.conf
 │   │
 │   ├───monitoring
+│   │   │   docker-compose.yml
 │   │   │   prometheus.yml
 │   │   │
 │   │   └───grafana
@@ -535,7 +536,10 @@ C:.
 │   │                   prometheus.yml
 │   │
 │   ├───redis
+│   │       docker-compose.yml
+│   │
 │   └───tls
+│       │   docker-compose.yml
 │       │   generate-cert.sh
 │       │   init.sql
 │       │   nginx.conf
@@ -585,6 +589,40 @@ C:.
 │   │               auth.go
 │   │               auth_test.go
 │   │               session_service.go
+│   │
+│   ├───graphql
+│   │   │   Dockerfile
+│   │   │   gqlgen.yml
+│   │   │
+│   │   ├───cmd
+│   │   │   └───graphql
+│   │   │           main.go
+│   │   │
+│   │   ├───graph
+│   │   │   │   schema.graphqls
+│   │   │   │
+│   │   │   ├───generated
+│   │   │   │       generated.go
+│   │   │   │
+│   │   │   ├───model
+│   │   │   │       models_gen.go
+│   │   │   │
+│   │   │   └───resolvers
+│   │   │           resolver.go
+│   │   │           schema.resolvers.go
+│   │   │
+│   │   ├───internal
+│   │   │   ├───middleware
+│   │   │   │       auth.go
+│   │   │   │
+│   │   │   ├───repository
+│   │   │   │       task_repository.go
+│   │   │   │
+│   │   │   └───service
+│   │   │           task_service.go
+│   │   │
+│   │   └───tools
+│   │           tools.go
 │   │
 │   └───tasks
 │       │   Dockerfile
