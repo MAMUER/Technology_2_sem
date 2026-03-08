@@ -153,16 +153,20 @@ jobs:
           DB_NAME=${{ vars.POSTGRES_DB }}
           DB_SSLMODE=disable
           EOF
-      - name: Prepare server directories
+      - name: Prepare server directories (СНАЧАЛА создаем папки)
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             mkdir -p /opt/techip
             mkdir -p /opt/techip/certs
             mkdir -p /opt/techip/deploy/lb
             mkdir -p /opt/techip/deploy/monitoring
+            mkdir -p /opt/techip/deploy/monitoring/grafana/provisioning/dashboards
+            mkdir -p /opt/techip/deploy/monitoring/grafana/provisioning/datasources
+            mkdir -p /opt/techip/deploy/tls
             mkdir -p /opt/techip/deploy/tls/certs
           '
-      - name: Copy configuration files
+
+      - name: Copy configuration files (ПОТОМ копируем)
         run: |
           scp -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/
           scp -o StrictHostKeyChecking=no docker-compose.prod.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/docker-compose.yml
@@ -170,7 +174,9 @@ jobs:
           scp -o StrictHostKeyChecking=no deploy/lb/nginx.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/lb/nginx.conf
           scp -o StrictHostKeyChecking=no deploy/monitoring/prometheus.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/prometheus.yml
           scp -o StrictHostKeyChecking=no deploy/tls/init.sql ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/tls/init.sql
-          scp -o StrictHostKeyChecking=no -r deploy/monitoring/grafana ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/
+          scp -o StrictHostKeyChecking=no deploy/monitoring/grafana/provisioning/dashboards/dashboard.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/grafana/provisioning/dashboards/
+          scp -o StrictHostKeyChecking=no deploy/monitoring/grafana/provisioning/dashboards/tasks-dashboard.json ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/grafana/provisioning/dashboards/
+          scp -o StrictHostKeyChecking=no deploy/monitoring/grafana/provisioning/datasources/prometheus.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/grafana/provisioning/datasources/
       - name: Generate SSL certificates if not exist
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
