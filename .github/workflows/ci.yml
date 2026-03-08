@@ -26,19 +26,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-
       - name: Install dependencies
         run: go mod download
-
       - name: Run vet
         run: go vet ./...
-
       - name: Run tests
         run: go test -v ./...
 
@@ -48,21 +44,16 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-
       - name: Create bin directory
         run: mkdir -p bin
-
       - name: Build Auth Service
         run: go build -o bin/auth-service ./services/auth/cmd/auth
-
       - name: Build Tasks Service
         run: go build -o bin/tasks-service ./services/tasks/cmd/tasks
-
       - uses: actions/upload-artifact@v4
         with:
           name: binaries
@@ -80,23 +71,19 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-
       - name: Prepare repository name
         id: repo-name
         run: |
           REPO="${{ github.repository }}"
           REPO_LOWER=$(echo $REPO | tr '[:upper:]' '[:lower:]')
           echo "repo_lower=$REPO_LOWER" >> $GITHUB_OUTPUT
-
       - uses: docker/setup-buildx-action@v3
-
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
-
       - name: Extract metadata for Auth
         id: meta-auth
         uses: docker/metadata-action@v5
@@ -106,7 +93,6 @@ jobs:
             type=sha,format=short
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
-
       - name: Build and push Auth image
         uses: docker/build-push-action@v5
         with:
@@ -116,7 +102,6 @@ jobs:
           tags: ${{ steps.meta-auth.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
       - name: Extract metadata for Tasks
         id: meta-tasks
         uses: docker/metadata-action@v5
@@ -126,7 +111,6 @@ jobs:
             type=sha,format=short
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
-
       - name: Build and push Tasks image
         uses: docker/build-push-action@v5
         with:
@@ -147,14 +131,11 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
-
       - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Add host to known_hosts
         run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-
       - name: Create .env file
         run: |
           cat > .env << EOF
@@ -172,7 +153,6 @@ jobs:
           DB_NAME=${{ vars.POSTGRES_DB }}
           DB_SSLMODE=disable
           EOF
-
       - name: Prepare server directories
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
@@ -180,143 +160,38 @@ jobs:
             mkdir -p /opt/techip/certs
             mkdir -p /opt/techip/deploy/lb
             mkdir -p /opt/techip/deploy/monitoring
+            mkdir -p /opt/techip/deploy/tls/certs
           '
-
       - name: Copy configuration files
         run: |
           scp -o StrictHostKeyChecking=no .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/
           scp -o StrictHostKeyChecking=no docker-compose.prod.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/docker-compose.yml
-          scp -o StrictHostKeyChecking=no deploy/tls/nginx.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/nginx.conf
-          scp -o StrictHostKeyChecking=no deploy/monitoring/prometheus.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/prometheus.yml
-          scp -o StrictHostKeyChecking=no deploy/tls/init.sql ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/init.sql
+          scp -o StrictHostKeyChecking=no deploy/tls/nginx.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/tls/nginx.conf
           scp -o StrictHostKeyChecking=no deploy/lb/nginx.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/lb/nginx.conf
-
+          scp -o StrictHostKeyChecking=no deploy/monitoring/prometheus.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/prometheus.yml
+          scp -o StrictHostKeyChecking=no deploy/tls/init.sql ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/tls/init.sql
+          scp -o StrictHostKeyChecking=no -r deploy/monitoring/grafana ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/
       - name: Generate SSL certificates if not exist
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
-            if [ ! -f /opt/techip/certs/cert.pem ]; then
-              echo "Generating SSL certificates..."
+            if [ ! -f /opt/techip/deploy/tls/certs/cert.pem ]; then
               openssl req -x509 -newkey rsa:2048 -nodes \
-                -keyout /opt/techip/certs/key.pem \
-                -out /opt/techip/certs/cert.pem \
+                -keyout /opt/techip/deploy/tls/certs/key.pem \
+                -out /opt/techip/deploy/tls/certs/cert.pem \
                 -days 365 \
                 -subj "/CN=193.233.175.221"
             fi
           '
-
-      - name: Deploy with single compose
+      - name: Deploy
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             cd /opt/techip
-            
-            # Логин в registry
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            # Полная очистка старых контейнеров
-            echo "=== CLEANING UP OLD CONTAINERS ==="
-            docker-compose down --remove-orphans 2>/dev/null || true
-            docker system prune -f
-            
-            echo "=== DEPLOYING ALL SERVICES ==="
+            docker-compose down --remove-orphans
             docker-compose pull
             docker-compose up -d
-            
-            echo "=== WAITING FOR SERVICES ==="
-            sleep 20
-            
-            echo "=== DEPLOYMENT COMPLETE ==="
-            docker-compose ps
+            docker system prune -f
           '
-
-      - name: Verify all services
-        id: verify
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
-            set -e
-            
-            echo "=== VERIFYING SERVICES ==="
-            
-            # Проверка Auth сервиса
-            echo "1. Auth service:"
-            AUTH_TEST=$(curl -s -X POST http://localhost:8081/v1/auth/login \
-              -H "Content-Type: application/json" \
-              -d "{\"username\":\"student\",\"password\":\"student\"}" | grep -c "Login successful" || echo "0")
-            if [ "$AUTH_TEST" -gt 0 ]; then
-              echo "  Auth working"
-            else
-              echo "  Auth not ready"
-            fi
-            
-            # Проверка Tasks сервиса
-            echo "2. Tasks service:"
-            curl -s -f -o /dev/null -w "  HTTP %{http_code}\n" http://localhost:8082/health || echo "  Tasks not ready"
-            
-            # Проверка PostgreSQL
-            echo "3. PostgreSQL:"
-            docker exec pz20-postgres pg_isready -U ${{ vars.POSTGRES_USER }} -d ${{ vars.POSTGRES_DB }} > /dev/null && echo "  OK" || echo "  Not ready"
-            
-            # Проверка Redis
-            echo "4. Redis:"
-            docker exec pz20-redis redis-cli ping | grep -q PONG && echo "  OK" || echo "  Not ready"
-            
-            # Проверка Prometheus
-            echo "5. Prometheus:"
-            curl -s -f http://localhost:9090/-/healthy > /dev/null && echo "  OK" || echo "  Not ready"
-            
-            # Проверка Grafana
-            echo "6. Grafana:"
-            curl -s -f http://localhost:3000/api/health > /dev/null && echo "  OK" || echo "  Not ready"
-            
-            # Проверка HTTPS Gateway
-            echo "7. NGINX HTTPS:"
-            curl -k -s -f https://localhost:8443/health > /dev/null && echo "  OK" || echo "  Not ready"
-            
-            # Проверка балансировщика
-            echo ""
-            echo "=== VERIFYING LOAD BALANCER ==="
-            
-            # Проверка nginx-lb
-            if docker ps | grep -q "pz26-nginx"; then
-              echo "  Load balancer NGINX running"
-              
-              # Тест round-robin
-              echo "  Testing round-robin distribution:"
-              for i in {1..6}; do
-                INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
-                  -H "Authorization: Bearer demo-token-for-student" \
-                  -H "X-Request-ID: verify-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "No header")
-                echo "    Request $i: $INSTANCE"
-              done
-            else
-              echo "  Load balancer NGINX not running"
-            fi
-            
-            # Сбор результатов для отчета
-            echo ""
-            echo "=== GENERATING FINAL REPORT ==="
-            
-            TASKS1=$(docker logs pz26-tasks-1 --tail 100 2>/dev/null | grep -c "request completed" || echo "0")
-            TASKS2=$(docker logs pz26-tasks-2 --tail 100 2>/dev/null | grep -c "request completed" || echo "0")
-            TASKS3=$(docker logs pz26-tasks-3 --tail 100 2>/dev/null | grep -c "request completed" || echo "0")
-            
-            echo "Все 10 практик успешно пройдены!"
-            echo ""
-            echo "ПЗ 1-3 (Логирование): OK"
-            echo "ПЗ 4 (Метрики): Prometheus OK, Grafana OK"
-            echo "ПЗ 5 (HTTPS/PostgreSQL): PostgreSQL OK, HTTPS OK"
-            echo "ПЗ 6 (CSRF/XSS): OK"
-            echo "ПЗ 7 (Dockerfile): OK"
-            echo "ПЗ 8 (CI/CD): OK"
-            echo "ПЗ 9 (Redis): Running"
-            echo "ПЗ 10 (Load Balancing): 3 реплики tasks, nginx балансировщик работает"
-            echo ""
-            echo "Запущенные контейнеры:"
-            docker ps --format "{{.Names}}" | grep -E "pz20|pz26" | sort | paste -sd ',' -
-            echo ""
-            echo ""
-            echo "Распределение запросов: tasks-1: $TASKS1, tasks-2: $TASKS2, tasks-3: $TASKS3"
-          '
-
       - name: Collect results for notification
         id: collect_results
         run: |
