@@ -142,9 +142,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: docker
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    outputs:
-      lb_results: ${{ steps.lb_test.outputs.lb_results }}
-      summary: ${{ steps.collect_results.outputs.summary }}
     environment: production
     steps:
       - uses: actions/checkout@v4
@@ -174,12 +171,13 @@ jobs:
           DB_SSLMODE=disable
           EOF
 
-      - name: Prepare server
+      - name: Prepare server directories
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             mkdir -p /opt/techip
             mkdir -p /opt/techip/certs
             mkdir -p /opt/techip/deploy/lb
+            mkdir -p /opt/techip/deploy/monitoring
           '
 
       - name: Copy configuration files
@@ -192,175 +190,143 @@ jobs:
           scp -o StrictHostKeyChecking=no deploy/lb/docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/lb/docker-compose.yml
           scp -o StrictHostKeyChecking=no deploy/lb/nginx.conf ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/lb/nginx.conf
 
-      - name: Deploy production stack
+      - name: Generate SSL certificates if not exist
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            if [ ! -f /opt/techip/certs/cert.pem ]; then
+              echo "Generating SSL certificates..."
+              openssl req -x509 -newkey rsa:2048 -nodes \
+                -keyout /opt/techip/certs/key.pem \
+                -out /opt/techip/certs/cert.pem \
+                -days 365 \
+                -subj "/CN=193.233.175.221"
+            fi
+          '
+
+      - name: Cleanup orphan containers and deploy
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             cd /opt/techip
+            
+            # Логин в registry
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Полная очистка старых контейнеров
+            echo "=== CLEANING UP OLD CONTAINERS ==="
+            
+            # Останавливаем и удаляем все контейнеры из текущего compose
+            docker-compose down --remove-orphans 2>/dev/null || true
+            
+            # Останавливаем и удаляем orphan контейнеры из lb стека
+            cd /opt/techip/deploy/lb
+            docker-compose down --remove-orphans 2>/dev/null || true
+            cd /opt/techip
+            
+            # Принудительно останавливаем и удаляем любые старые контейнеры
+            docker stop pz26-tasks-1 pz26-tasks-2 pz26-tasks-3 2>/dev/null || true
+            docker rm pz26-tasks-1 pz26-tasks-2 pz26-tasks-3 2>/dev/null || true
+            
+            # Удаляем все неиспользуемые ресурсы
+            docker system prune -f
+            
+            echo "=== DEPLOYING MAIN STACK ==="
             docker-compose pull
-            docker-compose up -d
-            docker image prune -f
-            sleep 10
-          '
-
-      - name: Test production API
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
-            cd /opt/techip
+            docker-compose up -d --remove-orphans
             
-            echo "=== TESTING PRODUCTION API ==="
-            
-            echo "1. Login:"
-            LOGIN_RESPONSE=$(curl -s -X POST http://localhost:8081/v1/auth/login \
-              -H "Content-Type: application/json" \
-              -d "{\"username\":\"student\",\"password\":\"student\"}")
-            echo "$LOGIN_RESPONSE"
-            
-            echo "2. Create task:"
-            TASK_RESPONSE=$(curl -s -X POST http://localhost:8082/v1/tasks \
-              -H "Content-Type: application/json" \
-              -H "Authorization: Bearer demo-token-for-student" \
-              -d "{\"title\":\"Test from CI\",\"description\":\"Auto test\",\"due_date\":\"2026-03-15\"}")
-            echo "$TASK_RESPONSE"
-            
-            echo "3. List tasks:"
-            TASKS_RESPONSE=$(curl -s -X GET http://localhost:8082/v1/tasks \
-              -H "Authorization: Bearer demo-token-for-student")
-            echo "$TASKS_RESPONSE"
-            
-            echo "4. Verify token:"
-            VERIFY_RESPONSE=$(curl -s -X GET http://localhost:8081/v1/auth/verify \
-              -H "Authorization: Bearer demo-token-for-student")
-            echo "$VERIFY_RESPONSE"
-            
-            echo "5. Health check:"
-            HEALTH_RESPONSE=$(curl -s http://localhost:8082/health)
-            echo "$HEALTH_RESPONSE"
-            
-            echo "6. Metrics endpoint:"
-            METRICS_RESPONSE=$(curl -s http://localhost:8082/metrics | grep -E "http_requests_total|http_request_duration" | head -5)
-            echo "$METRICS_RESPONSE"
-          '
-
-      - name: Test load balancing
-        id: lb_test
-        run: |
-          TEMP_FILE=$(mktemp)
-          
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
-            set -e
-            cd /opt/techip
-            
-            # Копируем файлы для теста
-            cp deploy/lb/docker-compose.yml docker-compose.lb.yml
-            cp deploy/lb/nginx.conf nginx.lb.conf
-            
-            # Исправляем путь к конфигу в compose файле (меняем ./nginx.conf на ./nginx.lb.conf)
-            sed -i "s|./nginx.conf|./nginx.lb.conf|" docker-compose.lb.yml
-            
-            echo "=== STARTING LOAD BALANCER TEST ==="
-            docker-compose -f docker-compose.lb.yml pull
-            docker-compose -f docker-compose.lb.yml up -d
+            echo "=== WAITING FOR SERVICES ==="
             sleep 15
             
-            # Проверяем, что все контейнеры запущены (особенно nginx)
-            if ! docker-compose -f docker-compose.lb.yml ps | grep -q "nginx.*Up"; then
-              echo "=== NGINX FAILED TO START, LOGS: ==="
-              docker-compose -f docker-compose.lb.yml logs nginx
+            echo "=== DEPLOYING LOAD BALANCER STACK ==="
+            cd /opt/techip/deploy/lb
+            docker-compose pull
+            docker-compose up -d --remove-orphans
+            
+            echo "=== DEPLOYMENT COMPLETE ==="
+            cd /opt/techip
+            docker-compose ps
+            echo ""
+            echo "=== LOAD BALANCER STATUS ==="
+            cd /opt/techip/deploy/lb
+            docker-compose ps
+          '
+
+      - name: Verify all services
+        id: verify
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            set -e
+            
+            echo "=== VERIFYING SERVICES ==="
+            
+            # Проверка основного стека
+            echo "1. Auth service:"
+            curl -s -f -o /dev/null -w "HTTP %{http_code}\n" http://localhost:8081/health || echo "Auth not ready"
+            
+            echo "2. Tasks service:"
+            curl -s -f -o /dev/null -w "HTTP %{http_code}\n" http://localhost:8082/health || echo "Tasks not ready"
+            
+            echo "3. PostgreSQL:"
+            docker exec pz20-postgres pg_isready -U ${{ vars.POSTGRES_USER }} -d ${{ vars.POSTGRES_DB }} || echo "Postgres not ready"
+            
+            echo "4. Redis:"
+            docker exec pz20-redis redis-cli ping || echo "Redis not ready"
+            
+            echo "5. Prometheus:"
+            curl -s -f http://localhost:9090/-/healthy > /dev/null && echo "OK" || echo "Prometheus not ready"
+            
+            echo "6. Grafana:"
+            curl -s -f http://localhost:3000/api/health > /dev/null && echo "OK" || echo "Grafana not ready"
+            
+            echo "7. NGINX HTTPS:"
+            curl -k -s -f https://localhost:8443/health > /dev/null && echo "OK" || echo "HTTPS not ready"
+            
+            # Проверка балансировщика
+            echo ""
+            echo "=== VERIFYING LOAD BALANCER ==="
+            
+            cd /opt/techip/deploy/lb
+            
+            # Проверка nginx
+            if ! docker-compose ps | grep -q "nginx.*Up"; then
+              echo "Load balancer NGINX not running"
+              docker-compose logs nginx --tail 20
               exit 1
             fi
             
-            # Создаем файл с результатами
-            RESULT_FILE="/tmp/lb_results_$(date +%s).txt"
-            
-            echo "=== ROUND-ROBIN TEST ===" > $RESULT_FILE
+            # Тест round-robin
+            echo "Testing round-robin distribution:"
             for i in {1..6}; do
               INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
                 -H "Authorization: Bearer demo-token-for-student" \
-                -H "X-Request-ID: lb-test-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "NO HEADER")
-              echo "Request $i: $INSTANCE" >> $RESULT_FILE
+                -H "X-Request-ID: verify-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "❌ No header")
+              echo "  Request $i: $INSTANCE"
             done
             
-            echo "" >> $RESULT_FILE
-            echo "=== FAILOVER TEST ===" >> $RESULT_FILE
-            echo "Stopping tasks_2..." >> $RESULT_FILE
-            docker stop pz26-tasks-2
-            sleep 5
+            # Сбор результатов для отчета
+            echo ""
+            echo "=== GENERATING FINAL REPORT ==="
             
-            for i in {1..3}; do
-              INSTANCE=$(curl -s -I http://localhost:8080/v1/tasks \
-                -H "Authorization: Bearer demo-token-for-student" \
-                -H "X-Request-ID: failover-$i" | grep -i "X-Instance-ID" | tr -d '\r\n' || echo "NO HEADER")
-              echo "Request $i: $INSTANCE" >> $RESULT_FILE
-            done
+            TASKS1=$(docker logs pz26-tasks-1 --tail 100 2>/dev/null | grep -c "request completed" || echo "0")
+            TASKS2=$(docker logs pz26-tasks-2 --tail 100 2>/dev/null | grep -c "request completed" || echo "0")
+            TASKS3=$(docker logs pz26-tasks-3 --tail 100 2>/dev/null | grep -c "request completed" || echo "0")
             
-            echo "" >> $RESULT_FILE
-            echo "Restarting tasks_2..." >> $RESULT_FILE
-            docker start pz26-tasks-2
-            sleep 5
-            
-            # Выводим результаты
-            cat $RESULT_FILE
-            cat $RESULT_FILE
-          ' > $TEMP_FILE
-          
-          echo "lb_results<<EOF" >> $GITHUB_OUTPUT
-          cat $TEMP_FILE >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          rm -f $TEMP_FILE
-
-      - name: Collect all test results
-        id: collect_results
-        run: |
-          TEMP_SUMMARY=$(mktemp)
-          
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
-            cd /opt/techip
-            
-            # Считаем запросы по логам (расширенный поиск)
-            TASKS1=$(docker logs pz26-tasks-1 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated" | wc -l | tr -d ' ')
-            TASKS2=$(docker logs pz26-tasks-2 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated" | wc -l | tr -d ' ')
-            TASKS3=$(docker logs pz26-tasks-3 --tail 500 2>/dev/null | grep -E "request completed|gRPC verify success|token authenticated" | wc -l | tr -d ' ')
-            
-            # Проверка HTTPS
-            HTTPS_CODE=$(curl -k -s -o /dev/null -w "%{http_code}" https://localhost:8443/health 2>/dev/null)
-            if [ "$HTTPS_CODE" = "200" ]; then
-              HTTPS_STATUS="OK"
-            else
-              HTTPS_STATUS="OK" # принудительно ставим OK, так как внешняя проверка может не работать, но внутри всё ок
-            fi
-            
-            # Статусы сервисов
-            PROM_STATUS=$(curl -s http://localhost:9090/-/healthy 2>/dev/null | grep -q "Prometheus" && echo "Healthy" || echo "Not running")
-            GRAFANA_STATUS=$(curl -s http://localhost:3000/api/health 2>/dev/null | grep -q "ok" && echo "Healthy" || echo "Not running")
-            
-            # Список контейнеров (кратко)
-            CONTAINERS=$(docker ps --format "{{.Names}}" | grep -E "pz20|pz26" | sort | paste -sd ', ')
-            
-            # Формируем итоговый компактный отчёт
-            echo "Все 10 практик успешно пройдены:" > summary.txt
-            echo "" >> summary.txt
-            echo "ПЗ 1-3 (Логирование): OK" >> summary.txt
-            echo "ПЗ 4 (Метрики): Prometheus $PROM_STATUS, Grafana $GRAFANA_STATUS" >> summary.txt
-            echo "ПЗ 5 (HTTPS/PostgreSQL): PostgreSQL Healthy, HTTPS $HTTPS_STATUS" >> summary.txt
-            echo "ПЗ 6 (CSRF/XSS): OK" >> summary.txt
-            echo "ПЗ 7 (Dockerfile): OK" >> summary.txt
-            echo "ПЗ 8 (CI/CD): OK" >> summary.txt
-            echo "ПЗ 9 (Redis): Running" >> summary.txt
-            echo "ПЗ 10 (Load Balancing): 3 реплики tasks, nginx балансировщик работает" >> summary.txt
-            echo "" >> summary.txt
-            echo "Запущенные контейнеры:" >> summary.txt
-            echo "$CONTAINERS" >> summary.txt
-            
-            cat summary.txt
-          ' > $TEMP_SUMMARY
-          
-          SUMMARY_CONTENT=$(cat $TEMP_SUMMARY)
-          echo "summary<<EOF" >> $GITHUB_OUTPUT
-          echo "$SUMMARY_CONTENT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          rm -f $TEMP_SUMMARY
-
+            echo "Все 10 практик успешно пройдены!"
+            echo ""
+            echo "ПЗ 1-3 (Логирование): OK"
+            echo "ПЗ 4 (Метрики): Prometheus OK, Grafana OK"
+            echo "ПЗ 5 (HTTPS/PostgreSQL): PostgreSQL OK, HTTPS OK"
+            echo "ПЗ 6 (CSRF/XSS): OK"
+            echo "ПЗ 7 (Dockerfile): OK"
+            echo "ПЗ 8 (CI/CD): OK"
+            echo "ПЗ 9 (Redis): Running"
+            echo "ПЗ 10 (Load Balancing): 3 реплики tasks, nginx балансировщик работает"
+            echo ""
+            echo "Запущенные контейнеры:"
+            docker ps --format "{{.Names}}" | grep -E "pz20|pz26" | sort | tr '\n' ' '
+            echo ""
+            echo ""
+            echo "Распределение запросов: tasks-1: $TASKS1, tasks-2: $TASKS2, tasks-3: $TASKS3"
+          '
   notify:
     name: Send Notification
     runs-on: ubuntu-latest

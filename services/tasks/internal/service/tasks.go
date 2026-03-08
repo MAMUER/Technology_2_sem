@@ -46,7 +46,7 @@ func NewTasksService(log *logger.Logger, repo repository.TaskRepository, cache *
 func (s *TasksService) GetByID(id string, subject string) (models.Task, error) {
 	ctx := context.Background()
 
-	// 1. Пытаемся получить из кэша (если кэш включен)
+	// 1. Пытаемся получить из кэша
 	if s.cache != nil && s.cache.IsEnabled() {
 		cachedTask, err := s.cache.GetTask(ctx, id)
 		if err != nil {
@@ -95,7 +95,7 @@ func (s *TasksService) GetByID(id string, subject string) (models.Task, error) {
 		return models.Task{}, nil
 	}
 
-	// 3. Сохраняем в кэш (асинхронно, не блокируем ответ)
+	// 3. Сохраняем в кэш
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			if err := s.cache.SetTask(ctx, &task); err != nil {
@@ -185,7 +185,7 @@ func (s *TasksService) getAllMemory(subject string) []models.Task {
 	return tasks
 }
 
-// Create с инвалидацией кэша
+// Create
 func (s *TasksService) Create(task models.Task, subject string) (models.Task, error) {
 	task.Sanitize()
 
@@ -205,7 +205,6 @@ func (s *TasksService) Create(task models.Task, subject string) (models.Task, er
 		return models.Task{}, err
 	}
 
-	// Инвалидируем кэш списка (при создании список меняется)
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			if err := s.cache.DeleteTaskList(context.Background(), subject); err != nil {
@@ -236,9 +235,8 @@ func (s *TasksService) createMemory(task models.Task, subject string) models.Tas
 	return task
 }
 
-// Update с инвалидацией кэша
+// Update
 func (s *TasksService) Update(id string, updates models.TaskUpdate, subject string) (models.Task, error) {
-	// Санитизация
 	if updates.Description != nil {
 		sanitized, err := sanitize.ValidateAndSanitizeDescription(*updates.Description)
 		if err != nil {
@@ -269,7 +267,6 @@ func (s *TasksService) Update(id string, updates models.TaskUpdate, subject stri
 		return models.Task{}, nil
 	}
 
-	// Инвалидируем кэш задачи и списка
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			ctx := context.Background()
@@ -318,7 +315,7 @@ func (s *TasksService) updateMemory(id string, updates models.TaskUpdate, subjec
 	return task, nil
 }
 
-// Delete с инвалидацией кэша
+// Delete
 func (s *TasksService) Delete(id string, subject string) (bool, error) {
 	var deleted bool
 	var err error
@@ -339,7 +336,6 @@ func (s *TasksService) Delete(id string, subject string) (bool, error) {
 		return false, nil
 	}
 
-	// Инвалидируем кэш
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			ctx := context.Background()
@@ -374,7 +370,7 @@ func (s *TasksService) deleteMemory(id string, subject string) bool {
 	return true
 }
 
-// SearchByTitle (без кэша, так как сложно инвалидировать)
+// SearchByTitle
 func (s *TasksService) SearchByTitle(term string, subject string) ([]models.Task, error) {
 	if s.useDatabase {
 		return s.repo.SearchByTitle(term, subject)
@@ -415,7 +411,6 @@ func generateUUID() string {
 	return uuid.New().String()
 }
 
-// Улучшенная функция поиска подстроки (без учета регистра)
 func contains(s, substr string) bool {
 	if substr == "" {
 		return true

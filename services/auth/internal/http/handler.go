@@ -109,7 +109,7 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	// Устанавливаем CSRF cookie (НЕ HttpOnly, чтобы JS мог прочитать)
+	// Устанавливаем CSRF cookie
 	cookies.SetSecureCookie(w, cookies.CookieConfig{
 		Name:     "csrf_token",
 		Value:    csrfToken,
@@ -162,8 +162,8 @@ func (h *Handlers) Verify(w http.ResponseWriter, r *http.Request) {
 	log := h.log.WithRequestID(requestID)
 
 	// Проверяем несколько способов аутентификации:
-	// 1. Bearer токен (для обратной совместимости)
-	// 2. Session cookie (для браузеров)
+	// 1. Bearer токен
+	// 2. Session cookie
 
 	authHeader := r.Header.Get("Authorization")
 	if authHeader != "" {

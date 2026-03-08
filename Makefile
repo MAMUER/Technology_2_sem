@@ -79,8 +79,6 @@ docker-build:
 docker-up:
 	@echo Starting all containers...
 	$(DOCKER_COMPOSE_CMD) up -d
-	# Убираем запуск отдельного стека из deploy/tls
-	# cd deploy/tls && $(DOCKER_COMPOSE_CMD) up -d
 	@echo Waiting for services to be ready...
 	@sleep 10
 	$(MAKE) docker-ps

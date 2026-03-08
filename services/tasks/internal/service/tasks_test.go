@@ -7,9 +7,7 @@ import (
 	"time"
 )
 
-// Вспомогательная функция для тестов с уникальными ID
 func createTestTask(service *TasksService, title, subject string, t *testing.T) models.Task {
-	// Добавляем небольшую задержку для уникальности ID
 	time.Sleep(time.Millisecond * 10)
 
 	task := models.Task{
@@ -148,11 +146,7 @@ func TestSearchTasks(t *testing.T) {
 	}
 }
 
-// Тест для проверки кэша (требует запущенного Redis)
+// Тест для проверки кэша
 func TestCacheWithRealRedis(t *testing.T) {
-	// Этот тест будет пропущен, если нет Redis
 	t.Skip("Skipping Redis cache test - requires running Redis server")
-
-	// Здесь можно добавить тест с реальным Redis
-	// Для этого нужно создать временный Redis клиент
 }

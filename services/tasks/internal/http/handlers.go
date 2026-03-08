@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"os" // Добавлен импорт os
+	"os"
 	"strings"
-	"time" // Добавлен импорт time
+	"time"
 
 	"go.uber.org/zap"
 	"tech-ip-sem2/services/tasks/internal/client/authclient"
@@ -34,13 +34,11 @@ type errorResponse struct {
 	Error string `json:"error"`
 }
 
-// Модифицируем AuthMiddleware для добавления заголовка с ID инстанса
 func (h *Handlers) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestID := middleware.GetRequestID(r.Context())
 		log := h.log.WithRequestID(requestID)
 
-		// Добавляем заголовок с ID инстанса (для отладки балансировки)
 		instanceID := os.Getenv("INSTANCE_ID")
 		if instanceID == "" {
 			instanceID = "unknown"

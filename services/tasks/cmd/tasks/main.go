@@ -23,14 +23,11 @@ func main() {
 	log := logger.New("tasks")
 	defer log.Sync()
 
-	// Читаем ID инстанса для отладки балансировки
 	instanceID := os.Getenv("INSTANCE_ID")
 	if instanceID == "" {
 		instanceID = "unknown"
 	}
 
-	// Добавляем instance ID в логгер через WithField (если есть такой метод)
-	// Или создаем новый логгер с полем
 	log.Info("Tasks service starting",
 		zap.String("instance", instanceID),
 		zap.String("version", "1.0.0"),

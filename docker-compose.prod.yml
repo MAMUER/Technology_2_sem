@@ -13,15 +13,12 @@ services:
     networks:
       - pz20-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/v1/auth/verify", "--header=Authorization: Bearer demo-token-for-student"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   tasks:
     image: ghcr.io/mamuer/technology_2_sem/tasks:latest
@@ -37,30 +34,30 @@ services:
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB}
       - DB_SSLMODE=${DB_SSLMODE}
-      # Redis Cache
       - REDIS_ADDR=redis:6379
       - REDIS_PASSWORD=
       - REDIS_DB=0
       - CACHE_TTL_SECONDS=120
       - CACHE_TTL_JITTER_SECONDS=30
+      - INSTANCE_ID=tasks-main
     env_file:
       - .env
     depends_on:
-      - auth
-      - postgres
-      - redis
+      auth:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - pz20-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   postgres:
     image: postgres:15-alpine
@@ -79,10 +76,11 @@ services:
     networks:
       - pz20-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -95,25 +93,30 @@ services:
       - pz20-network
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   nginx:
     image: nginx:alpine
     container_name: pz20-nginx
     ports:
+      - "80:80"
+      - "443:443"
       - "8443:8443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/opt/techip/certs:ro
     depends_on:
-      - tasks
-      - auth
+      tasks:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
     networks:
       - pz20-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 32M
 
   prometheus:
     image: prom/prometheus:latest
@@ -132,10 +135,6 @@ services:
     depends_on:
       - tasks
       - auth
-    deploy:
-      resources:
-        limits:
-          memory: 256M
 
   grafana:
     image: grafana/grafana:latest
@@ -154,10 +153,30 @@ services:
     restart: unless-stopped
     depends_on:
       - prometheus
-    deploy:
-      resources:
-        limits:
-          memory: 128M
+
+  # Load Balancer Stack
+  lb-setup:
+    image: alpine:latest
+    container_name: pz20-lb-setup
+    command: |
+      sh -c "
+        echo 'Setting up load balancer...'
+        apk add --no-cache curl docker-cli
+        cd /opt/techip/deploy/lb
+        docker-compose -f docker-compose.yml pull
+        docker-compose -f docker-compose.yml up -d --remove-orphans
+        echo 'Load balancer started'
+        tail -f /dev/null
+      "
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./deploy/lb:/opt/techip/deploy/lb
+    restart: unless-stopped
+    depends_on:
+      tasks:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
 
 networks:
   pz20-network:

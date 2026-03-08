@@ -125,12 +125,12 @@ func (c *RedisCache) GetTask(ctx context.Context, id string) (*models.Task, erro
 	}
 
 	if err != nil {
-		// Ошибка Redis - логируем и возвращаем nil (игнорируем ошибку)
+		// Ошибка Redis
 		c.log.Warn("Redis get error", zap.Error(err), zap.String("key", key))
 		return nil, err
 	}
 
-	// Hit - десериализуем
+	// Hit
 	var task models.Task
 	if err := json.Unmarshal(data, &task); err != nil {
 		c.log.Warn("Failed to unmarshal cached task", zap.Error(err), zap.String("key", key))
@@ -241,7 +241,7 @@ func (c *RedisCache) SetTaskList(ctx context.Context, subject string, tasks []mo
 	return nil
 }
 
-// Удаление списка задач (инвалидация)
+// Удаление списка задач
 func (c *RedisCache) DeleteTaskList(ctx context.Context, subject string) error {
 	if !c.enabled {
 		return nil
