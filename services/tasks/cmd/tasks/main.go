@@ -172,16 +172,26 @@ func main() {
 			RetryTTL:      10000, // 10 секунд
 		}
 
-		pub, err := rabbitmq.NewJobPublisher(jobConfig, log)
-		if err != nil {
-			log.Warn("Failed to create job publisher", zap.Error(err))
-			jobPublisher = nil
+		// Ретраи подключения
+		for i := 0; i < 5; i++ {
+			pub, err := rabbitmq.NewJobPublisher(jobConfig, log)
+			if err == nil {
+				jobPublisher = pub
+				log.Info("✅ Job publisher connected successfully",
+					zap.String("main_queue", "task_jobs"),
+					zap.String("dlq", "task_jobs_dlq"))
+				defer jobPublisher.Close()
+				break
+			}
+			log.Warn(fmt.Sprintf("Failed to create job publisher (attempt %d/5), retrying...", i+1),
+				zap.Error(err))
+			time.Sleep(3 * time.Second)
+		}
+
+		if jobPublisher == nil {
+			log.Error("Failed to create job publisher after 5 attempts, job endpoints disabled")
 		} else {
-			jobPublisher = pub
-			log.Info("Job publisher connected successfully",
-				zap.String("main_queue", "task_jobs"),
-				zap.String("dlq", "task_jobs_dlq"))
-			defer jobPublisher.Close()
+			log.Info("Job publisher ready")
 		}
 	}
 
