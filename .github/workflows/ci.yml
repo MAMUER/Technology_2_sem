@@ -191,7 +191,7 @@ jobs:
           # PostgreSQL
           POSTGRES_USER=${{ vars.POSTGRES_USER }}
           POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
-          POSTGRES_DB=${{ vars.POSTGRES_DB }}
+          POSTGRES_DB=${{ vars.DB_NAME }}
           
           # Grafana
           GRAFANA_ADMIN_USER=${{ vars.GRAFANA_ADMIN_USER }}
@@ -213,10 +213,16 @@ jobs:
           
           # Redis
           REDIS_ADDR=${{ vars.REDIS_ADDR }}
-          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          REDIS_PASSWORD=
           REDIS_DB=${{ vars.REDIS_DB }}
           CACHE_TTL_SECONDS=${{ vars.CACHE_TTL_SECONDS }}
           CACHE_TTL_JITTER_SECONDS=${{ vars.CACHE_TTL_JITTER_SECONDS }}
+          
+          # Tasks instances
+          TASKS_MAIN_INSTANCE_ID=tasks-main
+          TASKS_1_INSTANCE_ID=tasks-1
+          TASKS_2_INSTANCE_ID=tasks-2
+          TASKS_3_INSTANCE_ID=tasks-3
           
           # RabbitMQ
           RABBITMQ_URL=amqp://${{ secrets.RABBITMQ_USER }}:${{ secrets.RABBITMQ_PASS }}@rabbitmq:5672/
@@ -224,7 +230,22 @@ jobs:
           RABBITMQ_PREFETCH=${{ vars.RABBITMQ_PREFETCH }}
           RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}
           RABBITMQ_PASS=${{ secrets.RABBITMQ_PASS }}
+          RABBITMQ_AMQP_PORT=5672
+          RABBITMQ_MGMT_PORT=15672
           WORKER_ID=${{ vars.WORKER_ID }}
+          WORKER_ID_2=${{ vars.WORKER_ID_2 }}
+          
+          # Ports
+          LB_PORT=8080
+          HTTP_PORT=80
+          HTTPS_PORT=443
+          NGINX_HTTPS_PORT=8443
+          PROMETHEUS_PORT=9090
+          GRAFANA_PORT=3000
+          GRAPHQL_PORT=8090
+          
+          # Paths
+          CERTS_PATH=/opt/techip/certs
           EOF
       
       - name: Prepare server directories
