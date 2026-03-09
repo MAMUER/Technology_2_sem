@@ -185,6 +185,26 @@ jobs:
       - name: Add host to known_hosts
         run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
       
+      - name: 🧹 FULL CLEANUP - Remove everything
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            echo "=== FULL CLEANUP ==="
+            
+            # Останавливаем и удаляем все контейнеры
+            cd /opt/techip 2>/dev/null && docker-compose down -v --remove-orphans 2>/dev/null || true
+            
+            # Удаляем все остановленные контейнеры
+            docker container prune -f 2>/dev/null || true
+            
+            # Удаляем все неиспользуемые тома
+            docker volume prune -f 2>/dev/null || true
+            
+            # Удаляем всю директорию проекта
+            rm -rf /opt/techip
+            
+            echo "✅ Cleanup completed"
+          '
+      
       - name: Create .env file from variables
         run: |
           cat > .env << EOF
@@ -285,13 +305,6 @@ jobs:
             fi
           '
       
-      - name: Stop any existing containers
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
-            cd /opt/techip
-            docker-compose down --remove-orphans 2>/dev/null || true
-          '
-      
       - name: Deploy
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
@@ -299,7 +312,7 @@ jobs:
             echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker-compose pull
             docker-compose up -d
-            sleep 15
+            sleep 20
             docker system prune -f
           '
       
@@ -324,6 +337,11 @@ jobs:
             # GraphQL check
             GRAPHQL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/health || echo "failed")
             echo "GraphQL service: $GRAPHQL_STATUS"
+            
+            # Test RabbitMQ connection
+            echo ""
+            echo "=== RABBITMQ CHECK ==="
+            docker logs pz20-tasks --tail 20 | grep -i rabbit || echo "No rabbit logs yet"
           '
       
       - name: Collect results for notification
