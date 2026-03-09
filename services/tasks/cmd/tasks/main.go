@@ -17,6 +17,9 @@ import (
 	"tech-ip-sem2/shared/logger"
 	"tech-ip-sem2/shared/metrics"
 	"tech-ip-sem2/shared/middleware"
+
+	// Импорт для job handlers (алиас)
+	jobHandlersPkg "tech-ip-sem2/services/tasks/internal/http"
 )
 
 func main() {
@@ -126,13 +129,13 @@ func main() {
 		log.Info("Redis cache disabled")
 	}
 
-	// Подключение к RabbitMQ
+	// Подключение к RabbitMQ для событий (старая очередь)
 	rabbitURL := os.Getenv("RABBITMQ_URL")
 	queueName := os.Getenv("RABBITMQ_QUEUE")
 
 	var rabbitPublisher *rabbitmq.Publisher
 	if rabbitURL != "" && queueName != "" {
-		log.Info("Attempting to connect to RabbitMQ",
+		log.Info("Attempting to connect to RabbitMQ for events",
 			zap.String("url", rabbitURL),
 			zap.String("queue", queueName))
 
@@ -154,19 +157,58 @@ func main() {
 		log.Info("RabbitMQ not configured (missing URL or queue), publisher disabled")
 	}
 
+	// Подключение к RabbitMQ для задач (новая очередь с DLQ)
+	var jobPublisher *rabbitmq.JobPublisher
+	if rabbitURL != "" {
+		log.Info("Attempting to connect to RabbitMQ for jobs",
+			zap.String("url", rabbitURL))
+
+		jobConfig := rabbitmq.JobPublisherConfig{
+			URL:           rabbitURL,
+			Queue:         "task_jobs",
+			DLQ:           "task_jobs_dlq",
+			RetryQueue:    "task_jobs_retry",
+			RetryExchange: "task_jobs_dlx",
+			RetryTTL:      10000, // 10 секунд
+		}
+
+		pub, err := rabbitmq.NewJobPublisher(jobConfig, log)
+		if err != nil {
+			log.Warn("Failed to create job publisher", zap.Error(err))
+			jobPublisher = nil
+		} else {
+			jobPublisher = pub
+			log.Info("Job publisher connected successfully",
+				zap.String("main_queue", "task_jobs"),
+				zap.String("dlq", "task_jobs_dlq"))
+			defer jobPublisher.Close()
+		}
+	}
+
 	// Сервис задач с кэшем и RabbitMQ
 	tasksService := service.NewTasksService(log, taskRepo, redisCache, rabbitPublisher)
 	handlers := taskshttp.NewHandlers(tasksService, authClient, log)
 
+	// Job handlers (для эндпоинта /v1/jobs/*)
+	jobHandlers := jobHandlersPkg.NewJobHandlers(jobPublisher, log)
+
 	mux := http.NewServeMux()
 
-	// Эндпоинты API
+	// Эндпоинты API для задач (REST)
 	mux.HandleFunc("POST /v1/tasks", handlers.AuthMiddleware(handlers.CreateTask))
 	mux.HandleFunc("GET /v1/tasks", handlers.AuthMiddleware(handlers.ListTasks))
 	mux.HandleFunc("GET /v1/tasks/search", handlers.AuthMiddleware(handlers.SearchTasks))
 	mux.HandleFunc("GET /v1/tasks/{id}", handlers.AuthMiddleware(handlers.GetTask))
 	mux.HandleFunc("PATCH /v1/tasks/{id}", handlers.AuthMiddleware(handlers.UpdateTask))
 	mux.HandleFunc("DELETE /v1/tasks/{id}", handlers.AuthMiddleware(handlers.DeleteTask))
+
+	// Эндпоинты для задач (job queue) - НОВЫЕ
+	if jobPublisher != nil {
+		mux.HandleFunc("POST /v1/jobs/process-task", handlers.AuthMiddleware(jobHandlers.ProcessTaskJob))
+		log.Info("Job endpoints registered", zap.String("path", "/v1/jobs/process-task"))
+	} else {
+		log.Warn("Job endpoints disabled (no RabbitMQ connection)")
+	}
 
 	// Метрики и health
 	mux.Handle("GET /metrics", metrics.Handler())
@@ -186,6 +228,7 @@ func main() {
 		zap.Bool("database_enabled", taskRepo != nil),
 		zap.Bool("cache_enabled", redisCache.IsEnabled()),
 		zap.Bool("rabbitmq_enabled", rabbitPublisher != nil),
+		zap.Bool("job_queue_enabled", jobPublisher != nil),
 		zap.String("instance", instanceID),
 	)
 

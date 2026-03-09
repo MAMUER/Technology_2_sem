@@ -202,7 +202,7 @@ jobs:
             # Удаляем всю директорию проекта
             rm -rf /opt/techip
             
-            echo "✅ Cleanup completed"
+            echo "Cleanup completed"
           '
       
       - name: Create .env file from variables
@@ -342,6 +342,20 @@ jobs:
             echo ""
             echo "=== RABBITMQ CHECK ==="
             docker logs pz20-tasks --tail 20 | grep -i rabbit || echo "No rabbit logs yet"
+
+            # Проверка job очередей
+            echo ""
+            echo "=== JOB QUEUES CHECK ==="
+            docker exec pz29-rabbitmq rabbitmqctl list_queues name messages | grep -E "task_jobs|task_jobs_retry|task_jobs_dlq" || echo "Queues not found"
+
+            # Тест создания задания
+            echo ""
+            echo "=== JOB CREATION TEST ==="
+            JOB_RESPONSE=$(curl -s -X POST http://localhost:8082/v1/jobs/process-task \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer demo-token-for-student" \
+              -d '{"task_id":"ci-test-job"}')
+            echo "Job response: $JOB_RESPONSE"
           '
       
       - name: Collect results for notification

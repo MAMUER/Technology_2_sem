@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-	// Логгер
 	log := logger.New("worker")
 	defer log.Sync()
 
@@ -27,45 +26,40 @@ func main() {
 		zap.String("version", "1.0.0"),
 	)
 
-	// Конфигурация RabbitMQ
 	rabbitURL := os.Getenv("RABBITMQ_URL")
 	if rabbitURL == "" {
 		log.Fatal("RABBITMQ_URL environment variable not set")
-	}
-
-	queueName := os.Getenv("RABBITMQ_QUEUE")
-	if queueName == "" {
-		log.Fatal("RABBITMQ_QUEUE environment variable not set")
 	}
 
 	prefetch := 1
 	if prefetchStr := os.Getenv("RABBITMQ_PREFETCH"); prefetchStr != "" {
 		if val, err := strconv.Atoi(prefetchStr); err == nil && val > 0 {
 			prefetch = val
-		} else {
-			log.Warn("Invalid RABBITMQ_PREFETCH value, using default",
-				zap.String("value", prefetchStr),
-				zap.Error(err))
 		}
 	}
 
-	// Создание consumer
-	cons, err := consumer.NewConsumer(consumer.ConsumerConfig{
-		URL:      rabbitURL,
-		Queue:    queueName,
-		Prefetch: prefetch,
+	// Создаем consumer для заданий
+	jobConsumer, err := consumer.NewJobConsumer(consumer.JobConsumerConfig{
+		URL:           rabbitURL,
+		Queue:         "task_jobs",
+		RetryExchange: "task_jobs_dlx",
+		RetryQueue:    "task_jobs_retry",
+		DLQ:           "task_jobs_dlq",
+		Prefetch:      prefetch,
 	}, log)
 	if err != nil {
-		log.Fatal("Failed to create consumer", zap.Error(err))
+		log.Fatal("Failed to create job consumer", zap.Error(err))
 	}
-	defer cons.Close()
+	defer jobConsumer.Close()
 
-	// Запуск consumer
-	if err := cons.Start(); err != nil {
-		log.Fatal("Failed to start consumer", zap.Error(err))
+	jobConsumer.SetInstanceID(workerID)
+
+	if err := jobConsumer.Start(); err != nil {
+		log.Fatal("Failed to start job consumer", zap.Error(err))
 	}
 
-	// Graceful shutdown
+	log.Info("Worker fully initialized and waiting for jobs...")
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

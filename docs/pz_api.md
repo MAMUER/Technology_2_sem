@@ -598,3 +598,13 @@ Variables:
   "request_id": "rabbit-test-1"
 }
 ```
+## Формат сообщения job
+```json
+{
+  "job_type": "process_task",
+  "task_id": "task-123",
+  "attempt": 1,
+  "message_id": "550e8400-e29b-41d4-a716-446655440000",
+  "created_at": "2026-03-09T12:00:00Z"
+}
+```
