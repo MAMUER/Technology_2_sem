@@ -38,26 +38,34 @@ type JobConsumerConfig struct {
 }
 
 func NewJobConsumer(config JobConsumerConfig, log *logger.Logger) (*JobConsumer, error) {
-	conn, err := amqp.Dial(config.URL)
+	var conn *amqp.Connection
+	var ch *amqp.Channel
+	var err error
+
+	// Пытаемся подключиться с ретраями
+	for i := 0; i < 5; i++ {
+		conn, err = amqp.Dial(config.URL)
+		if err == nil {
+			break
+		}
+		log.Warn(fmt.Sprintf("Failed to connect to RabbitMQ (attempt %d/5), retrying...", i+1),
+			zap.Error(err))
+		time.Sleep(3 * time.Second)
+	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
+		return nil, fmt.Errorf("failed to connect to RabbitMQ after 5 attempts: %w", err)
 	}
 
-	ch, err := conn.Channel()
+	ch, err = conn.Channel()
 	if err != nil {
 		conn.Close()
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
-	err = ch.Qos(
-		config.Prefetch,
-		0,
-		false,
-	)
+	// Пытаемся объявить очереди (на случай, если publisher еще не создал их)
+	err = declareQueues(ch, config, log)
 	if err != nil {
-		ch.Close()
-		conn.Close()
-		return nil, fmt.Errorf("failed to set prefetch: %w", err)
+		log.Warn("Failed to declare queues, will rely on publisher", zap.Error(err))
 	}
 
 	instance := "worker-1" // будет переопределено из env
@@ -82,6 +90,28 @@ func NewJobConsumer(config JobConsumerConfig, log *logger.Logger) (*JobConsumer,
 		processed:     storage.NewProcessedMessages(24 * time.Hour),
 		processor:     processor.NewTaskProcessor(log),
 	}, nil
+}
+
+func declareQueues(ch *amqp.Channel, config JobConsumerConfig, log *logger.Logger) error {
+	// Проверяем существование очередей (пытаемся объявить их как пассивные)
+	_, err := ch.QueueDeclarePassive(
+		config.Queue,
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return fmt.Errorf("queue %s does not exist", config.Queue)
+	}
+
+	log.Info("Queues already exist",
+		zap.String("main_queue", config.Queue),
+		zap.String("retry_queue", config.RetryQueue),
+		zap.String("dlq", config.DLQ))
+
+	return nil
 }
 
 func (c *JobConsumer) SetInstanceID(id string) {

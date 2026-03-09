@@ -394,12 +394,6 @@ jobs:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            CI/CD Pipeline завершен!
-            
-            Репозиторий: ${{ github.repository }}
-            Ветка: ${{ github.ref_name }}
-            Коммит: ${{ github.sha }}
-            
             Test: ${{ needs.test.result }}
             Build: ${{ needs.build.result }}
             Docker: ${{ needs.docker.result }}
