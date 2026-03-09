@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -29,18 +30,22 @@ func main() {
 	// Конфигурация RabbitMQ
 	rabbitURL := os.Getenv("RABBITMQ_URL")
 	if rabbitURL == "" {
-		rabbitURL = "${RABBITMQ_URL}"
+		log.Fatal("RABBITMQ_URL environment variable not set")
 	}
 
 	queueName := os.Getenv("RABBITMQ_QUEUE")
 	if queueName == "" {
-		queueName = "${RABBITMQ_QUEUE}"
+		log.Fatal("RABBITMQ_QUEUE environment variable not set")
 	}
 
 	prefetch := 1
 	if prefetchStr := os.Getenv("RABBITMQ_PREFETCH"); prefetchStr != "" {
-		if val, err := time.ParseDuration(prefetchStr); err == nil {
-			prefetch = int(val)
+		if val, err := strconv.Atoi(prefetchStr); err == nil && val > 0 {
+			prefetch = val
+		} else {
+			log.Warn("Invalid RABBITMQ_PREFETCH value, using default",
+				zap.String("value", prefetchStr),
+				zap.Error(err))
 		}
 	}
 

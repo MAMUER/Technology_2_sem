@@ -128,16 +128,14 @@ func main() {
 
 	// Подключение к RabbitMQ
 	rabbitURL := os.Getenv("RABBITMQ_URL")
-	if rabbitURL == "" {
-		rabbitURL = "${RABBITMQ_URL}"
-	}
 	queueName := os.Getenv("RABBITMQ_QUEUE")
-	if queueName == "" {
-		queueName = "${RABBITMQ_QUEUE}"
-	}
 
 	var rabbitPublisher *rabbitmq.Publisher
-	if rabbitURL != "" {
+	if rabbitURL != "" && queueName != "" {
+		log.Info("Attempting to connect to RabbitMQ",
+			zap.String("url", rabbitURL),
+			zap.String("queue", queueName))
+
 		pub, err := rabbitmq.NewPublisher(rabbitmq.PublisherConfig{
 			URL:   rabbitURL,
 			Queue: queueName,
@@ -148,11 +146,12 @@ func main() {
 			rabbitPublisher = nil
 		} else {
 			rabbitPublisher = pub
-			log.Info("RabbitMQ publisher connected",
-				zap.String("queue", queueName),
-			)
+			log.Info("RabbitMQ publisher connected successfully",
+				zap.String("queue", queueName))
 			defer rabbitPublisher.Close()
 		}
+	} else {
+		log.Info("RabbitMQ not configured (missing URL or queue), publisher disabled")
 	}
 
 	// Сервис задач с кэшем и RabbitMQ
