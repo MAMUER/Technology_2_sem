@@ -185,7 +185,7 @@ jobs:
       - name: Add host to known_hosts
         run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
       
-      - name: 🧹 FULL CLEANUP - Remove everything
+      - name: FULL CLEANUP - Remove everything
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             echo "=== FULL CLEANUP ==="

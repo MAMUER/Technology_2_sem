@@ -78,3 +78,14 @@ func (h *JobHandlers) ProcessTaskJob(w http.ResponseWriter, r *http.Request) {
 		Status:    "queued",
 	})
 }
+
+// Ready – эндпоинт для проверки готовности (очереди созданы, можно подключаться)
+func (h *JobHandlers) Ready(w http.ResponseWriter, r *http.Request) {
+	if h.jobPublisher != nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ready"))
+	} else {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("not ready"))
+	}
+}

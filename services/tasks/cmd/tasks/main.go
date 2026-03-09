@@ -212,6 +212,12 @@ func main() {
 	mux.HandleFunc("PATCH /v1/tasks/{id}", handlers.AuthMiddleware(handlers.UpdateTask))
 	mux.HandleFunc("DELETE /v1/tasks/{id}", handlers.AuthMiddleware(handlers.DeleteTask))
 
+	// Эндпоинт готовности (без авторизации, для healthcheck)
+	if jobPublisher != nil {
+		mux.HandleFunc("GET /ready", jobHandlers.Ready)
+		log.Info("Ready endpoint registered", zap.String("path", "/ready"))
+	}
+
 	// Эндпоинты для задач (job queue) - НОВЫЕ
 	if jobPublisher != nil {
 		mux.HandleFunc("POST /v1/jobs/process-task", handlers.AuthMiddleware(jobHandlers.ProcessTaskJob))

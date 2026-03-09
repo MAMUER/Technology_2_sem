@@ -100,11 +100,11 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
+      test: ["CMD", "curl", "-f", "http://localhost:8082/ready"]   # <-- ИЗМЕНЕНО
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   tasks_1:
     image: ghcr.io/mamuer/technology_2_sem/tasks:latest
@@ -340,6 +340,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      tasks:
+        condition: service_healthy            # <-- ДОБАВЛЕНО
     restart: unless-stopped
 
   worker_2:
@@ -357,6 +359,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      tasks:
+        condition: service_healthy            # <-- ДОБАВЛЕНО
     restart: unless-stopped
 
 networks:
