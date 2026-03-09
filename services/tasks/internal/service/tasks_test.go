@@ -1,10 +1,12 @@
 package service
 
 import (
+	"context"
+	"testing"
+	"time" // Добавляем недостающий импорт
+
 	"tech-ip-sem2/services/tasks/internal/models"
 	"tech-ip-sem2/shared/logger"
-	"testing"
-	"time"
 )
 
 func createTestTask(service *TasksService, title, subject string, t *testing.T) models.Task {
@@ -16,7 +18,8 @@ func createTestTask(service *TasksService, title, subject string, t *testing.T) 
 		DueDate:     "2026-03-10",
 	}
 
-	created, err := service.Create(task, subject)
+	// Исправляем: добавляем context.Background()
+	created, err := service.Create(task, subject, context.Background())
 	if err != nil {
 		t.Fatalf("Failed to create task: %v", err)
 	}
@@ -25,8 +28,8 @@ func createTestTask(service *TasksService, title, subject string, t *testing.T) 
 
 func TestTasksService(t *testing.T) {
 	log := logger.New("test")
-	// В тестах используем in-memory хранилище без кэша
-	service := NewTasksService(log, nil, nil)
+	// В тестах используем in-memory хранилище без кэша и без RabbitMQ
+	service := NewTasksService(log, nil, nil, nil)
 
 	// Создаем задачу
 	created := createTestTask(service, "Test Task", "student", t)
@@ -69,7 +72,7 @@ func TestTasksService(t *testing.T) {
 		Done: &done,
 	}
 
-	updated, err := service.Update(created.ID, updates, "student")
+	updated, err := service.Update(created.ID, updates, "student", context.Background())
 	if err != nil {
 		t.Errorf("Failed to update task: %v", err)
 	}
@@ -79,7 +82,7 @@ func TestTasksService(t *testing.T) {
 	}
 
 	// Удаляем задачу
-	deleted, err := service.Delete(created.ID, "student")
+	deleted, err := service.Delete(created.ID, "student", context.Background())
 	if err != nil {
 		t.Errorf("Failed to delete task: %v", err)
 	}
@@ -100,7 +103,7 @@ func TestTasksService(t *testing.T) {
 
 func TestSearchTasks(t *testing.T) {
 	log := logger.New("test")
-	service := NewTasksService(log, nil, nil)
+	service := NewTasksService(log, nil, nil, nil)
 
 	// Создаем несколько задач с разными ID
 	tasks := []string{"Go Task", "Docker Task", "K8s Task"}

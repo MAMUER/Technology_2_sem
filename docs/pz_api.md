@@ -16,6 +16,8 @@
 | `DB_USER` | - | Пользователь БД |
 | `DB_PASSWORD` | - | Пароль БД |
 | `DB_SSLMODE` | disable | Режим SSL для БД |
+| `RABBITMQ_PORT` | 5672 | AMQP протокол |
+| `RABBITMQ_MGMT_PORT` | 15672 | Management UI |
 ## Секреты GitHub Actions
 | Секрет | Назначение |
 |------------|----------------------|
@@ -583,3 +585,16 @@ Variables:
 - 200: Успешный запрос
 - 400: Неверный синтаксис GraphQL
 - 500: Внутренняя ошибка сервера
+
+## RabbitMQ
+Ответ:
+```json
+{
+  "event": "task.created",
+  "task_id": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "RabbitMQ Demo",
+  "subject": "student",
+  "ts": "2026-03-08T12:00:00Z",
+  "request_id": "rabbit-test-1"
+}
+```

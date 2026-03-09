@@ -56,6 +56,8 @@ jobs:
         run: go build -o bin/tasks-service ./services/tasks/cmd/tasks
       - name: Build GraphQL Service
         run: go build -o bin/graphql-service ./services/graphql/cmd/graphql
+      - name: Build Worker Service
+        run: go build -o bin/worker-service ./services/worker/cmd/worker
       - uses: actions/upload-artifact@v4
         with:
           name: binaries
@@ -147,6 +149,26 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Extract metadata for Worker
+        id: meta-worker
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.repo-name.outputs.repo_lower }}/worker
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/worker/Dockerfile
+          push: true
+          tags: ${{ steps.meta-worker.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
@@ -178,7 +200,15 @@ jobs:
           DB_PORT=5432
           DB_NAME=${{ vars.POSTGRES_DB }}
           DB_SSLMODE=disable
+          
+          # RabbitMQ
+          RABBITMQ_URL=amqp://${{ secrets.RABBITMQ_USER }}:${{ secrets.RABBITMQ_PASS }}@rabbitmq:5672/
+          RABBITMQ_QUEUE=${{ vars.RABBITMQ_QUEUE }}
+          RABBITMQ_PREFETCH=${{ vars.RABBITMQ_PREFETCH }}
+          RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}
+          RABBITMQ_PASS=${{ secrets.RABBITMQ_PASS }}
           EOF
+      
       - name: Prepare server directories
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
@@ -222,10 +252,6 @@ jobs:
             cd /opt/techip
             echo "Stopping any existing containers..."
             docker-compose down --remove-orphans 2>/dev/null || true
-            docker stop $(docker ps -q --filter "name=postgres") 2>/dev/null || true
-            docker rm $(docker ps -aq --filter "name=postgres") 2>/dev/null || true
-            docker stop $(docker ps -q --filter "name=pz20-postgres") 2>/dev/null || true
-            docker rm $(docker ps -aq --filter "name=pz20-postgres") 2>/dev/null || true
           '
       
       - name: Deploy
@@ -236,7 +262,7 @@ jobs:
             docker-compose pull
             docker-compose up -d
             echo "Waiting for services to start..."
-            sleep 10
+            sleep 15
             docker system prune -f
           '
       
@@ -248,8 +274,16 @@ jobs:
             docker-compose ps
             
             echo ""
+            echo "=== RABBITMQ CHECK ==="
+            curl -s -o /dev/null -w "RabbitMQ HTTP API Status: %{http_code}\n" http://localhost:15672/api/health/checks/alarms || echo "RabbitMQ not responding"
+            
+            echo ""
+            echo "=== WORKER LOGS (last 5 lines) ==="
+            docker-compose logs --tail=5 worker worker_2
+            
+            echo ""
             echo "=== GRAPHQL SERVICE CHECK ==="
-            curl -s http://localhost:8090/health || echo "GraphQL health check failed"
+            curl -s http://localhost:8090/health | jq . || echo "GraphQL health check failed"
             
             echo ""
             echo "=== AUTH SERVICE CHECK ==="
@@ -263,7 +297,7 @@ jobs:
       - name: Collect results for notification
         id: collect_results
         run: |
-          SUMMARY="Все 11 практик успешно пройдены!
+          SUMMARY="Все 12 практик успешно пройдены!
 
           ПЗ 1-3: Логирование OK
           ПЗ 4: Метрики (Prometheus/Grafana) OK
@@ -274,8 +308,10 @@ jobs:
           ПЗ 9: Redis OK
           ПЗ 10: Load Balancing (3 реплики) OK
           ПЗ 11: GraphQL API OK
+          ПЗ 13: RabbitMQ (очереди + workers) OK
 
-          Контейнеры: auth, tasks (3 реплики), graphql, postgres, redis, nginx (2 шт), prometheus, grafana"
+          Контейнеры: auth, tasks (3 реплики), graphql, postgres, redis, 
+          rabbitmq, worker (2 шт), nginx (2 шт), prometheus, grafana"
           
           echo "summary<<EOF" >> $GITHUB_OUTPUT
           echo "$SUMMARY" >> $GITHUB_OUTPUT

@@ -393,6 +393,24 @@ mutation DeleteTask($id: ID!) {
 - Over-fetching проблема - нужно минимизировать передаваемые данные
 - Разные клиенты - веб, мобильные, десктоп с разными потребностями
 
+## Практическое занятие №13 - Подключение к RabbitMQ. Отправка и получение сообщений
+### Режим публикации: "best effort"
+- Если RabbitMQ недоступен - логируем ошибку, но задача создаётся
+- Асинхронная публикация (не блокирует ответ клиенту)
+- Persistent сообщения (переживают рестарт RabbitMQ)
+
+### Устройство worker
+#### Consumer
+- Подключается к RabbitMQ
+- Объявляет ту же очередь (durable)
+- Prefetch = 1 (обрабатывает по одному сообщению)
+- Manual ack (подтверждение после обработки)
+- Логирует полученные события
+#### 2 экземпляра worker
+- worker-1 и worker-2
+- Распределяют нагрузку (round-robin)
+- Каждый подтверждает свои сообщения
+
 ## Команды запуска и сборки
 - make graphql-run        # Запустить локально
 - make graphql-build      # Собрать Docker образ
@@ -740,36 +758,53 @@ C:.
 │   │   └───tools
 │   │           tools.go
 │   │
-│   └───tasks
+│   ├───tasks
+│   │   │   Dockerfile
+│   │   │
+│   │   ├───cmd
+│   │   │   └───tasks
+│   │   │           main.go
+│   │   │
+│   │   └───internal
+│   │       ├───cache
+│   │       │       redis_cache.go
+│   │       │
+│   │       ├───client
+│   │       │   └───authclient
+│   │       │           client.go
+│   │       │
+│   │       ├───config
+│   │       │       config.go
+│   │       │
+│   │       ├───http
+│   │       │       handlers.go
+│   │       │
+│   │       ├───models
+│   │       │       task.go
+│   │       │
+│   │       ├───rabbitmq
+│   │       │       publisher.go
+│   │       │
+│   │       ├───repository
+│   │       │       task_repository.go
+│   │       │
+│   │       └───service
+│   │               tasks.go
+│   │               tasks_test.go
+│   │
+│   └───worker
 │       │   Dockerfile
 │       │
 │       ├───cmd
-│       │   └───tasks
+│       │   └───worker
 │       │           main.go
 │       │
 │       └───internal
-│           ├───cache
-│           │       redis_cache.go
+│           ├───consumer
+│           │       consumer.go
 │           │
-│           ├───client
-│           │   └───authclient
-│           │           client.go
-│           │
-│           ├───config
-│           │       config.go
-│           │
-│           ├───http
-│           │       handlers.go
-│           │
-│           ├───models
-│           │       task.go
-│           │
-│           ├───repository
-│           │       task_repository.go
-│           │
-│           └───service
-│                   tasks.go
-│                   tasks_test.go
+│           └───models
+│                   event.go
 │
 └───shared
     ├───cookies

@@ -11,14 +11,17 @@ import (
 	"go.uber.org/zap"
 	"tech-ip-sem2/services/tasks/internal/cache"
 	"tech-ip-sem2/services/tasks/internal/models"
+	"tech-ip-sem2/services/tasks/internal/rabbitmq"
 	"tech-ip-sem2/services/tasks/internal/repository"
 	"tech-ip-sem2/shared/logger"
+	"tech-ip-sem2/shared/middleware"
 	"tech-ip-sem2/shared/sanitize"
 )
 
 type TasksService struct {
 	repo        repository.TaskRepository
 	cache       *cache.RedisCache
+	rabbitPub   *rabbitmq.Publisher
 	log         *logger.Logger
 	memoryTasks map[string]models.Task
 	mu          sync.RWMutex
@@ -26,15 +29,17 @@ type TasksService struct {
 	counter     int64
 }
 
-func NewTasksService(log *logger.Logger, repo repository.TaskRepository, cache *cache.RedisCache) *TasksService {
+func NewTasksService(log *logger.Logger, repo repository.TaskRepository, cache *cache.RedisCache, rabbitPub *rabbitmq.Publisher) *TasksService {
 	log.Info("Tasks service initialized",
 		zap.Bool("use_database", repo != nil),
 		zap.Bool("cache_enabled", cache != nil && cache.IsEnabled()),
+		zap.Bool("rabbitmq_enabled", rabbitPub != nil),
 	)
 
 	return &TasksService{
 		repo:        repo,
 		cache:       cache,
+		rabbitPub:   rabbitPub,
 		log:         log,
 		memoryTasks: make(map[string]models.Task),
 		useDatabase: repo != nil,
@@ -185,8 +190,8 @@ func (s *TasksService) getAllMemory(subject string) []models.Task {
 	return tasks
 }
 
-// Create
-func (s *TasksService) Create(task models.Task, subject string) (models.Task, error) {
+// Create с публикацией события
+func (s *TasksService) Create(task models.Task, subject string, ctx context.Context) (models.Task, error) {
 	task.Sanitize()
 
 	var created models.Task
@@ -205,12 +210,34 @@ func (s *TasksService) Create(task models.Task, subject string) (models.Task, er
 		return models.Task{}, err
 	}
 
+	// Инвалидация кэша
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			if err := s.cache.DeleteTaskList(context.Background(), subject); err != nil {
 				s.log.Warn("Failed to invalidate task list cache",
 					zap.Error(err),
 					zap.String("subject", subject),
+				)
+			}
+		}()
+	}
+
+	// Публикация события в RabbitMQ (best effort)
+	if s.rabbitPub != nil {
+		requestID := middleware.GetRequestID(ctx)
+		go func() {
+			pubCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+
+			if err := s.rabbitPub.PublishEvent(pubCtx, "task.created", created, requestID); err != nil {
+				s.log.Error("Failed to publish task.created event",
+					zap.Error(err),
+					zap.String("task_id", created.ID),
+				)
+			} else {
+				s.log.Info("Task event published",
+					zap.String("event", "task.created"),
+					zap.String("task_id", created.ID),
 				)
 			}
 		}()
@@ -235,8 +262,8 @@ func (s *TasksService) createMemory(task models.Task, subject string) models.Tas
 	return task
 }
 
-// Update
-func (s *TasksService) Update(id string, updates models.TaskUpdate, subject string) (models.Task, error) {
+// Update с публикацией события
+func (s *TasksService) Update(id string, updates models.TaskUpdate, subject string, ctx context.Context) (models.Task, error) {
 	if updates.Description != nil {
 		sanitized, err := sanitize.ValidateAndSanitizeDescription(*updates.Description)
 		if err != nil {
@@ -267,21 +294,30 @@ func (s *TasksService) Update(id string, updates models.TaskUpdate, subject stri
 		return models.Task{}, nil
 	}
 
+	// Инвалидация кэша
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			ctx := context.Background()
-			// Удаляем конкретную задачу из кэша
 			if err := s.cache.DeleteTask(ctx, id); err != nil {
-				s.log.Warn("Failed to invalidate task cache",
-					zap.Error(err),
-					zap.String("task_id", id),
-				)
+				s.log.Warn("Failed to invalidate task cache", zap.Error(err), zap.String("task_id", id))
 			}
-			// Удаляем список (так как данные изменились)
 			if err := s.cache.DeleteTaskList(ctx, subject); err != nil {
-				s.log.Warn("Failed to invalidate task list cache",
+				s.log.Warn("Failed to invalidate task list cache", zap.Error(err), zap.String("subject", subject))
+			}
+		}()
+	}
+
+	// Публикация события в RabbitMQ (best effort)
+	if s.rabbitPub != nil {
+		requestID := middleware.GetRequestID(ctx)
+		go func() {
+			pubCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+
+			if err := s.rabbitPub.PublishEvent(pubCtx, "task.updated", updated, requestID); err != nil {
+				s.log.Error("Failed to publish task.updated event",
 					zap.Error(err),
-					zap.String("subject", subject),
+					zap.String("task_id", updated.ID),
 				)
 			}
 		}()
@@ -315,15 +351,19 @@ func (s *TasksService) updateMemory(id string, updates models.TaskUpdate, subjec
 	return task, nil
 }
 
-// Delete
-func (s *TasksService) Delete(id string, subject string) (bool, error) {
+// Delete с публикацией события
+func (s *TasksService) Delete(id string, subject string, ctx context.Context) (bool, error) {
 	var deleted bool
 	var err error
+	var task models.Task
 
+	// Получаем задачу для события (если есть)
 	if s.useDatabase {
+		task, _ = s.repo.GetByID(id, subject)
 		deleted, err = s.repo.Delete(id, subject)
 	} else {
 		s.mu.Lock()
+		task, _ = s.getByIDMemory(id, subject)
 		deleted = s.deleteMemory(id, subject)
 		s.mu.Unlock()
 	}
@@ -336,21 +376,30 @@ func (s *TasksService) Delete(id string, subject string) (bool, error) {
 		return false, nil
 	}
 
+	// Инвалидация кэша
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			ctx := context.Background()
-			// Удаляем задачу из кэша
 			if err := s.cache.DeleteTask(ctx, id); err != nil {
-				s.log.Warn("Failed to invalidate task cache on delete",
-					zap.Error(err),
-					zap.String("task_id", id),
-				)
+				s.log.Warn("Failed to invalidate task cache on delete", zap.Error(err), zap.String("task_id", id))
 			}
-			// Удаляем список
 			if err := s.cache.DeleteTaskList(ctx, subject); err != nil {
-				s.log.Warn("Failed to invalidate task list cache on delete",
+				s.log.Warn("Failed to invalidate task list cache on delete", zap.Error(err), zap.String("subject", subject))
+			}
+		}()
+	}
+
+	// Публикация события в RabbitMQ (best effort)
+	if s.rabbitPub != nil && task.ID != "" {
+		requestID := middleware.GetRequestID(ctx)
+		go func() {
+			pubCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+
+			if err := s.rabbitPub.PublishEvent(pubCtx, "task.deleted", task, requestID); err != nil {
+				s.log.Error("Failed to publish task.deleted event",
 					zap.Error(err),
-					zap.String("subject", subject),
+					zap.String("task_id", task.ID),
 				)
 			}
 		}()

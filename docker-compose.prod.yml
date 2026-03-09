@@ -71,18 +71,20 @@ services:
     environment:
       - TASKS_PORT=${TASKS_PORT}
       - AUTH_GRPC_ADDR=${AUTH_GRPC_ADDR}
-      - DB_HOST=postgres
-      - DB_PORT=5432
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB}
-      - DB_SSLMODE=disable
+      - DB_SSLMODE=${DB_SSLMODE}
       - REDIS_ADDR=redis:6379
       - REDIS_PASSWORD=
       - REDIS_DB=0
       - CACHE_TTL_SECONDS=120
       - CACHE_TTL_JITTER_SECONDS=30
       - INSTANCE_ID=tasks-main
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
     env_file:
       - .env
     networks:
@@ -94,12 +96,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
   tasks_1:
@@ -294,11 +292,68 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: pz29-rabbitmq
+    ports:
+      - "5672:5672"      # AMQP
+      - "15672:15672"    # Management UI
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_DEFAULT_VHOST=/
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - pz20-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    image: ghcr.io/mamuer/technology_2_sem/worker:latest
+    container_name: pz29-worker
+    environment:
+      - WORKER_ID=worker-1
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
+      - RABBITMQ_PREFETCH=1
+    env_file:
+      - .env
+    networks:
+      - pz20-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Можно запустить несколько экземпляров worker для демонстрации
+  worker_2:
+    image: ghcr.io/mamuer/technology_2_sem/worker:latest
+    container_name: pz29-worker-2
+    environment:
+      - WORKER_ID=worker-2
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE}
+      - RABBITMQ_PREFETCH=1
+    env_file:
+      - .env
+    networks:
+      - pz20-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
 networks:
   pz20-network:
     driver: bridge
 
 volumes:
+  rabbitmq-data:
   postgres-data:
   redis-data:
   prometheus-data:

@@ -11,6 +11,7 @@ import (
 	"tech-ip-sem2/services/tasks/internal/cache"
 	"tech-ip-sem2/services/tasks/internal/client/authclient"
 	taskshttp "tech-ip-sem2/services/tasks/internal/http"
+	"tech-ip-sem2/services/tasks/internal/rabbitmq"
 	"tech-ip-sem2/services/tasks/internal/repository"
 	"tech-ip-sem2/services/tasks/internal/service"
 	"tech-ip-sem2/shared/logger"
@@ -98,12 +99,12 @@ func main() {
 
 	baseTTL, _ := strconv.Atoi(os.Getenv("CACHE_TTL_SECONDS"))
 	if baseTTL == 0 {
-		baseTTL = 120 // 2 минуты по умолчанию
+		baseTTL = 120
 	}
 
 	jitterMax, _ := strconv.Atoi(os.Getenv("CACHE_TTL_JITTER_SECONDS"))
 	if jitterMax == 0 {
-		jitterMax = 30 // 30 секунд jitter
+		jitterMax = 30
 	}
 
 	redisCache := cache.NewRedisCache(cache.CacheConfig{
@@ -125,8 +126,37 @@ func main() {
 		log.Info("Redis cache disabled")
 	}
 
-	// Сервис задач с кэшем
-	tasksService := service.NewTasksService(log, taskRepo, redisCache)
+	// Подключение к RabbitMQ
+	rabbitURL := os.Getenv("RABBITMQ_URL")
+	if rabbitURL == "" {
+		rabbitURL = "${RABBITMQ_URL}"
+	}
+	queueName := os.Getenv("RABBITMQ_QUEUE")
+	if queueName == "" {
+		queueName = "${RABBITMQ_QUEUE}"
+	}
+
+	var rabbitPublisher *rabbitmq.Publisher
+	if rabbitURL != "" {
+		pub, err := rabbitmq.NewPublisher(rabbitmq.PublisherConfig{
+			URL:   rabbitURL,
+			Queue: queueName,
+		}, log)
+		if err != nil {
+			log.Warn("Failed to connect to RabbitMQ, events will be disabled",
+				zap.Error(err))
+			rabbitPublisher = nil
+		} else {
+			rabbitPublisher = pub
+			log.Info("RabbitMQ publisher connected",
+				zap.String("queue", queueName),
+			)
+			defer rabbitPublisher.Close()
+		}
+	}
+
+	// Сервис задач с кэшем и RabbitMQ
+	tasksService := service.NewTasksService(log, taskRepo, redisCache, rabbitPublisher)
 	handlers := taskshttp.NewHandlers(tasksService, authClient, log)
 
 	mux := http.NewServeMux()
@@ -156,6 +186,7 @@ func main() {
 		zap.String("auth_grpc_addr", authGRPCAddr),
 		zap.Bool("database_enabled", taskRepo != nil),
 		zap.Bool("cache_enabled", redisCache.IsEnabled()),
+		zap.Bool("rabbitmq_enabled", rabbitPublisher != nil),
 		zap.String("instance", instanceID),
 	)
 

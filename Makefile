@@ -513,6 +513,59 @@ gql-test-create:
 		-H "Content-Type: application/json" \
 		-d '{"query": "mutation { createTask(input: {title: \"GraphQL Test\"}) { id title done } }"}' | jq .
 
+# Practice 13 - RabbitMQ
+RABBITMQ_PORT=5672
+RABBITMQ_MGMT_PORT=15672
+
+rabbitmq-up:
+	@echo "Starting RabbitMQ..."
+	docker-compose -f docker-compose.prod.yml up -d rabbitmq
+
+rabbitmq-down:
+	@echo "Stopping RabbitMQ..."
+	docker-compose -f docker-compose.prod.yml stop rabbitmq
+
+rabbitmq-logs:
+	docker-compose -f docker-compose.prod.yml logs -f rabbitmq
+
+worker-build:
+	@echo "Building Worker Docker image..."
+	docker build -f services/worker/Dockerfile -t techip-worker:1.0 .
+
+worker-run:
+	@echo "Running worker locally..."
+	cd services/worker && go run ./cmd/worker
+
+worker-up:
+	@echo "Starting Worker with Docker Compose..."
+	docker-compose -f docker-compose.prod.yml up -d worker worker_2
+
+worker-logs:
+	docker-compose -f docker-compose.prod.yml logs -f worker worker_2
+
+p29-up:
+	@echo "Starting RabbitMQ demo..."
+	$(MAKE) docker-up
+	@echo ""
+	@echo "=== RABBITMQ DEMO READY ==="
+	@echo "Workers: worker-1, worker-2"
+	@echo ""
+	@echo "Test with:"
+	@echo "  curl -X POST http://localhost:8082/v1/tasks \\"
+	@echo "    -H \"Content-Type: application/json\" \\"
+	@echo "    -H \"Authorization: Bearer demo-token-for-student\" \\"
+	@echo "    -d '{\"title\":\"RabbitMQ Test\",\"description\":\"Sending event\"}'"
+	@echo ""
+	@echo "Watch worker logs: make worker-logs"
+
+p29-test:
+	@echo "Creating task to trigger RabbitMQ event..."
+	curl -X POST http://localhost:8082/v1/tasks \
+		-H "Content-Type: application/json" \
+		-H "Authorization: Bearer demo-token-for-student" \
+		-H "X-Request-ID: rabbit-test-1" \
+		-d '{"title":"RabbitMQ Demo","description":"Testing event publishing","due_date":"2026-03-20"}'
+
 # Utils
 tree:
 	@$(TREE_CMD)

@@ -121,7 +121,8 @@ func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 		DueDate:     req.DueDate,
 	}
 
-	created, err := h.tasksService.Create(task, subject)
+	// Передаем контекст для RabbitMQ
+	created, err := h.tasksService.Create(task, subject, r.Context())
 	if err != nil {
 		log.Error("failed to create task", zap.Error(err))
 		w.Header().Set("Content-Type", "application/json")
@@ -240,7 +241,8 @@ func (h *Handlers) UpdateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.tasksService.Update(id, updates, subject)
+	// Передаем контекст для RabbitMQ
+	task, err := h.tasksService.Update(id, updates, subject, r.Context())
 	if err != nil {
 		log.Error("failed to update task", zap.Error(err))
 		w.Header().Set("Content-Type", "application/json")
@@ -258,7 +260,6 @@ func (h *Handlers) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info("task updated", zap.String("task_id", id))
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(task)
@@ -278,7 +279,8 @@ func (h *Handlers) DeleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deleted, err := h.tasksService.Delete(id, subject)
+	// Передаем контекст для RabbitMQ
+	deleted, err := h.tasksService.Delete(id, subject, r.Context())
 	if err != nil {
 		log.Error("failed to delete task", zap.Error(err))
 		w.Header().Set("Content-Type", "application/json")
