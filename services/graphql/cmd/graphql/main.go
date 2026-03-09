@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -65,6 +66,17 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/query", srv)
 	mux.Handle("/", playground.Handler("GraphQL", "/query"))
+
+	// Health check
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  "ok",
+			"service": "graphql",
+			"version": "1.0.0",
+		})
+	})
 
 	// Middleware
 	handler := sharedmw.RequestID(mux)

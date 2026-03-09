@@ -975,3 +975,5 @@ C:.
 ![фото66](./PR1-16/Screenshot_66.png)
 ### GraphQL Playground с мутацией deleteTask
 ![фото67](./PR1-16/Screenshot_67.png)
+### RabbitMQ Queues и очередь task_events
+![фото68](./PR1-16/Screenshot_68.png)
