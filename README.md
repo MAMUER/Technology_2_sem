@@ -8,8 +8,7 @@
 - [Архитектура](#архитектура)
 - [Документация по практическим занятиям](#документация-по-практическим-занятиям)
 - [Команды запуска и сборки](#команды-запуска-и-сборки)
-- [Переменные окружения](#переменные-окружения)
-- [Сборка и запуск](#сборка-и-запуск)
+- [Сборка образов](#сборка-образов)
 - [CI/CD Pipeline](#cicd-pipeline)
 - [Структура проекта](#структура-проекта)
 - [Скриншоты работы](#скриншоты-работы)
@@ -760,12 +759,12 @@ journalctl -u tasks -o json-pretty
 - readinessProbe - проверка готовности (трафик только когда готов)
 
 ## Команды запуска и сборки
-- make graphql-run        # Запустить локально
-- make graphql-build      # Собрать Docker образ
-- make graphql-up         # Запустить в Docker
-- make graphql-logs       # Посмотреть логи
-- make graphql-test-query # Протестировать запрос
-- make graphql-test-create # Протестировать создание
+- make graphql-run Запустить локально
+- make graphql-build Собрать Docker образ
+- make graphql-up Запустить в Docker
+- make graphql-logs Посмотреть логи
+- make graphql-test-query Протестировать запрос
+- make graphql-test-create Протестировать создание
 ### Основные команды
 - make check Проверка кода и форматирования
 - make tree Показать структуру проекта
@@ -794,6 +793,7 @@ journalctl -u tasks -o json-pretty
 - make test-load-create	Создать тестовые задачи
 - make fast-auth	Запустить Auth локально
 - make fast-tasks	Запустить Tasks локально
+
 ## Сборка образов
 ### Сборка Auth сервиса
 ```
