@@ -351,10 +351,10 @@ jobs:
             # Тест создания задания
             echo ""
             echo "=== JOB CREATION TEST ==="
-            JOB_RESPONSE=$(curl -s -X POST http://localhost:8082/v1/jobs/process-task \
+            JOB_RESPONSE=$(curl -X POST http://193.233.175.221:8082/v1/jobs/process-task \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer demo-token-for-student" \
-              -d '{"task_id":"ci-test-job"}')
+              -d '{"task_id":"ci-test-job"}'
             echo "Job response: $JOB_RESPONSE"
           '
       
