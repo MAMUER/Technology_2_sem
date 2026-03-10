@@ -42,8 +42,8 @@ func NewJobConsumer(config JobConsumerConfig, log *logger.Logger) (*JobConsumer,
 	var ch *amqp.Channel
 	var err error
 
-	// Пытаемся подключиться с ретраями
-	for i := 0; i < 5; i++ {
+	// Попытка подключиться с ретраями
+	for i := range 5 {
 		conn, err = amqp.Dial(config.URL)
 		if err == nil {
 			break
@@ -62,7 +62,7 @@ func NewJobConsumer(config JobConsumerConfig, log *logger.Logger) (*JobConsumer,
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
-	// Пытаемся объявить очереди (на случай, если publisher еще не создал их)
+	// Попытка объявить очереди
 	err = declareQueues(ch, config, log)
 	if err != nil {
 		log.Warn("Failed to declare queues, will rely on publisher", zap.Error(err))
@@ -93,7 +93,7 @@ func NewJobConsumer(config JobConsumerConfig, log *logger.Logger) (*JobConsumer,
 }
 
 func declareQueues(ch *amqp.Channel, config JobConsumerConfig, log *logger.Logger) error {
-	// Проверяем существование очередей (пытаемся объявить их как пассивные)
+	// Проверка существования очередей
 	_, err := ch.QueueDeclarePassive(
 		config.Queue,
 		true,
@@ -122,7 +122,7 @@ func (c *JobConsumer) Start() error {
 	msgs, err := c.channel.Consume(
 		c.queue,
 		"",
-		false, // auto-ack = false (manual ack)
+		false, // auto-ack
 		false,
 		false,
 		false,
@@ -149,20 +149,18 @@ func (c *JobConsumer) processJob(msg amqp.Delivery) {
 	startTime := time.Now()
 	log := c.log.With(zap.String("instance", c.instance))
 
-	// Парсим задание
 	var job models.ProcessTaskJob
 	if err := json.Unmarshal(msg.Body, &job); err != nil {
 		log.Error("Failed to unmarshal job",
 			zap.Error(err),
 			zap.String("body", string(msg.Body)),
 		)
-		// Отправляем в DLQ
+		// Отправка в DLQ
 		c.sendToDLQ(msg, "invalid_format")
 		msg.Ack(false)
 		return
 	}
 
-	// Проверка на идемпотентность
 	if c.processed.IsProcessed(job.MessageID) {
 		log.Info("Job already processed (idempotency)",
 			zap.String("message_id", job.MessageID),
@@ -182,7 +180,7 @@ func (c *JobConsumer) processJob(msg amqp.Delivery) {
 	// Обработка задания
 	err := c.processor.ProcessTask(job.TaskID)
 
-	// Симуляция случайных ошибок для демонстрации (если task_id содержит "fail")
+	// Симуляция случайных ошибок для демонстрации
 	if contains(job.TaskID, "fail") {
 		err = fmt.Errorf("simulated processing error")
 	}
@@ -205,9 +203,9 @@ func (c *JobConsumer) processJob(msg amqp.Delivery) {
 		zap.Int("attempt", job.Attempt),
 	)
 
-	// Проверяем количество попыток
+	// Проверка количества попыток
 	if job.Attempt >= models.MaxAttempts {
-		// Превышено максимальное число попыток - в DLQ
+		// Превышено максимальное число попыток
 		log.Warn("Max attempts exceeded, sending to DLQ",
 			zap.String("task_id", job.TaskID),
 			zap.Int("attempts", job.Attempt),
@@ -217,10 +215,10 @@ func (c *JobConsumer) processJob(msg amqp.Delivery) {
 		return
 	}
 
-	// Retry - отправляем в retry очередь с увеличенным счетчиком
+	// Retry
 	job.Attempt++
 
-	// Обновляем тело сообщения
+	// Обновление тела сообщения
 	newBody, _ := json.Marshal(job)
 
 	err = c.channel.PublishWithContext(
@@ -245,7 +243,7 @@ func (c *JobConsumer) processJob(msg amqp.Delivery) {
 			zap.Error(err),
 			zap.String("task_id", job.TaskID),
 		)
-		// В этом случае лучше nack с requeue=false
+
 		msg.Nack(false, false)
 		return
 	}

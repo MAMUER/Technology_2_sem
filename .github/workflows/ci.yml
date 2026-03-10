@@ -190,16 +190,16 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             echo "=== FULL CLEANUP ==="
             
-            # Останавливаем и удаляем все контейнеры
+            # Остановка и удаление всех контейнеров
             cd /opt/techip 2>/dev/null && docker-compose down -v --remove-orphans 2>/dev/null || true
             
-            # Удаляем все остановленные контейнеры
+            # Удаление всех контейнеров
             docker container prune -f 2>/dev/null || true
             
-            # Удаляем все неиспользуемые тома
+            # Удаление всех томов
             docker volume prune -f 2>/dev/null || true
             
-            # Удаляем всю директорию проекта
+            # Удаление директории проекта
             rm -rf /opt/techip
             
             echo "Cleanup completed"

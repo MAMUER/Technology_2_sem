@@ -341,7 +341,7 @@ services:
       rabbitmq:
         condition: service_healthy
       tasks:
-        condition: service_healthy            # <-- ДОБАВЛЕНО
+        condition: service_healthy           
     restart: unless-stopped
 
   worker_2:
@@ -360,7 +360,7 @@ services:
       rabbitmq:
         condition: service_healthy
       tasks:
-        condition: service_healthy            # <-- ДОБАВЛЕНО
+        condition: service_healthy       
     restart: unless-stopped
 
 networks:

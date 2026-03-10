@@ -23,19 +23,41 @@
 - **ПЗ №6**: CSRF/XSS защита, безопасные cookies
 - **ПЗ №7**: Написание Dockerfile и сборка контейнера
 - **ПЗ №8**: Настройка GitHub Actions / GitLab CI для деплоя приложения
+- **ПЗ №9**: Реализация распределённого кэша (Redis cluster)
+- **ПЗ №10**: Горизонтальное масштабирование: использование Load Balancer (NGINX)
+- **ПЗ №11**: Создание GraphQL API с использованием gqlgen. Запросы и мутации
+- **ПЗ №12**: Сравнение REST и GraphQL: разработка одного и того же функционала двумя способами
+- **ПЗ №13**: Подключение к RabbitMQ. Отправка и получение сообщений
+- **ПЗ №14**: Реализация очереди задач (producer–consumer): retries, DLQ, идемпотентность
+- **ПЗ №15**: Деплой приложения на VPS. Настройка system
+- **ПЗ №16**: Публикация приложения в Kubernetes (минимальный манифест)
 
 ### Технологии
+
 | Компонент | Технология | Назначение |
-|-----------|------------|------------|
+| :--- | :--- | :--- |
 | **Язык** | Go 1.25+ | Основной язык разработки |
 | **Логгер** | Uber Zap | Структурированное логирование |
 | **Метрики** | Prometheus + Grafana | Сбор и визуализация метрик |
 | **База данных** | PostgreSQL | Хранение данных (с параметризацией) |
+| **Кэширование** | Redis | Распределённый кэш (cache-aside pattern) |
+| **Очереди сообщений** | RabbitMQ | Асинхронная обработка событий и задач |
 | **gRPC** | Protocol Buffers | Межсервисное взаимодействие |
-| **TLS** | NGINX | Терминирование HTTPS |
-| **Контейнеризация** | Docker + Docker Compose | Запуск сервисов |
+| **REST API** | net/http + middleware | CRUD операции, авторизация, логирование |
+| **GraphQL API** | gqlgen | Альтернативный API с гибкой выборкой полей |
+| **TLS/HTTPS** | NGINX | Терминирование HTTPS, reverse proxy |
+| **Балансировка** | NGINX | Распределение трафика между репликами |
+| **Контейнеризация** | Docker + Docker Compose | Запуск сервисов, multi-stage сборка |
+| **Оркестрация** | Kubernetes (minikube) | Деплой и управление контейнерами |
 | **Безопасность** | CSRF Double Submit, XSS sanitization | Защита от веб-уязвимостей |
-| **CI/CD** | GitHub Actions | Автоматизация тестирования и деплоя |
+| **Трассировка** | Request ID middleware | Сквозная трассировка запросов |
+| **Идемпотентность** | In-memory storage | Защита от дублирования сообщений |
+| **Dead Letter Queue** | RabbitMQ DLX/DLQ | Хранение необработанных сообщений |
+| **Retry механизм** | RabbitMQ TTL + retry queue | Повторные попытки обработки с задержкой |
+| **CI/CD** | GitHub Actions | Автоматизация тестирования, сборки и деплоя |
+| **Реестр образов** | GitHub Container Registry (GHCR) | Хранение Docker образов |
+| **Управление процессами** | systemd | Управление сервисом на VPS |
+| **Логирование инфраструктуры** | journalctl | Просмотр логов systemd сервисов |
 
 ## Архитектура
 ### Auth Service (порт 8081 HTTP, 50051 gRPC)
@@ -43,6 +65,8 @@
 - Валидация токенов для других сервисов
 - Управление сессиями и secure cookies
 - CSRF защита (Double Submit Cookie)
+- Хранение пользователей в памяти
+
 ### Tasks Service (порт 8082 HTTP)
 - CRUD операции с задачами
 - Хранение в памяти или PostgreSQL
@@ -50,18 +74,81 @@
 - Request-id трассировка
 - CSRF защита для опасных методов
 - XSS защита (санитизация ввода)
+- Кэширование через Redis (cache-aside pattern)
+- Инвалидация кэша при изменении данных
+
+### GraphQL Service (порт 8090 HTTP)
+- GraphQL API для задач
+- Playground для тестирования запросов
+- Поддержка Query и Mutation
+- Интеграция с PostgreSQL
+
+### Worker Service
+- 2 экземпляра (worker-1, worker-2)
+- Потребление событий из RabbitMQ
+- Подтверждение обработки (ack)
+- Prefetch = 1 для контроля нагрузки
+
+### Система очередей задач (Job Queue)
+| Очередь | Назначение | Особенности |
+| :--- | :--- | :--- |
+| `task_jobs` | Основная очередь | Обработка задач |
+| `task_jobs_retry` | Повторные попытки | TTL 10 сек, возврат в основную |
+| `task_jobs_dlq` | Dead Letter Queue | Необработанные сообщения |
+
+- **Максимум попыток:** 3
+- **Идемпотентность:** хранение обработанных `message_id` в памяти
 
 ### Мониторинг
-- **Prometheus**: порт 9090
-- **Grafana**: порт 3000
+| Компонент | Порт | Назначение |
+| :--- | :--- | :--- |
+| **Prometheus** | 9090 | Сбор метрик |
+| **Grafana** | 3000 | Визуализация метрик |
 
-### HTTPS Gateway
-- **NGINX**: порт 8443 (HTTPS)
-- Терминирование SSL/TLS
-- Проксирование запросов к сервисам
+- **Метрики:** RPS, ошибки, длительность запросов, активные запросы
+
+### Базы данных и очереди
+| Компонент | Порт | Назначение |
+| :--- | :--- | :--- |
+| **PostgreSQL** | 5432 | Основное хранилище данных |
+| **Redis** | 6379 | Кэширование |
+| **RabbitMQ** | 5672 (AMQP), 15672 (UI) | Очереди сообщений |
+
+### HTTPS Gateway и Балансировка
+| Компонент | Порт | Назначение |
+| :--- | :--- | :--- |
+| **NGINX (Gateway)** | 8443 (HTTPS) | Терминирование SSL/TLS, проксирование |
+| **NGINX (LB)** | 8080 | Балансировка трафика (3 реплики tasks) |
+
+- **Балансировка:** Round-robin распределение
+- **Health checks:** через `/health`
+- **Сертификаты:** Самоподписанные для разработки
+
+### CI/CD Pipeline (GitHub Actions)
+- **Test:** линтинг и тестирование кода
+- **Build:** сборка бинарников для всех сервисов
+- **Docker:** сборка и публикация образов в GHCR
+- **Deploy:** деплой на VPS через Docker Compose
+- **Notify:** уведомления в Telegram
+
+### Инфраструктура развёртывания
+
+#### VPS
+- **systemd:** управление сервисом tasks (порт 9082)
+- **journalctl:** централизованное логирование
+- **Автозапуск:** при старте системы
+- **Self-healing:** автоматический перезапуск при падении
+
+#### Kubernetes (локальный стенд)
+- **Minikube:** локальный кластер
+- **Deployment:** 2-3 реплики tasks
+- **Service:** ClusterIP для внутреннего доступа
+- **ConfigMap:** конфигурация сервиса
+- **Secret:** чувствительные данные
+- **Probes:** readiness и liveness проверки
+- **Port-forward:** доступ из локальной сети
 
 ## Документация по практическим занятиям
-
 ### Практические занятия №1-3 (Логирование)
 - [**API Endpoints**](docs/pz_api.md) - Полное описание всех API методов
 - [**Диаграмма архитектуры**](docs/pz17_diagram.md) - Схема взаимодействия сервисов
@@ -252,11 +339,11 @@ tags: |
 | Redis | 1 | Кэширование (занятие №9) |
 | PostgreSQL | 1 | Хранение данных |
 
-## GraphQL API (Практическое занятие №11)
+## Практическое занятие №11 (GraphQL API)
 ### GraphQL Service
 - **Порт**: 8090
 - **Endpoint**: `/query`
-- **Playground**: `http://193.233.175.221:8090/` (для разработки)
+- **Playground**: `http://193.233.175.221:8090/`
 - **Технологии**: gqlgen, GraphQL, PostgreSQL
 
 ### Схема GraphQL
@@ -344,7 +431,7 @@ mutation DeleteTask($id: ID!) {
   deleteTask(id: $id)
 }
 ```
-## Практическое занятие №12 - Сравнение REST и GraphQL
+## Практическое занятие №12 (Сравнение REST и GraphQL)
 ### Выбранный UI-сценарий
 #### Экран списка задач
 - Нужны поля: id, title, done
@@ -393,7 +480,7 @@ mutation DeleteTask($id: ID!) {
 - Over-fetching проблема - нужно минимизировать передаваемые данные
 - Разные клиенты - веб, мобильные, десктоп с разными потребностями
 
-## Практическое занятие №13 - Подключение к RabbitMQ. Отправка и получение сообщений
+## Практическое занятие №13 (Подключение к RabbitMQ. Отправка и получение сообщений)
 ### Режим публикации: "best effort"
 - Если RabbitMQ недоступен - логируем ошибку, но задача создаётся
 - Асинхронная публикация (не блокирует ответ клиенту)
@@ -411,7 +498,7 @@ mutation DeleteTask($id: ID!) {
 - Распределяют нагрузку (round-robin)
 - Каждый подтверждает свои сообщения
 
-### Практическое занятие №14 - Реализация очереди задач (producer–consumer): retries, DLQ, идемпотентность
+### Практическое занятие №14 (Реализация очереди задач (producer–consumer): retries, DLQ, идемпотентность)
 
 #### Реализованные возможности:
 - **Асинхронная обработка** задач через очередь сообщений
@@ -463,6 +550,215 @@ mutation DeleteTask($id: ID!) {
 | Где хранятся обработанные ID | В памяти (`storage.ProcessedMessages`) |
 | TTL хранения | 24 часа |
 | Проверка | Перед обработкой проверяется наличие message_id в хранилище |
+
+### Практическое занятие №15 (Деплой приложения на VPS. Настройка system)
+#### Подготовка VPS (на сервере)
+```
+apt update && apt upgrade -y
+
+# Создать пользователя для сервиса
+useradd --system --no-create-home --shell /usr/sbin/nologin tasksuser
+
+# Проверка
+id tasksuser
+# uid=998(tasksuser) gid=996(tasksuser) groups=996(tasksuser)
+
+# Директория для бинарника
+mkdir -p /opt/tasks/bin
+
+# Директория для конфигов
+mkdir -p /etc/tasks
+
+# Директория для логов
+mkdir -p /var/log/tasks
+
+# Назначение владельца
+chown -R tasksuser:tasksuser /opt/tasks
+chown -R tasksuser:tasksuser /var/log/tasks
+chmod 755 /opt/tasks
+chmod 755 /opt/tasks/bin
+```
+#### Сборка бинарника (на локальной машине)
+```
+# Переходим в корень проекта
+cd /путь/к/tech-ip-sem2
+
+# Собираем бинарник для Linux
+$env:GOOS="linux"; $env:GOARCH="amd64"; go build -o tasks-bin ./services/tasks/cmd/tasks; $env:GOOS="windows"; $env:GOARCH="amd64"
+
+# Проверяем, что создан
+Get-ChildItem tasks-bin
+Ответ:
+    Каталог: C:\Users\User\Downloads\tech-ip-sem2
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        09.03.2026     19:43       22210702 tasks-bin
+```
+#### Копирование на сервер (локально)
+```
+# Копирование бинарника
+scp tasks-bin root@193.233.175.221:/tmp/tasks-bin
+
+# Копируем необходимых файлов конфигурации
+scp .env root@193.233.175.221:/tmp/tasks.env
+```
+#### Размещение на сервере (на сервере)
+```
+# Перемещение бинарника
+mv /tmp/tasks-bin /opt/tasks/bin/tasks
+chmod 755 /opt/tasks/bin/tasks
+chown tasksuser:tasksuser /opt/tasks/bin/tasks
+
+# Создание конфига с переменными окружения
+cat > /etc/tasks/tasks.env << 'EOF'
+# Tasks Service Configuration
+TASKS_PORT=9082  # Другой порт, чтобы не конфликтовать с Docker
+AUTH_GRPC_ADDR=localhost:50051
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=appuser
+DB_PASSWORD=AppP@ssw0rd!2026
+DB_NAME=tasksdb
+DB_SSLMODE=disable
+REDIS_ADDR=localhost:6379
+REDIS_PASSWORD=
+REDIS_DB=0
+CACHE_TTL_SECONDS=120
+CACHE_TTL_JITTER_SECONDS=30
+RABBITMQ_URL=amqp://guest:guest@localhost:5672/
+RABBITMQ_QUEUE=task_events
+INSTANCE_ID=tasks-systemd
+LOG_LEVEL=info
+EOF
+
+# Выставляем правильные права
+chown root:root /etc/tasks/tasks.env
+chmod 600 /etc/tasks/tasks.env
+```
+#### Systemd unit файл
+```
+cat > /etc/systemd/system/tasks.service << 'EOF'
+[Unit]
+Description=Tasks Service (systemd demo)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=tasksuser
+Group=tasksuser
+WorkingDirectory=/opt/tasks
+
+# Переменные окружения из файла
+EnvironmentFile=/etc/tasks/tasks.env
+
+# Запуск бинарника
+ExecStart=/opt/tasks/bin/tasks
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+
+# Безопасность
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/log/tasks
+
+# Лимиты
+LimitNOFILE=65535
+LimitNPROC=65535
+
+# Логирование
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tasks
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+#### Параметры
+Параметр	Значение	Пояснение
+Type=simple	-	Процесс запускается и остается в памяти
+User=tasksuser	-	Запуск от непривилегированного пользователя
+EnvironmentFile	/etc/tasks/tasks.env	Конфиг отдельно от кода
+Restart=always	-	Перезапуск при любом завершении (кроме stop)
+RestartSec=5	5 секунд	Пауза перед перезапуском
+NoNewPrivileges=true	-	Запрет на повышение привилегий
+ProtectSystem=strict	-	Только чтение системных директорий
+ProtectHome=true	-	Нет доступа к /home
+PrivateTmp=true	-	Свой изолированный /tmp
+#### Запуск и управление сервисом
+```
+# Перечитываем конфиги systemd
+systemctl daemon-reload
+
+# Запускаем сервис
+systemctl start tasks
+
+# Включаем автозапуск
+systemctl enable tasks
+
+# Проверяем статус
+systemctl status tasks
+```
+#### Основные команды systemd
+```
+# Статус
+systemctl status tasks
+
+# Стоп
+systemctl stop tasks
+
+# Старт
+systemctl start tasks
+
+# Рестарт
+systemctl restart tasks
+
+# Перезагрузка конфига (без остановки)
+systemctl reload tasks
+
+# Проверка включен ли автозапуск
+systemctl is-enabled tasks
+
+# Отключение автозапуска
+systemctl disable tasks
+```
+#### Просмотр логов через journalctl
+```
+# Последние 50 логов
+journalctl -u tasks -n 50 --no-pager
+
+# Логи в реальном времени
+journalctl -u tasks -f
+
+# Логи за последний час
+journalctl -u tasks --since "1 hour ago"
+
+# Логи с определенного времени
+journalctl -u tasks --since "2026-03-10 10:00:00"
+
+# Логи с определенного времени до сейчас
+journalctl -u tasks --since "2026-03-10 10:00:00" -f
+
+# Логи в JSON формате
+journalctl -u tasks -o json-pretty
+```
+### Практическое занятие №16 (Публикация приложения в Kubernetes)
+#### Kubernetes стенд
+- Использован: Minikube v1.38.1 на Windows 11 Pro
+
+#### Ключевые параметры Deployment
+- replicas: 2 - запущено 2 экземпляра сервиса
+- image: ghcr.io/mamuer/technology_2_sem/tasks:latest - используемый образ
+- containerPort: 8082 - порт контейнера
+- envFrom - подключение ConfigMap и Secret
+- livenessProbe - проверка живости (перезапуск при падении)
+- readinessProbe - проверка готовности (трафик только когда готов)
 
 ## Команды запуска и сборки
 - make graphql-run        # Запустить локально
@@ -700,6 +996,7 @@ C:.
 │   Makefile
 │   passwords.txt
 │   README.md
+│   tasks-bin
 │
 ├───.github
 │   └───workflows
@@ -1045,5 +1342,43 @@ C:.
 ![фото68](./PR1-16/Screenshot_68.png)
 ### Создание задачи и логи с подтверждением публикации
 ![фото69](./PR1-16/Screenshot_69.png)
-### Создание задания со статусом queued
+### Создание normal-task
 ![фото70](./PR1-16/Screenshot_70.png)
+### Лог normal-task
+![фото72](./PR1-16/Screenshot_72.png)
+### Создание fail-task
+![фото71](./PR1-16/Screenshot_71.png)
+### Лог fail-task
+![фото73](./PR1-16/Screenshot_73.png)
+### DLQ
+![фото74](./PR1-16/Screenshot_74.png)
+### RabbitMQ UI с очередями
+![фото75](./PR1-16/Screenshot_75.png)
+### Сборка бинарника
+![фото76](./PR1-16/Screenshot_76.png)
+### Создание пользователя и директорий
+![фото77](./PR1-16/Screenshot_77.png)
+### Копирование и размещение на сервере
+![фото78](./PR1-16/Screenshot_78.png)
+### Systemd unit файл
+![фото79](./PR1-16/Screenshot_79.png)
+### Запуск и управление сервисом
+![фото80](./PR1-16/Screenshot_80.png)
+### Проверка health endpoint
+![фото81](./PR1-16/Screenshot_81.png)
+### Вывод активации сервиса
+![фото82](./PR1-16/Screenshot_82.png)
+### Работа метода tasks
+![фото83](./PR1-16/Screenshot_83.png)
+### k8s-services
+![фото84](./PR1-16/Screenshot_84.png)
+### k8s-deployment
+![фото85](./PR1-16/Screenshot_85.png)
+### k8s-logs
+![фото86](./PR1-16/Screenshot_86.png)
+### k8s-pods
+![фото87](./PR1-16/Screenshot_87.png)
+### port-forward
+![фото88](./PR1-16/Screenshot_88.png)
+### health
+![фото89](./PR1-16/Screenshot_89.png)

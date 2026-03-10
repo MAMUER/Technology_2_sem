@@ -11,7 +11,7 @@ type Task struct {
 	Description string    `json:"description"`
 	DueDate     string    `json:"due_date"`
 	Done        bool      `json:"done"`
-	Subject     string    `json:"-"` // Не возвращаем клиенту
+	Subject     string    `json:"-"`
 	CreatedAt   time.Time `json:"created_at,omitempty"`
 	UpdatedAt   time.Time `json:"updated_at,omitempty"`
 }
@@ -53,7 +53,7 @@ func (t *CreateTaskRequest) Validate() error {
 		return &ValidationError{"description too long (max 1000 characters)"}
 	}
 
-	// Очищаем поля
+	// Очистка полей
 	t.Title = sanitize.SanitizeText(t.Title)
 	t.Description = sanitize.SanitizeHTML(t.Description)
 

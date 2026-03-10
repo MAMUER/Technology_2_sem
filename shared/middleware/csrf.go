@@ -27,18 +27,17 @@ func CSRFMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
 				http.MethodDelete: true,
 			}
 
-			// Проверяем только опасные методы
+			// Проверка опасных методов
 			if dangerousMethods[r.Method] {
-				// Проверяем, есть ли session cookie
+				// Проверка, есть ли session cookie
 				_, sessionErr := r.Cookie("session_id")
 				_, csrfCookieErr := r.Cookie("csrf_token")
 
-				// Если есть session cookie и csrf cookie, значит это браузерный запрос - нужна CSRF проверка
 				if sessionErr == nil && csrfCookieErr == nil {
-					// Получаем CSRF токен из cookie
+					// Получение CSRF токена из cookie
 					csrfCookie, _ := r.Cookie("csrf_token")
 
-					// Получаем CSRF токен из заголовка
+					// Получение CSRF токена из заголовка
 					csrfHeader := r.Header.Get("X-CSRF-Token")
 					if csrfHeader == "" {
 						log.Warn("CSRF header missing for cookie-based request", zap.String("method", r.Method))
@@ -48,7 +47,7 @@ func CSRFMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
 						return
 					}
 
-					// Сравниваем токены
+					// Сравнение токенов
 					if csrfCookie.Value != csrfHeader {
 						log.Warn("CSRF token mismatch",
 							zap.String("cookie", csrfCookie.Value[:8]+"..."),
@@ -62,7 +61,7 @@ func CSRFMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
 
 					log.Debug("CSRF check passed for cookie-based request", zap.String("method", r.Method))
 				} else {
-					// Для API запросов без cookies пропускаем CSRF проверку
+					// Для API запросов без cookies пропуск CSRF проверки
 					log.Debug("Skipping CSRF check for API request (no cookies)", zap.String("method", r.Method))
 				}
 			}

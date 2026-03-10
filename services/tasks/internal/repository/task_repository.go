@@ -33,7 +33,7 @@ func NewPostgresTaskRepository(connStr string) (*PostgresTaskRepository, error) 
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// Проверяем подключение
+	// Проверка подключения
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}

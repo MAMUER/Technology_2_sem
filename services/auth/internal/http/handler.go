@@ -82,13 +82,13 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Определяем subject
+	// subject
 	subject := req.Username
 	if req.Username == "admin" {
 		subject = "admin"
 	}
 
-	// Создаем сессию и получаем CSRF токен
+	// Создание сессии и получение CSRF токена
 	sessionID, csrfToken, err := h.sessionService.CreateSession(req.Username, subject)
 	if err != nil {
 		log.Error("failed to create session", zap.Error(err))
@@ -98,7 +98,7 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Устанавливаем session cookie (HttpOnly, Secure, SameSite)
+	// Session cookie (HttpOnly, Secure, SameSite)
 	cookies.SetSecureCookie(w, cookies.CookieConfig{
 		Name:     "session_id",
 		Value:    sessionID,
@@ -109,7 +109,7 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	// Устанавливаем CSRF cookie
+	// CSRF cookie
 	cookies.SetSecureCookie(w, cookies.CookieConfig{
 		Name:     "csrf_token",
 		Value:    csrfToken,
@@ -125,7 +125,7 @@ func (h *Handlers) Login(w http.ResponseWriter, r *http.Request) {
 		zap.String("session_id", sessionID[:8]+"..."),
 	)
 
-	// Возвращаем также CSRF токен в теле ответа
+	// CSRF токен в теле ответа
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(loginResponse{
@@ -137,14 +137,14 @@ func (h *Handlers) Logout(w http.ResponseWriter, r *http.Request) {
 	requestID := middleware.GetRequestID(r.Context())
 	log := h.log.WithRequestID(requestID)
 
-	// Получаем session cookie
+	// session cookie
 	sessionID, err := cookies.GetSessionCookie(r)
 	if err == nil && sessionID != "" {
-		// Удаляем сессию
+		// Удаление сессии
 		h.sessionService.DeleteSession(sessionID)
 	}
 
-	// Очищаем cookies
+	// Очистка cookies
 	cookies.ClearCookie(w, "session_id", "/")
 	cookies.ClearCookie(w, "csrf_token", "/")
 
@@ -161,7 +161,7 @@ func (h *Handlers) Verify(w http.ResponseWriter, r *http.Request) {
 	requestID := middleware.GetRequestID(r.Context())
 	log := h.log.WithRequestID(requestID)
 
-	// Проверяем несколько способов аутентификации:
+	// Несколько способов аутентификации:
 	// 1. Bearer токен
 	// 2. Session cookie
 
@@ -185,7 +185,7 @@ func (h *Handlers) Verify(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Проверяем session cookie
+	// Проверка session cookie
 	sessionID, err := cookies.GetSessionCookie(r)
 	if err == nil && sessionID != "" {
 		session, err := h.sessionService.GetSession(sessionID)
@@ -215,7 +215,7 @@ func (h *Handlers) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
 	requestID := middleware.GetRequestID(r.Context())
 	log := h.log.WithRequestID(requestID)
 
-	// Проверяем аутентификацию через сессию
+	// Проверка аутентификацию через сессию
 	sessionID, err := cookies.GetSessionCookie(r)
 	if err != nil {
 		log.Warn("no session cookie")

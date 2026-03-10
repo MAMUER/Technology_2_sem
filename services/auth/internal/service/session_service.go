@@ -14,7 +14,7 @@ import (
 
 type SessionService struct {
 	sessions   map[string]*models.Session
-	csrfTokens map[string]string // Добавляем хранилище для CSRF токенов
+	csrfTokens map[string]string // Хранилище для CSRF токенов
 	mu         sync.RWMutex
 	log        *logger.Logger
 }
@@ -42,13 +42,13 @@ func (s *SessionService) CreateSession(username, subject string) (sessionID stri
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Генерируем ID сессии
+	// Генерация ID сессии
 	sessionID, err = generateSecureToken(32)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate session ID: %w", err)
 	}
 
-	// Генерируем CSRF токен
+	// Генерация CSRF токена
 	csrfToken, err = generateSecureToken(32)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate CSRF token: %w", err)
@@ -62,10 +62,10 @@ func (s *SessionService) CreateSession(username, subject string) (sessionID stri
 		ExpiresAt: time.Now().Add(24 * time.Hour), // 24 часа
 	}
 
-	// Сохраняем сессию
+	// Сохранение сессии
 	s.sessions[sessionID] = session
 
-	// Сохраняем CSRF токен, связанный с сессией
+	// Сохранение CSRF токена, связанного с сессией
 	s.csrfTokens[sessionID] = csrfToken
 
 	s.log.Info("Session created",

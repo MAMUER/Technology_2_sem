@@ -7,10 +7,10 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Копируем весь проект, потому что GraphQL зависит от shared и других пакетов
+# Копирование проекта
 COPY . .
 
-# Правильный путь к main.go - он находится в services/graphql/cmd/graphql
+# Правильный путь к main.go
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/graphql-service ./services/graphql/cmd/graphql
 
 FROM alpine:latest

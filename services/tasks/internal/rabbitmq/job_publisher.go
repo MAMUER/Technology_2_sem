@@ -43,7 +43,7 @@ func NewJobPublisher(config JobPublisherConfig, log *logger.Logger) (*JobPublish
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
-	// 1. Объявляем Dead Letter Exchange
+	// Dead Letter Exchange
 	err = ch.ExchangeDeclare(
 		config.RetryExchange, // name
 		"direct",             // type
@@ -59,7 +59,7 @@ func NewJobPublisher(config JobPublisherConfig, log *logger.Logger) (*JobPublish
 		return nil, fmt.Errorf("failed to declare DLX: %w", err)
 	}
 
-	// 2. Объявляем основную очередь с DLX
+	// Основная очередь с DLX
 	_, err = ch.QueueDeclare(
 		config.Queue, // name
 		true,         // durable
@@ -77,7 +77,7 @@ func NewJobPublisher(config JobPublisherConfig, log *logger.Logger) (*JobPublish
 		return nil, fmt.Errorf("failed to declare main queue: %w", err)
 	}
 
-	// 3. Объявляем retry очередь с TTL
+	// Retry очередь с TTL
 	_, err = ch.QueueDeclare(
 		config.RetryQueue, // name
 		true,              // durable
@@ -96,7 +96,7 @@ func NewJobPublisher(config JobPublisherConfig, log *logger.Logger) (*JobPublish
 		return nil, fmt.Errorf("failed to declare retry queue: %w", err)
 	}
 
-	// 4. Объявляем DLQ
+	// DLQ
 	_, err = ch.QueueDeclare(
 		config.DLQ, // name
 		true,       // durable
@@ -111,7 +111,7 @@ func NewJobPublisher(config JobPublisherConfig, log *logger.Logger) (*JobPublish
 		return nil, fmt.Errorf("failed to declare DLQ: %w", err)
 	}
 
-	// 5. Связываем retry exchange с очередями
+	// Связка retry exchange с очередями
 	err = ch.QueueBind(
 		config.RetryQueue,    // queue
 		config.RetryQueue,    // routing key

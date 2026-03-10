@@ -51,11 +51,9 @@ func NewTasksService(log *logger.Logger, repo repository.TaskRepository, cache *
 func (s *TasksService) GetByID(id string, subject string) (models.Task, error) {
 	ctx := context.Background()
 
-	// 1. Пытаемся получить из кэша
 	if s.cache != nil && s.cache.IsEnabled() {
 		cachedTask, err := s.cache.GetTask(ctx, id)
 		if err != nil {
-			// Ошибка Redis - логируем, но продолжаем работу с БД
 			s.log.Warn("Cache read error, falling back to database",
 				zap.Error(err),
 				zap.String("task_id", id),
@@ -69,7 +67,6 @@ func (s *TasksService) GetByID(id string, subject string) (models.Task, error) {
 				)
 				return *cachedTask, nil
 			}
-			// Задача принадлежит другому пользователю - игнорируем кэш
 			s.log.Debug("Cache hit but wrong subject",
 				zap.String("task_id", id),
 				zap.String("cached_subject", cachedTask.Subject),
@@ -80,7 +77,7 @@ func (s *TasksService) GetByID(id string, subject string) (models.Task, error) {
 		}
 	}
 
-	// 2. Cache MISS или ошибка - идем в БД/память
+	// Cache MISS или ошибка
 	var task models.Task
 	var err error
 
@@ -100,7 +97,7 @@ func (s *TasksService) GetByID(id string, subject string) (models.Task, error) {
 		return models.Task{}, nil
 	}
 
-	// 3. Сохраняем в кэш
+	// Сохранение в кэш
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			if err := s.cache.SetTask(ctx, &task); err != nil {
@@ -128,7 +125,7 @@ func (s *TasksService) getByIDMemory(id string, subject string) (models.Task, er
 func (s *TasksService) GetAll(subject string) ([]models.Task, error) {
 	ctx := context.Background()
 
-	// 1. Пытаемся получить список из кэша
+	// Получить список из кэша
 	if s.cache != nil && s.cache.IsEnabled() {
 		cachedTasks, err := s.cache.GetTaskList(ctx, subject)
 		if err != nil {
@@ -147,7 +144,7 @@ func (s *TasksService) GetAll(subject string) ([]models.Task, error) {
 		}
 	}
 
-	// 2. Cache MISS - идем в БД/память
+	// Cache MISS
 	var tasks []models.Task
 	var err error
 
@@ -163,7 +160,7 @@ func (s *TasksService) GetAll(subject string) ([]models.Task, error) {
 		return nil, err
 	}
 
-	// 3. Сохраняем в кэш
+	// Сохранение в кэш
 	if s.cache != nil && s.cache.IsEnabled() && len(tasks) > 0 {
 		go func() {
 			if err := s.cache.SetTaskList(ctx, subject, tasks); err != nil {
@@ -210,7 +207,6 @@ func (s *TasksService) Create(task models.Task, subject string, ctx context.Cont
 		return models.Task{}, err
 	}
 
-	// Инвалидация кэша
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			if err := s.cache.DeleteTaskList(context.Background(), subject); err != nil {
@@ -222,7 +218,7 @@ func (s *TasksService) Create(task models.Task, subject string, ctx context.Cont
 		}()
 	}
 
-	// Публикация события в RabbitMQ (best effort)
+	// Публикация события в RabbitMQ
 	if s.rabbitPub != nil {
 		requestID := middleware.GetRequestID(ctx)
 		go func() {
@@ -294,7 +290,6 @@ func (s *TasksService) Update(id string, updates models.TaskUpdate, subject stri
 		return models.Task{}, nil
 	}
 
-	// Инвалидация кэша
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			ctx := context.Background()
@@ -307,7 +302,7 @@ func (s *TasksService) Update(id string, updates models.TaskUpdate, subject stri
 		}()
 	}
 
-	// Публикация события в RabbitMQ (best effort)
+	// Публикация события в RabbitMQ
 	if s.rabbitPub != nil {
 		requestID := middleware.GetRequestID(ctx)
 		go func() {
@@ -357,7 +352,6 @@ func (s *TasksService) Delete(id string, subject string, ctx context.Context) (b
 	var err error
 	var task models.Task
 
-	// Получаем задачу для события (если есть)
 	if s.useDatabase {
 		task, _ = s.repo.GetByID(id, subject)
 		deleted, err = s.repo.Delete(id, subject)
@@ -376,7 +370,6 @@ func (s *TasksService) Delete(id string, subject string, ctx context.Context) (b
 		return false, nil
 	}
 
-	// Инвалидация кэша
 	if s.cache != nil && s.cache.IsEnabled() {
 		go func() {
 			ctx := context.Background()
@@ -389,7 +382,7 @@ func (s *TasksService) Delete(id string, subject string, ctx context.Context) (b
 		}()
 	}
 
-	// Публикация события в RabbitMQ (best effort)
+	// Публикация события в RabbitMQ
 	if s.rabbitPub != nil && task.ID != "" {
 		requestID := middleware.GetRequestID(ctx)
 		go func() {
@@ -449,7 +442,7 @@ func (s *TasksService) SearchByTitleVulnerable(term string, subject string) ([]m
 	return s.SearchByTitle(term, subject)
 }
 
-// Улучшенная генерация ID для in-memory режима
+// Генерация ID для in-memory режима
 func (s *TasksService) generateID() string {
 	s.counter++
 	timestamp := time.Now().Format("20060102150405")

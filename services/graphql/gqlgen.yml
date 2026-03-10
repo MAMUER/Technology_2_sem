@@ -12,18 +12,14 @@ model:
   filename: graph/model/models_gen.go
   package: model
 
-# Резолверы
+# resolvers
 resolver:
   layout: follow-schema
   dir: graph/resolvers
   package: resolvers
   filename_template: "{name}.resolvers.go"
 
-# УБИРАЕМ autobind полностью (или закомментируем)
-# autobind:
-#   - "tech-ip-sem2/services/graphql/internal/models"
-
-# Настройки для скаляров
+# Настройки
 models:
   ID:
     model:

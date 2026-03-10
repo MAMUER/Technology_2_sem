@@ -38,10 +38,10 @@ func NewPublisher(config PublisherConfig, log *logger.Logger) (*Publisher, error
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
-	// Объявление очереди (durable = true)
+	// Объявление очереди
 	_, err = ch.QueueDeclare(
 		config.Queue, // name
-		true,         // durable (очередь переживает рестарт)
+		true,         // durable
 		false,        // delete when unused
 		false,        // exclusive
 		false,        // no-wait

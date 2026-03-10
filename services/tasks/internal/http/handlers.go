@@ -121,7 +121,7 @@ func (h *Handlers) CreateTask(w http.ResponseWriter, r *http.Request) {
 		DueDate:     req.DueDate,
 	}
 
-	// Передаем контекст для RabbitMQ
+	// Передача контекста для RabbitMQ
 	created, err := h.tasksService.Create(task, subject, r.Context())
 	if err != nil {
 		log.Error("failed to create task", zap.Error(err))
@@ -241,7 +241,7 @@ func (h *Handlers) UpdateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Передаем контекст для RabbitMQ
+	// Передача контекста для RabbitMQ
 	task, err := h.tasksService.Update(id, updates, subject, r.Context())
 	if err != nil {
 		log.Error("failed to update task", zap.Error(err))
@@ -279,7 +279,7 @@ func (h *Handlers) DeleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Передаем контекст для RabbitMQ
+	// Передача контекста для RabbitMQ
 	deleted, err := h.tasksService.Delete(id, subject, r.Context())
 	if err != nil {
 		log.Error("failed to delete task", zap.Error(err))

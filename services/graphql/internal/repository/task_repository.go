@@ -32,7 +32,6 @@ func NewPostgresTaskRepository(connStr string) (*PostgresTaskRepository, error) 
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	// Создаем таблицу если не существует
 	_, err = db.Exec(`
         CREATE TABLE IF NOT EXISTS tasks (
             id VARCHAR(50) PRIMARY KEY,
@@ -174,7 +173,6 @@ func (r *PostgresTaskRepository) GetByID(id string, subject string) (*model.Task
 }
 
 func (r *PostgresTaskRepository) Update(id string, input model.UpdateTaskInput, subject string) (*model.Task, error) {
-	// Получаем текущую задачу
 	task, err := r.GetByID(id, subject)
 	if err != nil {
 		return nil, err
@@ -183,7 +181,6 @@ func (r *PostgresTaskRepository) Update(id string, input model.UpdateTaskInput, 
 		return nil, nil
 	}
 
-	// Применяем обновления
 	if input.Title != nil {
 		task.Title = *input.Title
 	}

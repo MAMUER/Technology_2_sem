@@ -18,7 +18,6 @@ import (
 	"tech-ip-sem2/shared/metrics"
 	"tech-ip-sem2/shared/middleware"
 
-	// Импорт для job handlers (алиас)
 	jobHandlersPkg "tech-ip-sem2/services/tasks/internal/http"
 )
 
@@ -177,7 +176,7 @@ func main() {
 			pub, err := rabbitmq.NewJobPublisher(jobConfig, log)
 			if err == nil {
 				jobPublisher = pub
-				log.Info("✅ Job publisher connected successfully",
+				log.Info("Job publisher connected successfully",
 					zap.String("main_queue", "task_jobs"),
 					zap.String("dlq", "task_jobs_dlq"))
 				defer jobPublisher.Close()
@@ -218,7 +217,7 @@ func main() {
 		log.Info("Ready endpoint registered", zap.String("path", "/ready"))
 	}
 
-	// Эндпоинты для задач (job queue) - НОВЫЕ
+	// Эндпоинты для задач (job queue)
 	if jobPublisher != nil {
 		mux.HandleFunc("POST /v1/jobs/process-task", handlers.AuthMiddleware(jobHandlers.ProcessTaskJob))
 		log.Info("Job endpoints registered", zap.String("path", "/v1/jobs/process-task"))

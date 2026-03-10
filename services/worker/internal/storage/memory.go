@@ -19,7 +19,7 @@ func NewProcessedMessages(ttl time.Duration) *ProcessedMessages {
 		ttl:       ttl,
 	}
 
-	// Запускаем горутину для очистки старых записей
+	// Очистка старых записей
 	go store.cleanup()
 
 	return store
@@ -34,10 +34,10 @@ func (s *ProcessedMessages) IsProcessed(messageID string) bool {
 		return false
 	}
 
-	// Проверяем TTL
+	// Проверка TTL
 	if createdAt, ok := s.createdAt[messageID]; ok {
 		if time.Since(createdAt) > s.ttl {
-			// Запись устарела, удалим её при следующей очистке
+			// Запись устарела
 			return false
 		}
 	}

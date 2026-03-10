@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"tech-ip-sem2/shared/logger"
-	// Убираем "go.uber.org/zap" - он не используется
 )
 
 type contextKey string
@@ -20,7 +19,7 @@ func AuthMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
-			// Пробуем получить из заголовка Authorization
+			// Authorization
 			authHeader := r.Header.Get("Authorization")
 			if authHeader != "" {
 				parts := strings.Split(authHeader, " ")
@@ -32,7 +31,7 @@ func AuthMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
 				}
 			}
 
-			// Пробуем получить из cookie
+			// cookie
 			cookie, err := r.Cookie("session_id")
 			if err == nil && cookie.Value != "" {
 				ctx = context.WithValue(ctx, SubjectKey, "student")
@@ -41,7 +40,7 @@ func AuthMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
 				return
 			}
 
-			// По умолчанию - анонимный пользователь (только для демо)
+			// По умолчанию - анонимный пользователь
 			ctx = context.WithValue(ctx, SubjectKey, "anonymous")
 			log.Debug("no authentication, using anonymous")
 			next.ServeHTTP(w, r.WithContext(ctx))

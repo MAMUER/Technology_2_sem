@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"testing"
-	"time" // Добавляем недостающий импорт
+	"time"
 
 	"tech-ip-sem2/services/tasks/internal/models"
 	"tech-ip-sem2/shared/logger"
@@ -18,7 +18,6 @@ func createTestTask(service *TasksService, title, subject string, t *testing.T) 
 		DueDate:     "2026-03-10",
 	}
 
-	// Исправляем: добавляем context.Background()
 	created, err := service.Create(task, subject, context.Background())
 	if err != nil {
 		t.Fatalf("Failed to create task: %v", err)
@@ -28,10 +27,10 @@ func createTestTask(service *TasksService, title, subject string, t *testing.T) 
 
 func TestTasksService(t *testing.T) {
 	log := logger.New("test")
-	// В тестах используем in-memory хранилище без кэша и без RabbitMQ
+
 	service := NewTasksService(log, nil, nil, nil)
 
-	// Создаем задачу
+	// Создание задачи
 	created := createTestTask(service, "Test Task", "student", t)
 
 	if created.ID == "" {
@@ -42,7 +41,7 @@ func TestTasksService(t *testing.T) {
 		t.Errorf("Expected title 'Test Task', got '%s'", created.Title)
 	}
 
-	// Получаем задачу
+	// Получение задачи
 	retrieved, err := service.GetByID(created.ID, "student")
 	if err != nil {
 		t.Errorf("Failed to get task: %v", err)
@@ -56,7 +55,7 @@ func TestTasksService(t *testing.T) {
 		t.Errorf("Expected title 'Test Task', got '%s'", retrieved.Title)
 	}
 
-	// Получаем все задачи
+	// Получение всех задач
 	tasks, err := service.GetAll("student")
 	if err != nil {
 		t.Errorf("Failed to get all tasks: %v", err)
@@ -66,7 +65,7 @@ func TestTasksService(t *testing.T) {
 		t.Errorf("Expected 1 task, got %d", len(tasks))
 	}
 
-	// Обновляем задачу
+	// Обновление задачи
 	done := true
 	updates := models.TaskUpdate{
 		Done: &done,
@@ -81,7 +80,7 @@ func TestTasksService(t *testing.T) {
 		t.Error("Expected task to be done")
 	}
 
-	// Удаляем задачу
+	// Удаление задачи
 	deleted, err := service.Delete(created.ID, "student", context.Background())
 	if err != nil {
 		t.Errorf("Failed to delete task: %v", err)
@@ -91,7 +90,7 @@ func TestTasksService(t *testing.T) {
 		t.Error("Expected task to be deleted")
 	}
 
-	// Проверяем что удалилось
+	// Проверка удаления
 	retrieved, err = service.GetByID(created.ID, "student")
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
@@ -105,14 +104,14 @@ func TestSearchTasks(t *testing.T) {
 	log := logger.New("test")
 	service := NewTasksService(log, nil, nil, nil)
 
-	// Создаем несколько задач с разными ID
+	// Создание нескольких задач с разными ID
 	tasks := []string{"Go Task", "Docker Task", "K8s Task"}
 
 	for _, title := range tasks {
 		_ = createTestTask(service, title, "student", t)
 	}
 
-	// Получаем все задачи для проверки
+	// Получение всех задач для проверки
 	allTasks, err := service.GetAll("student")
 	if err != nil {
 		t.Errorf("Failed to get all tasks: %v", err)
@@ -123,7 +122,7 @@ func TestSearchTasks(t *testing.T) {
 		t.Logf("Task: %s (ID: %s)", task.Title, task.ID)
 	}
 
-	// Тестируем поиск - в in-memory версии поиск по contains
+	// Тест поиска
 	results, err := service.SearchByTitle("Go", "student")
 	if err != nil {
 		t.Errorf("Search failed: %v", err)

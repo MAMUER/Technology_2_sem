@@ -12,7 +12,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 		// Защита от clickjacking
 		w.Header().Set("X-Frame-Options", "DENY")
 
-		// Включает XSS фильтр в браузерах
+		// Включение XSS фильтр в браузерах
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 
 		// Content Security Policy (базовая)
@@ -27,7 +27,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 		// Referrer Policy
 		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 
-		// HSTS (включаем только если HTTPS)
+		// HSTS (только если HTTPS)
 		if r.TLS != nil {
 			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
 		}

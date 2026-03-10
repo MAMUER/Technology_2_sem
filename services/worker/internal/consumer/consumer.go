@@ -40,7 +40,7 @@ func NewConsumer(config ConsumerConfig, log *logger.Logger) (*Consumer, error) {
 		return nil, fmt.Errorf("failed to open channel: %w", err)
 	}
 
-	// Установка prefetch (количество сообщений, которые worker может взять за раз)
+	// Установка prefetch
 	err = ch.Qos(
 		config.Prefetch, // prefetch count
 		0,               // prefetch size
@@ -52,7 +52,7 @@ func NewConsumer(config ConsumerConfig, log *logger.Logger) (*Consumer, error) {
 		return nil, fmt.Errorf("failed to set prefetch: %w", err)
 	}
 
-	// Объявление очереди (должна совпадать с publisher)
+	// Объявление очереди
 	_, err = ch.QueueDeclare(
 		config.Queue, // name
 		true,         // durable
@@ -93,7 +93,7 @@ func (c *Consumer) Start() error {
 	msgs, err := c.channel.Consume(
 		c.queue, // queue
 		"",      // consumer
-		false,   // auto-ack (false = manual ack)
+		false,   // auto-ack
 		false,   // exclusive
 		false,   // no-local
 		false,   // no-wait
@@ -120,19 +120,18 @@ func (c *Consumer) Start() error {
 func (c *Consumer) processMessage(msg amqp.Delivery) {
 	startTime := time.Now()
 
-	// Парсим событие
 	var event map[string]interface{}
 	if err := json.Unmarshal(msg.Body, &event); err != nil {
 		c.log.Error("Failed to unmarshal message",
 			zap.Error(err),
 			zap.String("body", string(msg.Body)),
 		)
-		// Nack without requeue (отправляем в dead letter)
+		// Nack without requeue
 		msg.Nack(false, false)
 		return
 	}
 
-	// Извлекаем основные поля
+	// Извлечение основных полей
 	eventType, _ := event["event"].(string)
 	taskID, _ := event["task_id"].(string)
 	title, _ := event["title"].(string)
@@ -140,7 +139,7 @@ func (c *Consumer) processMessage(msg amqp.Delivery) {
 	requestID, _ := event["request_id"].(string)
 	timestamp, _ := event["ts"].(string)
 
-	// Логируем полученное событие
+	// Логирование полученных событий
 	c.log.Info("Received message",
 		zap.String("event", eventType),
 		zap.String("task_id", taskID),
@@ -152,7 +151,7 @@ func (c *Consumer) processMessage(msg amqp.Delivery) {
 		zap.Int("body_size", len(msg.Body)),
 	)
 
-	// Симуляция обработки (в реальном приложении здесь может быть бизнес-логика)
+	// Симуляция обработки
 	switch eventType {
 	case "task.created":
 		c.log.Info("Task created event processed", zap.String("task_id", taskID))
@@ -167,7 +166,7 @@ func (c *Consumer) processMessage(msg amqp.Delivery) {
 	// Искусственная задержка для демонстрации prefetch
 	time.Sleep(500 * time.Millisecond)
 
-	// Ack - подтверждаем успешную обработку
+	// Ack
 	if err := msg.Ack(false); err != nil {
 		c.log.Error("Failed to ack message",
 			zap.Error(err),

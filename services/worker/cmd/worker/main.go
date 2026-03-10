@@ -38,7 +38,6 @@ func main() {
 		}
 	}
 
-	// Создаем consumer для заданий
 	jobConsumer, err := consumer.NewJobConsumer(consumer.JobConsumerConfig{
 		URL:           rabbitURL,
 		Queue:         "task_jobs",

@@ -11,10 +11,10 @@ func SanitizeText(input string) string {
 		return input
 	}
 
-	// Экранируем HTML специальные символы
+	// Экранирование HTML специальных символов
 	sanitized := html.EscapeString(input)
 
-	// Удаляем потенциально опасные последовательности
+	// Удаление потенциально опасных последовательностей
 	sanitized = strings.ReplaceAll(sanitized, "javascript:", "")
 	sanitized = strings.ReplaceAll(sanitized, "data:", "")
 	sanitized = strings.ReplaceAll(sanitized, "vbscript:", "")
@@ -28,10 +28,10 @@ func SanitizeHTML(input string) string {
 		return input
 	}
 
-	// Удаляем все HTML теги
+	// Удаление всех HTML тегов
 	sanitized := stripHTMLTags(input)
 
-	// Экранируем оставшиеся специальные символы
+	// Экранирование оставшихся специальных символов
 	sanitized = html.EscapeString(sanitized)
 
 	return sanitized
@@ -62,18 +62,18 @@ func ValidateAndSanitizeDescription(description string) (string, error) {
 		return description, nil
 	}
 
-	// Проверяем длину
+	// Проверка длины
 	if len(description) > 1000 {
 		return "", ErrDescriptionTooLong
 	}
 
-	// Очищаем
+	// Очистка
 	sanitized := SanitizeHTML(description)
 
 	return sanitized, nil
 }
 
-// Определяем ошибки
+// Определение ошибок
 var (
 	ErrDescriptionTooLong = &ValidationError{"description too long (max 1000 characters)"}
 )

@@ -53,10 +53,10 @@ func (h *JobHandlers) ProcessTaskJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Генерируем уникальный message_id для идемпотентности
+	// Генерация уникального message_id
 	messageID := uuid.New().String()
 
-	// Публикуем задание в очередь
+	// Публикация задания в очередь
 	err := h.jobPublisher.PublishJob(r.Context(), req.TaskID, messageID)
 	if err != nil {
 		log.Error("failed to publish job", zap.Error(err))
@@ -79,7 +79,7 @@ func (h *JobHandlers) ProcessTaskJob(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Ready – эндпоинт для проверки готовности (очереди созданы, можно подключаться)
+// Ready – эндпоинт для проверки готовности
 func (h *JobHandlers) Ready(w http.ResponseWriter, r *http.Request) {
 	if h.jobPublisher != nil {
 		w.WriteHeader(http.StatusOK)

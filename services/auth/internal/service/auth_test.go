@@ -9,10 +9,10 @@ func TestValidateCredentials(t *testing.T) {
 	// заглушка
 	log := logger.New("test")
 
-	// Создаем сервис с логгером
+	// Создание сервиса с логгером
 	service := NewAuthService(log)
 
-	// Тест 1: правильные креды
+	// Тест 1: credentials
 	if !service.ValidateCredentials("student", "student") {
 		t.Error("Expected valid credentials for student/student")
 	}
@@ -32,19 +32,19 @@ func TestValidateToken(t *testing.T) {
 	log := logger.New("test")
 	service := NewAuthService(log)
 
-	// Тест 1: валидный токен
+	// Тест 1: valide токен
 	valid, subject := service.ValidateToken("demo-token-for-student")
 	if !valid || subject != "student" {
 		t.Errorf("Expected valid token for student, got valid=%v subject=%s", valid, subject)
 	}
 
-	// Тест 2: другой валидный токен
+	// Тест 2: другой valide токен
 	valid, subject = service.ValidateToken("demo-token-for-admin")
 	if !valid || subject != "admin" {
 		t.Errorf("Expected valid token for admin, got valid=%v subject=%s", valid, subject)
 	}
 
-	// Тест 3: невалидный токен
+	// Тест 3: invalid токен
 	valid, subject = service.ValidateToken("invalid-token")
 	if valid {
 		t.Error("Expected invalid token")

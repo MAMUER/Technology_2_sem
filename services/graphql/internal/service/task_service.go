@@ -1,7 +1,6 @@
 package service
 
 import (
-	// Убираем "time" - он не используется
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"tech-ip-sem2/services/graphql/graph/model"

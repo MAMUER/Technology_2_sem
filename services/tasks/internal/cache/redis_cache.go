@@ -47,7 +47,7 @@ func NewRedisCache(cfg CacheConfig, log *logger.Logger) *RedisCache {
 		PoolTimeout:  4 * time.Second,
 	})
 
-	// Проверяем подключение
+	// Подключение
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -134,7 +134,7 @@ func (c *RedisCache) GetTask(ctx context.Context, id string) (*models.Task, erro
 	var task models.Task
 	if err := json.Unmarshal(data, &task); err != nil {
 		c.log.Warn("Failed to unmarshal cached task", zap.Error(err), zap.String("key", key))
-		// Удаляем битые данные
+		// Удаление битых данных
 		c.client.Del(ctx, key)
 		return nil, nil
 	}
