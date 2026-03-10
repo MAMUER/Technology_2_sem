@@ -26,15 +26,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+
       - name: Install dependencies
         run: go mod download
+
       - name: Run vet
         run: go vet ./...
+
       - name: Run tests
         run: go test -v ./...
 
@@ -44,20 +48,27 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
+
       - name: Create bin directory
         run: mkdir -p bin
+
       - name: Build Auth Service
         run: go build -o bin/auth-service ./services/auth/cmd/auth
+
       - name: Build Tasks Service
         run: go build -o bin/tasks-service ./services/tasks/cmd/tasks
+
       - name: Build GraphQL Service
         run: go build -o bin/graphql-service ./services/graphql/cmd/graphql
+
       - name: Build Worker Service
         run: go build -o bin/worker-service ./services/worker/cmd/worker
+
       - uses: actions/upload-artifact@v4
         with:
           name: binaries
@@ -75,20 +86,23 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+
       - name: Prepare repository name
         id: repo-name
         run: |
           REPO="${{ github.repository }}"
           REPO_LOWER=$(echo $REPO | tr '[:upper:]' '[:lower:]')
           echo "repo_lower=$REPO_LOWER" >> $GITHUB_OUTPUT
+
       - uses: docker/setup-buildx-action@v3
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
-      
+
       # Auth Service
       - name: Extract metadata for Auth
         id: meta-auth
@@ -99,6 +113,7 @@ jobs:
             type=sha,format=short
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
+
       - name: Build and push Auth image
         uses: docker/build-push-action@v5
         with:
@@ -108,7 +123,7 @@ jobs:
           tags: ${{ steps.meta-auth.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
       # Tasks Service
       - name: Extract metadata for Tasks
         id: meta-tasks
@@ -119,6 +134,7 @@ jobs:
             type=sha,format=short
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
+
       - name: Build and push Tasks image
         uses: docker/build-push-action@v5
         with:
@@ -128,7 +144,7 @@ jobs:
           tags: ${{ steps.meta-tasks.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
       # GraphQL Service
       - name: Extract metadata for GraphQL
         id: meta-graphql
@@ -139,6 +155,7 @@ jobs:
             type=sha,format=short
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
+
       - name: Build and push GraphQL image
         uses: docker/build-push-action@v5
         with:
@@ -159,6 +176,7 @@ jobs:
             type=sha,format=short
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
+
       - name: Build and push Worker image
         uses: docker/build-push-action@v5
         with:
@@ -179,32 +197,25 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
+
       - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Add host to known_hosts
         run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-      
+
       - name: FULL CLEANUP - Remove everything
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             echo "=== FULL CLEANUP ==="
-            
-            # Остановка и удаление всех контейнеров
             cd /opt/techip 2>/dev/null && docker-compose down -v --remove-orphans 2>/dev/null || true
-            
-            # Удаление всех контейнеров
             docker container prune -f 2>/dev/null || true
-            
-            # Удаление всех томов
             docker volume prune -f 2>/dev/null || true
-            
-            # Удаление директории проекта
             rm -rf /opt/techip
-            
             echo "Cleanup completed"
           '
-      
+
       - name: Create .env file from variables
         run: |
           cat > .env << EOF
@@ -267,7 +278,7 @@ jobs:
           # Paths
           CERTS_PATH=/opt/techip/certs
           EOF
-      
+
       - name: Prepare server directories
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
@@ -292,7 +303,7 @@ jobs:
           scp -o StrictHostKeyChecking=no deploy/monitoring/grafana/provisioning/dashboards/dashboard.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/grafana/provisioning/dashboards/
           scp -o StrictHostKeyChecking=no deploy/monitoring/grafana/provisioning/dashboards/tasks-dashboard.json ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/grafana/provisioning/dashboards/
           scp -o StrictHostKeyChecking=no deploy/monitoring/grafana/provisioning/datasources/prometheus.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/techip/deploy/monitoring/grafana/provisioning/datasources/
-      
+
       - name: Generate SSL certificates if not exist
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
@@ -304,7 +315,7 @@ jobs:
                 -subj "/CN=${{ secrets.VPS_HOST }}"
             fi
           '
-      
+
       - name: Deploy
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
@@ -315,49 +326,51 @@ jobs:
             sleep 20
             docker system prune -f
           '
-      
+
       - name: Verify deployment
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
             cd /opt/techip
+            
+            apt-get update && apt-get install -y jq
+            
             echo "=== CONTAINER STATUS ==="
             docker-compose ps
             
             echo ""
             echo "=== SERVICE HEALTH ==="
             
-            # Auth check
             AUTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/v1/auth/verify -H "Authorization: Bearer demo-token-for-student" || echo "failed")
             echo "Auth service: $AUTH_STATUS"
             
-            # Tasks check
             TASKS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8082/v1/tasks -H "Authorization: Bearer demo-token-for-student" || echo "failed")
             echo "Tasks service: $TASKS_STATUS"
             
-            # GraphQL check
             GRAPHQL_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/health || echo "failed")
             echo "GraphQL service: $GRAPHQL_STATUS"
             
-            # Test RabbitMQ connection
             echo ""
             echo "=== RABBITMQ CHECK ==="
             docker logs pz20-tasks --tail 20 | grep -i rabbit || echo "No rabbit logs yet"
-
-            # Проверка job очередей
+            
             echo ""
             echo "=== JOB QUEUES CHECK ==="
             docker exec pz29-rabbitmq rabbitmqctl list_queues name messages | grep -E "task_jobs|task_jobs_retry|task_jobs_dlq" || echo "Queues not found"
-
-            # Тест создания задания
+            
             echo ""
             echo "=== JOB CREATION TEST ==="
-            JOB_RESPONSE=$(curl -X POST http://193.233.175.221:8082/v1/jobs/process-task \
+            TOKEN=$(curl -s -X POST http://localhost:8081/v1/auth/login \
               -H "Content-Type: application/json" \
-              -H "Authorization: Bearer demo-token-for-student" \
-              -d '{"task_id":"ci-test-job"}')
+              -d "{\"username\":\"student\",\"password\":\"student\"}" | jq -r ".access_token")
+            echo "Token obtained"
+            
+            JOB_RESPONSE=$(curl -s -X POST http://localhost:8082/v1/jobs/process-task \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $TOKEN" \
+              -d "{\"task_id\":\"ci-test-job\"}")
             echo "Job response: $JOB_RESPONSE"
           '
-      
+
       - name: Collect results for notification
         id: collect_results
         run: |
@@ -368,15 +381,15 @@ jobs:
           Коммит: ${{ github.sha }}
           
           Запущенные сервисы:
-          • Auth (HTTP:8081, gRPC:50051)
-          • Tasks (3 реплики)
-          • GraphQL (порт 8090)
-          • PostgreSQL
-          • Redis
-          • RabbitMQ
-          • Worker (2 экземпляра)
-          • Prometheus + Grafana
-          • NGINX (HTTPS + LB)"
+          - Auth (HTTP:8081, gRPC:50051)
+          - Tasks (3 реплики)
+          - GraphQL (порт 8090)
+          - PostgreSQL
+          - Redis
+          - RabbitMQ
+          - Worker (2 экземпляра)
+          - Prometheus + Grafana
+          - NGINX (HTTPS + LB)"
           
           echo "summary<<EOF" >> $GITHUB_OUTPUT
           echo "$SUMMARY" >> $GITHUB_OUTPUT
