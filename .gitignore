@@ -38,3 +38,7 @@ deploy/tls/certs/
 # Cookies
 cookies.txt
 *.cookies
+
+~$*.docx
+
+*.docx
