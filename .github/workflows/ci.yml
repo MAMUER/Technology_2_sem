@@ -413,6 +413,16 @@ jobs:
           echo "$SUMMARY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Clean up old Docker data
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            echo "=== CLEANING UP OLD DOCKER DATA ==="
+            docker system prune -f --filter "until=72h"
+            docker image prune -f --filter "until=168h"
+            docker volume prune -f
+            echo "Cleanup completed"
+          '
+
   notify:
     name: Send Notification
     runs-on: ubuntu-latest
