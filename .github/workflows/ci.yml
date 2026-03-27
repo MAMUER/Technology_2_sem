@@ -205,6 +205,24 @@ jobs:
       - name: Add host to known_hosts
         run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Install Docker on VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
+            echo "=== INSTALLING DOCKER ==="
+            if ! command -v docker &> /dev/null; then
+              curl -fsSL https://get.docker.com -o get-docker.sh
+              sh get-docker.sh
+              apt-get install -y docker-compose
+              systemctl enable docker
+              systemctl start docker
+              echo "Docker installed"
+            else
+              echo "Docker already installed"
+            fi
+            docker --version
+            docker-compose --version
+          '
+
       - name: FULL CLEANUP - Remove everything
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} '
